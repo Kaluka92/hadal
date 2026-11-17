@@ -394,7 +394,7 @@ async function buildPipes(){
  const mp=new Map();for(const k of need){const [an,al,sh]=k.split('|');mp.set(k,matPipe(an,al==='true',sh==='true'))}
  const surfMod=smod(SURF,'superficie'),snowMod=smod(SNOW,'nieve'),coneMod=smod(CONE,'conos');
  const [surf,snow,cone,cau,det,blit,dep,rays,kar,down,up,fin,pm]=await Promise.all([
-  device.createRenderPipelineAsync({layout:PL_0,vertex:{module:surfMod,entryPoint:'vs'},fragment:{module:surfMod,entryPoint:'fs',targets:[{format:HDR}]},primitive:{topology:'triangle-strip'},depthStencil:{format:DEPTH,depthWriteEnabled:true,depthCompare:'less'},multisample:{count:SC}}),
+  device.createRenderPipelineAsync({layout:PL_0,vertex:{module:surfMod,entryPoint:'vs'},fragment:{module:surfMod,entryPoint:'fs',targets:[{format:HDR}]},primitive:{topology:'triangle-list'},depthStencil:{format:DEPTH,depthWriteEnabled:true,depthCompare:'less'},multisample:{count:SC}}),
   device.createRenderPipelineAsync({layout:PL_0,vertex:{module:snowMod,entryPoint:'vs'},fragment:{module:snowMod,entryPoint:'fs',targets:[{format:HDR,blend:BLEND_ADD}]},primitive:{topology:'triangle-strip'},depthStencil:{format:DEPTH,depthWriteEnabled:false,depthCompare:'less'},multisample:{count:SC}}),
   device.createRenderPipelineAsync({layout:PL_0,vertex:{module:coneMod,entryPoint:'vs',buffers:[CONEL]},fragment:{module:coneMod,entryPoint:'fs',targets:[{format:HDR,blend:BLEND_ADD}]},primitive:{topology:'triangle-list',cullMode:'none'},depthStencil:{format:DEPTH,depthWriteEnabled:false,depthCompare:'less'},multisample:{count:SC}}),
   fsPipe(P_CAU,'caus',[BGL0],HDR),fsPipe(P_DET,'detalle',[BGL0],'rgba8unorm'),fsPipe(P_BLIT,'mip',[BGL0,BGL_T],'rgba8unorm'),
@@ -445,8 +445,9 @@ const camV=new T.Vector3(),camR=new T.Vector3(),camU=new T.Vector3();
 function camBasis(){const sy=Math.sin(yaw),cy=Math.cos(yaw),sp=Math.sin(pitch),cp=Math.cos(pitch);camV.set(-sy*cp,sp,-cy*cp);camR.set(cy,0,-sy);camU.set(sp*sy,cp,sp*cy)}
 function fillG(a,vp,t,dep,sunD){a.set(vp,0);a.set(lightVP,16);const W=TG.W,H=TG.H,tY=Math.tan(35*Math.PI/180),tX=tY*(canvas.width/canvas.height);
  a.set([cam.position.x,cam.position.y,cam.position.z,t, camV.x,camV.y,camV.z,0, .05,.022,.018,0, .060,.026,.018,0, SUN.x,SUN.y,SUN.z,sunD, lampAmb?.9:0,1,shOn,texSh?texSh.width:1,
-  W,H,1/W,1/H, tX,tY,.2,600, camR.x,camR.y,camR.z,0, camU.x,camU.y,camU.z,0, camV.x,camV.y,camV.z,0, QS[QL].steps,.05,exposure,(DBGM|(QL>=3?4096:0)|(QL>=4?8192:0)), canvas.width,canvas.height,1/canvas.width,1/canvas.height, SO[0],SO[1],SO[2]||0,lampMode===2?1:0],32);a[88]=focusV;a[89]=Math.max(2,3.5*canvas.height/720)}
+  W,H,1/W,1/H, tX,tY,.2,600, camR.x,camR.y,camR.z,0, camU.x,camU.y,camU.z,0, camV.x,camV.y,camV.z,0, QS[QL].steps,.05,exposure,(DBGM|(QL>=3?4096:0)|(QL>=4?8192:0)|(window.__above?1048576:0)), canvas.width,canvas.height,1/canvas.width,1/canvas.height, SO[0],SO[1],SO[2]||0,lampMode===2?1:0],32);a[88]=focusV;a[89]=Math.max(2,3.5*canvas.height/720)}
 let exposure=.7;
+const oceanH=(x,z,t)=>{let h=0;for(const w of OWD){const k=6.28318/w[1];h+=w[2]*Math.sin(k*(Math.cos(w[0])*x+Math.sin(w[0])*z)-Math.sqrt(9.81*k)*t)}return h};
 const PROJ=()=>M4.persp(70*Math.PI/180,canvas.width/canvas.height,.2,600);
 
 // ---- sombras del sol ----
@@ -494,9 +495,9 @@ function frame(t,dep,sunD){
  const p=enc.beginRenderPass({timestampWrites:tw('principal'),colorAttachments:[{view:SC>1?TG.v.ms:TG.v.hdr,resolveTarget:SC>1?TG.v.hdr:undefined,clearValue:{r:0,g:0,b:0,a:1},loadOp:'clear',storeOp:SC>1?'discard':'store'}],
   depthStencilAttachment:{view:TG.v.depth,depthClearValue:1,depthLoadOp:'clear',depthStoreOp:'store'}});
  p.setBindGroup(0,bg0);p.setPipeline(PP.bgf);p.draw(3);if(!(SKIP&&SKIP.has('terreno')))drawTerrain(p,false);if(fineOn&&!(SKIP&&SKIP.has('terreno')))drawTerrainF(p);if(!(SKIP&&SKIP.has('estaticos')))drawStatic(p,STAT,false);if(!(SKIP&&SKIP.has('especies')))drawSpecies(p,false,false);
- if(dep<160&&!(SKIP&&SKIP.has('superficie'))){p.setPipeline(PP.surf);p.draw(4)}
+ if(dep<160&&!(SKIP&&SKIP.has('superficie'))){p.setPipeline(PP.surf);p.draw(6*448*256)}
  if(!(SKIP&&SKIP.has('especies')))drawSpecies(p,true,false);
- if(!(SKIP&&SKIP.has('nieve'))){p.setPipeline(PP.snow);p.draw(4,4000)}
+ if(!(SKIP&&SKIP.has('nieve'))&&!window.__above){p.setPipeline(PP.snow);p.draw(4,4000)}
  p.setPipeline(PP.puff);p.setVertexBuffer(0,puffBuf);p.draw(4,256);
  p.setPipeline(PP.plk);p.setBindGroup(1,pkRBG);p.draw(4,PKN);
  if(!(SKIP&&SKIP.has('conos'))){p.setPipeline(PP.cone);p.setVertexBuffer(0,coneV.buf);p.draw(coneV.n,2)}p.end();

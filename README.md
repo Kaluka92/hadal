@@ -16,7 +16,7 @@ Abrí `index.html` en un Chrome o Edge reciente con WebGPU. Necesita internet: T
 | Tecla | Acción |
 |---|---|
 | Arrastrar / W A S D | mirar / moverse |
-| Espacio · C · Shift | subir · bajar · acelerar |
+| Espacio · C · Shift | subir · bajar · acelerar (mantené Espacio al llegar arriba para emerger y flotar sobre las olas) |
 | F | sónar activo |
 | J | diario de campo |
 | T | recorrido guiado |
@@ -52,6 +52,7 @@ La resolución interna se ajusta sola. Si Ultra o Premium no sostienen unos ~50 
 - **Profundidad de campo con enfoque automático (Ultra y Premium).** El submarino lee la profundidad del centro de la pantalla con una lectura asíncrona de 1 texel (cada 6 cuadros), suaviza el foco en escala logarítmica y limita el rango a 1,2–20 m; en el pase final se desenfoca con un disco de muestras en espiral áurea (10/18), ponderando por el círculo de confusión de cada muestra para que el fondo desenfocado no manche el primer plano. Bit 262144.
 - **Destellos de lente (Ultra y Premium).** Estela anamórfica azulada sobre el bloom y dispersión cromática radial del bloom. Bit 524288.
 - **Antialiasing temporal (TAA) en Ultra y Premium.** Jitter de subpíxel (Halton 2,3 de 8 muestras) en la proyección, reproyección del historial con la profundidad y la matriz previa, y recorte por varianza de la vecindad 3×3 para limitar el ghosting en la vegetación que se mueve; el resultado se copia al buffer HDR antes del bloom y del pase final. Interruptor de depuración: bit 16384.
+- **Mar de tormenta en la superficie.** Océano de 10 olas de Gerstner (hasta ~10 m de amplitud y 220 m de longitud de onda) calculado en el vertex shader sobre una malla polar centrada en la cámara (~690 mil vértices, con nivel de detalle por distancia y por profundidad), con normales y jacobiano analíticos para la espuma, reflejo de un cielo de tormenta procedural con rayos, brillo del sol, dispersión en las crestas y, desde abajo, ventana de Snell con la forma real de las olas y burbujas. Las mismas olas se evalúan en CPU para que el submarino flote y cabecee. Al emerger aparecen gotas en el vidrio y al sumergirse una ráfaga de burbujas.
 - **Piel de la fauna.** Peces con escamas por celdas (relieve por normal derivada, brillo iridiscente según el ángulo de vista y línea lateral); calamares y pulpos con cromatóforos de color variable y iridóforos que centellean. Todo procedural en el fragment shader.
 - **Criaturas míticas del fondo de la fosa.** Cuatro figuras de leyenda (Kraken, Leviatán, Escila y Jörmungandr) modeladas por código con barrido de tubos por transporte paralelo del marco, lofts con aletas, cuellos y cabezas de varias hileras de dientes, ojos y fotóforos emisivos. Están marcadas en la ficha como mitos, no como fauna real.
 - **Efectos de impacto**: sacudida de cámara y aberración cromática al tocar el fondo a velocidad.
