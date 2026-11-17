@@ -355,6 +355,15 @@ const SPS=[
  g:()=>MG([P(LZ(1,u=>.18*Math.pow(Math.sin(Math.PI*u),.6)+.01,8,8),'#e9c2c8',{e:.08,p:[0,.1,0]}),P(finV([[-.4,.1],[-.7,.3],[-.7,0]]),'#e0b4bc')]),
  note:'Los pepinos de mar dominan la megafauna de las fosas; Elpidia atakama se registró a ~8.070 m (Fosa Perú-Chile).'},
 // ---- objetos humanos ----
+// ---- fondo de la fosa: criaturas míticas (no son fauna real) ----
+{n:'Kraken',vq:'Criatura de mito o leyenda: no es un animal real.',l:'Folclore escandinavo',d:[7500,8400],k:'W',sz:[48,64],lam:.012,R:90,W:.004,cap:6,det:200,anim:'p.x+=sin(uT*.9+ph+p.z*5.)*.03*smoothstep(.1,.5,p.z);',
+ g:()=>MG([P(S_(.1,6,4),'#a14a3e')]),note:'Monstruo marino del folclore de Noruega e Islandia. El obispo Erik Pontoppidan lo describió en su Historia natural de Noruega (1752–53) como una bestia del tamaño de una isla. Suele relacionárselo con los avistamientos de calamares gigantes.'},
+{n:'Leviatán',vq:'Criatura de mito o leyenda: no es un animal real.',l:'Biblia hebrea · Job 41',d:[7500,8400],k:'W',sz:[110,150],lam:.008,R:140,W:.003,cap:4,det:260,anim:'p.x+=sin(uT*.7+ph+p.z*4.)*.05*smoothstep(.45,-.5,p.z);',
+ g:()=>MG([P(S_(.1,6,4),'#35505a')]),note:'Monstruo marino de la Biblia hebrea: aparece en Job 41, el Salmo 74 e Isaías 27. Job lo describe con el cuerpo cubierto de escudos y ojos «como los párpados del alba». Se lo compara con el Lotan de los textos de Ugarit.'},
+{n:'Escila',vq:'Criatura de mito o leyenda: no es un animal real.',l:'Odisea · canto XII',d:[7500,8400],k:'F',sz:[44,58],lam:.012,det:200,lift:2,
+ g:()=>MG([P(S_(.1,6,4),'#3a4048')]),note:'Monstruo de la Odisea: seis cabezas sobre largos cuellos, cada una con tres hileras de dientes, y doce patas colgantes; su voz sonaba como la de un cachorro. Vivía en una cueva frente a Caribdis, en un estrecho por el que debía pasar Odiseo.'},
+{n:'Jörmungandr',vq:'Criatura de mito o leyenda: no es un animal real.',l:'Mito nórdico · Edda en prosa',d:[7500,8400],k:'F',sz:[170,230],lam:.006,det:320,lift:6,
+ g:()=>MG([P(S_(.1,6,4),'#35452e')]),note:'Serpiente del mito nórdico (Edda en prosa de Snorri Sturluson), hijo de Loki y de la giganta Angrboða. Crece hasta rodear Midgard y morderse la cola. En el Ragnarök se enfrenta a Thor.'},
 {n:'Botella de plástico',l:'Residuo',d:[0,8400],k:'F',sz:[.25,.3],lam:.5,cap:400,det:12,
  g:()=>MG([P(CY(.04,.04,.18,8),'#9fd0e6'),P(CY(.04,.012,.07,8),'#9fd0e6',{p:[0,.18,0]}),P(CY(.014,.014,.03,6),'#e8e8e8',{p:[0,.25,0]})]),
  note:'El plástico llega al océano profundo: en 2018 se informó una bolsa a 10.898 m en la Fosa de las Marianas (base de datos de JAMSTEC).'},
