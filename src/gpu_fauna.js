@@ -367,74 +367,86 @@ function sweepG(pts,rad,colf,na=16){const n=pts.length,pos=[],col=[],ix=[];let n
 const orient=(g,dir,pos)=>{g.applyQuaternion(new T.Quaternion().setFromUnitVectors(V3([0,0,1]),V3(dir).normalize()));g.translate(pos[0],pos[1],pos[2]);return g};
 const curveP=(cs,n)=>new T.CatmullRomCurve3(cs.map(V3)).getPoints(n);
 
-// --- Kraken: calamar colosal con ojos dorados, fotóforos, ocho brazos con ventosas, dos tentáculos con maza y garfios y un mástil de barco entre las garras
-SPN('Kraken').g=()=>{const red=HX('#8f3a34'),pale=HX('#c99a86'),dk=HX('#5e2420'),gs=[];
+// colmillo irregular y curvo (dos tramos), amarillento y sucio
+const fangG=(x,y,z,len,r,rn,dirY=-1,col='#b8ab86')=>{const bend=(rn()-.5)*.5,a=V3([x,y,z]),m=V3([x+bend*len*.4,y+dirY*len*.55,z+(rn()-.3)*len*.25]),b=V3([x+bend*len,y+dirY*len,z+(rn()-.2)*len*.5]);return[P(seg(a,m,r,r*.6,4),col),P(seg(m,b,r*.6,r*.08,4),'#8c7f5e')]};
+const socketG=(x,y,z,sd,sc,col,glow=2.2)=>[P(S_(sc,9,7),'#020303',{p:[x,y,z],s:[1,1.1,.8]}),P(S_(1,8,6),col,{p:[x+sd*sc*.55,y,z+sc*.3],s:[sc*.16,sc*.55,sc*.12],e:glow}),P(new T.TorusGeometry(sc*1.05,sc*.28,5,10),'#0c0f10',{p:[x+sd*sc*.12,y,z+sc*.2],r:[0,Math.PI/2,0]})];
+
+// cabeza de serpiente marina: cráneo largo, cuencas hundidas con pupila rasgada, cuernos, dientes desparejos, boca abierta con garganta en brasa y barbas
+function serpHead(bd,sp,bl,eye,k,rn){const gs=[];
+ gs.push(LOFT(.24,s=>{const f=Math.max(Math.pow(Math.sin(Math.PI*Math.min(.97,.07+.9*s)),.55),.05);return{w:.044*f,ht:.03*f,hb:.012*f,p:2.9,yc:.006}},(s,c,sn)=>MX3(MX3(bd,sp,.55*ST(.1,1,sn)+.2*Math.sin(s*40)),HX('#6a6c58'),ST(0,-.7,sn)*.35),34,22,[0,0,.085]));
+ gs.push(P(S_(1,10,7),'#16201f',{p:[0,-.02,.092],s:[.036,.008,.098],r:[.2,0,0]}),P(S_(1,8,6),'#2a0a0a',{p:[0,-.006,.1],s:[.028,.007,.07],e:.2}),P(S_(1,6,5),'#ff4a14',{p:[0,-.008,.045],s:[.014,.006,.02],e:1.3}));
+ for(const sd of[-1,1]){gs.push(...socketG(sd*.039,.014,.115,sd,.0105,eye,2.6));
+  gs.push(P(CO(.009,.05,5),'#121a1a',{p:[sd*.03,.034,.058],r:[-.75,0,sd*.7]}),P(CO(.005,.03,5),'#121a1a',{p:[sd*.034,.03,.1],r:[-.6,0,sd*.5]}));
+  for(let i=0;i<10;i++){if(rn()<.2)continue;const z=.075+i*.0105+(rn()-.5)*.004;gs.push(...fangG(sd*(.034-.0012*i+(rn()-.5)*.003),-.004,z,.012+rn()*.03+(i===0||i===6?.025:0),.0032,rn,1))}
+  for(let i=0;i<9;i++){if(rn()<.25)continue;const z=.07+i*.0105+(rn()-.5)*.004;gs.push(...fangG(sd*(.028-.0011*i+(rn()-.5)*.003),-.022,z,.011+rn()*.026,.0028,rn,1))}}
+ const e0=V3([0,-.028,.075]);for(let i=0;i<4;i++){const tx=(i-1.5)*.012;gs.push(sweepG(curveP([[tx,-.03,.14],[tx+.004,-.07-.03*rn(),.13],[tx-.006,-.12-.05*rn(),.115],[tx+.01,-.19-.06*rn(),.1]],14),u=>.0026*(1-.8*u)+.0004,()=>[.06,.08,.07],6))}
+ return MG(gs).scale(k,k,k)}
+
+// --- Kraken: calamar colosal cubierto de cicatrices, con ojo amarillento hundido, pico negro, brazos con ventosas dentadas y garfios
+SPN('Kraken').g=()=>{const red=HX('#4a1c22'),pale=HX('#6e5048'),dk=HX('#1d0b0e'),gs=[],rn=mb(41);
  const msec=s=>{const f=Math.max(Math.pow(s,.6)*(1-.1*s),.004);return{w:.09*f,ht:.085*f,hb:.075*f,p:2.2,yc:0}};
- const colf=(s,c,sn,x,y)=>MX3(MX3(pale,red,ST(-.4,.3,sn)),dk,.3*ST(.4,1,s)+.1*Math.sin(s*60+c*9));
- gs.push(LOFT(.62,msec,colf,56,28,[0,0,-.31]));
+ const colf=(s,c,sn)=>MX3(MX3(pale,red,ST(-.4,.3,sn)),dk,.35*ST(.4,1,s)+.18*Math.sin(s*60+c*9));
+ gs.push(richer(LOFT(.62,msec,colf,56,28,[0,0,-.31]),.012));
  for(const sd of[-1,1])gs.push(FIN(v=>[sd*(.04+.14*v),0,-.62+.05],v=>[sd*(.04+.14*v),0,-.62+.26*(1-.55*v)],{T:.008,nrm:[0,1,0],nv:9,c1:red,c2:dk,tip:.5}));
- gs.push(LOFT(.13,s=>{const f=Math.max(Math.sin(Math.PI*(.12+.78*s)),.05);return{w:.075*f,ht:.07*f,hb:.062*f,p:2.2,yc:0}},colf,16,18,[0,0,.07]));
- for(const sd of[-1,1]){const x=sd*.085;gs.push(P(S_(.03,10,8),'#0a1218',{p:[x,.01,.07]}),P(new T.TorusGeometry(.031,.0045,6,16),'#d6a93c',{p:[x+sd*.002,.01,.07],r:[0,Math.PI/2,0],e:.4}),P(S_(.012,6,5),'#e8c25a',{p:[x+sd*.022,.012,.075],e:.9}))}
- gs.push(P(CO(.02,.06,6),'#2a1a18',{p:[0,-.05,.12],r:[Math.PI/2+.25,0,0]}),P(CO(.012,.035,6),'#3a2420',{p:[0,-.045,.15],r:[Math.PI/2-.15,0,0]}));
- const rn=mb(41);for(let i=0;i<34;i++){const s=.15+rn()*.8,q=msec(s),th=rn()*6.283,z=-.31+(-.31)*0+(s*.62-.31)-0,ze=-.31+s*.62-.31;gs.push(P(S_(.0052,5,4),'#7ad7ff',{p:[q.w*Math.cos(th)*1.02,q.ht*Math.sin(th)*1.02,-.62+s*.62],e:2.2}))}
- for(let i=0;i<8;i++){const a=i/8*6.2832+.35;gs.push(...armG([Math.cos(a)*.045,Math.sin(a)*.045,.13],[Math.cos(a)*.28,Math.sin(a)*.28-.08,1],.5+.08*Math.sin(i*2.1),.026,34,'#9a463c',.2,1,9))}
- for(const sd of[-1,1]){gs.push(...armG([sd*.014,-.035,.13],[sd*.18,-.1,1],1.05,.012,0,'#a65a4a',.12,1,12));
-  const e=V3([sd*.18,-.18,1.1]);gs.push(P(S_(.026,7,5),'#b46858',{p:[e.x,e.y,e.z],s:[1,1,3.6]}),...Array.from({length:12},(_,k)=>P(S_(.0065,4,3),'#ecdccf',{p:[e.x+(k%2?.011:-.011),e.y-.013,e.z-.07+k*.014]})),...Array.from({length:5},(_,k)=>P(CO(.004,.016,4),'#2a1a18',{p:[e.x,e.y-.02,e.z-.04+k*.025],r:[Math.PI,0,0]})))}
- gs.push(P(seg(V3([-.3,-.2,.75]),V3([-.18,.32,.9]),.006,.005,6),'#3a2a1a'),P(seg(V3([-.34,.22,.84]),V3([-.06,.3,.9]),.003,.003,5),'#3a2a1a'),P(BXs(.0025,.07,.09,.002,1),'#8f8468',{p:[-.2,.17,.87],r:[0,.3,.2]}));
+ gs.push(richer(LOFT(.13,s=>{const f=Math.max(Math.sin(Math.PI*(.12+.78*s)),.05);return{w:.075*f,ht:.07*f,hb:.062*f,p:2.2,yc:0}},colf,16,18,[0,0,.07]),.01));
+ for(const sd of[-1,1]){const x=sd*.082;gs.push(P(S_(.033,10,8),'#050404',{p:[x,.01,.068]}),P(S_(.027,10,8),'#a89a58',{p:[x+sd*.004,.01,.07],e:.5}),P(S_(1,8,6),'#030303',{p:[x+sd*.022,.01,.074],s:[.006,.0045,.016]}),P(new T.TorusGeometry(.034,.007,6,16),'#140808',{p:[x+sd*.002,.01,.068],r:[0,Math.PI/2,0]}))}
+ gs.push(P(S_(.03,8,6),'#140a0a',{p:[0,-.05,.115],s:[1,1.3,1]}),P(CO(.024,.07,6),'#050404',{p:[0,-.06,.12],r:[Math.PI/2+.3,0,0]}),P(CO(.016,.05,6),'#0a0606',{p:[0,-.05,.155],r:[Math.PI/2-.2,0,0]}),...Array.from({length:10},(_,k)=>P(CO(.003,.012,4),'#c9c0a8',{p:[(k%2?.012:-.012),-.065,.13+k*.004],r:[Math.PI,0,0]})));
+ for(let i=0;i<26;i++){const s=.1+rn()*.8,q=msec(s),th=rn()*6.283;gs.push(P(S_(.0038,5,4),'#5ec8c0',{p:[q.w*Math.cos(th)*1.02,q.ht*Math.sin(th)*1.02,-.62+s*.62],e:1.2}))}
+ for(let i=0;i<14;i++){const s=.12+rn()*.75,q=msec(s),th=rn()*6.283,a=rn()*3;gs.push(P(new T.TorusGeometry(.012+rn()*.01,.0022,5,10),'#c8bca6',{p:[q.w*Math.cos(th)*1.01,q.ht*Math.sin(th)*1.01,-.62+s*.62],r:[Math.sin(th)*1.2,Math.PI/2,a]}))}
+ for(let i=0;i<8;i++){const a=i/8*6.2832+.35;gs.push(...armG([Math.cos(a)*.045,Math.sin(a)*.045,.13],[Math.cos(a)*.28,Math.sin(a)*.28-.08,1],.55+.1*Math.sin(i*2.1),.027,40,'#5a2428',.2,1,10))}
+ for(const sd of[-1,1]){gs.push(...armG([sd*.014,-.035,.13],[sd*.18,-.1,1],1.15,.0125,0,'#6a3030',.12,1,14));
+  const e=V3([sd*.19,-.2,1.2]);gs.push(P(S_(.026,7,5),'#5a2a2a',{p:[e.x,e.y,e.z],s:[1,1,3.6]}),...Array.from({length:12},(_,k)=>P(S_(.0065,4,3),'#c8bca6',{p:[e.x+(k%2?.011:-.011),e.y-.013,e.z-.07+k*.014]})),...Array.from({length:9},(_,k)=>P(CO(.0045,.024,4),'#0c0808',{p:[e.x+(k%2?.012:-.012),e.y-.022,e.z-.075+k*.017],r:[Math.PI+.2*(k%2?1:-1),0,0]})))}
+ gs.push(P(seg(V3([-.3,-.2,.75]),V3([-.18,.32,.9]),.006,.005,6),'#241a10'),P(seg(V3([-.34,.22,.84]),V3([-.06,.3,.9]),.003,.003,5),'#241a10'),P(BXs(.0025,.07,.09,.002,1),'#4a4434',{p:[-.2,.17,.87],r:[0,.3,.2]}));
  return MG(gs)};
 SPN('Kraken').pat=6;
 
-// --- Leviatán: serpiente-dragón blindada, vientre con placas, cresta de espinas, mandíbulas con dientes y ojos de brasa
-SPN('Leviatán').g=()=>{const gs=[],bd=HX('#3b5a66'),bl=HX('#9fb4a8'),sp=HX('#1d2f38');
+// --- Leviatán: serpiente-dragón de piel oscura y corroída, cresta de espinas rotas y cabeza de cráneo largo con cuencas hundidas
+SPN('Leviatán').g=()=>{const gs=[],bd=HX('#1c2a2c'),bl=HX('#58614f'),sp=HX('#0b1214'),rn=mb(9);
  const path=curveP(Array.from({length:14},(_,i)=>{const u=i/13;return[Math.sin(u*9.4)*.1*(1-.25*u),Math.sin(u*5.6+1)*.025,-.5+u*.96]}),150);
  const rad=u=>.036*Math.pow(Math.sin(Math.PI*Math.min(.98,.92*Math.pow(u,.8))),.55)+.003;
- gs.push(sweepG(path,rad,(u,c,sn)=>{const belly=ST(-.1,-.55,sn),band=.5+.5*Math.sin(u*210);const k=MX3(MX3(bd,sp,.5*ST(.2,1,sn)),bl,belly);return[k[0]*(.88+.12*band),k[1]*(.88+.12*band),k[2]*(.88+.12*band)]},18));
+ gs.push(richer(sweepG(path,rad,(u,c,sn)=>{const belly=ST(-.1,-.55,sn),band=.5+.5*Math.sin(u*210),scar=Math.max(0,Math.sin(u*37+c*3)*Math.sin(u*91))>.8?.5:1;const k=MX3(MX3(bd,sp,.55*ST(.2,1,sn)),bl,belly*.7);const m=(.82+.14*band)*scar;return[k[0]*m,k[1]*m,k[2]*m]},20),.016));
  const frame=i=>{const a=path[Math.min(i+1,path.length-1)].clone().sub(path[Math.max(i-1,0)]).normalize(),up=V3([0,1,0]).sub(a.clone().multiplyScalar(a.y)).normalize();return{a,up}};
- for(let i=6;i<path.length-8;i+=2){const u=i/(path.length-1),{a,up}=frame(i),r=rad(u),h=.026*Math.sin(Math.PI*Math.min(1,u*1.05))+.006,q=path[i].clone().addScaledVector(up,r*.95);
-  const g=P(CO(r*.28,h,5),'#14232b',{});g.applyQuaternion(new T.Quaternion().setFromUnitVectors(V3([0,1,0]),up.clone().addScaledVector(a,-.5).normalize()));g.translate(q.x,q.y,q.z);gs.push(g)}
+ for(let i=6;i<path.length-8;i+=2){if(rn()<.15)continue;const u=i/(path.length-1),{a,up}=frame(i),r=rad(u),h=(.02+.016*rn())*Math.sin(Math.PI*Math.min(1,u*1.05))+.005,q=path[i].clone().addScaledVector(up,r*.95);
+  const g=P(CO(r*(.2+.2*rn()),h,5),'#0d1618',{});g.applyQuaternion(new T.Quaternion().setFromUnitVectors(V3([0,1,0]),up.clone().addScaledVector(a,-.3-rn()*.5).add(V3([(rn()-.5)*.3,0,(rn()-.5)*.3])).normalize()));g.translate(q.x,q.y,q.z);gs.push(g)}
+ for(let k=0;k<3;k++){const i=40+k*34,{up}=frame(i),q=path[i],r=rad(i/149);gs.push(sweepG(curveP([[q.x,q.y-r*.8,q.z],[q.x+.01,q.y-r-.05,q.z-.01*k],[q.x-.01,q.y-r-.11,q.z+.015]],10),u=>.003*(1-.8*u)+.0004,()=>[.1,.13,.1],5))}
  const e=path[path.length-1],ft=frame(path.length-1).a;
- const head=MG([LOFT(.18,s=>{const f=Math.max(Math.pow(Math.sin(Math.PI*Math.min(.97,.08+.9*s)),.6),.05);return{w:.052*f,ht:.036*f,hb:.022*f,p:2.4,yc:.004}},(s,c,sn)=>MX3(MX3(bd,sp,.4*ST(.2,1,sn)),bl,ST(0,-.7,sn)*.5),30,22,[0,0,.07]),
-  P(S_(1,10,6),'#2c4651',{p:[0,-.028,.1],s:[.044,.014,.085]}),
-  ...Array.from({length:9},(_,k)=>[-1,1].map(sd=>P(CO(.0038,.021,4),'#e7e2cf',{p:[sd*(.036-.0016*k),-.012,.075+k*.0105],r:[Math.PI,0,0]}))).flat(),
-  ...Array.from({length:8},(_,k)=>[-1,1].map(sd=>P(CO(.0034,.017,4),'#e7e2cf',{p:[sd*(.03-.0012*k),-.022,.07+k*.0105]}))).flat(),
-  ...[-1,1].flatMap(sd=>[P(S_(.011,8,6),'#ffb347',{p:[sd*.043,.017,.115],e:2.6}),P(S_(.0048,6,4),'#1a0a05',{p:[sd*.0535,.017,.118]}),P(CO(.007,.032,5),'#1d2f38',{p:[sd*.024,.03,.085],r:[-.5,0,sd*.6]})]),
-  P(S_(.006,5,4),'#ff7a2a',{p:[0,-.015,.12],e:1.6})]);
- gs.push(orient(head,[ft.x,ft.y,ft.z],[e.x,e.y,e.z]));
- for(const sd of[-1,1]){const i=118,{a}=frame(i),pq=path[i];const f=FIN(v=>[0,0,-.02+.02*v],v=>[sd*.07*v,-.02*v,.06-.02*v],{T:.003,nrm:[0,1,0],nv:7,c1:bd,c2:sp,tip:.5});f.translate(pq.x+sd*.032,pq.y-.01,pq.z);gs.push(f)}
- const t0=path[0];const tf=FIN(v=>[0,0,0],v=>[.1*v,0,-.09*v-.01],{T:.004,nrm:[0,1,0],nv:7,c1:bd,c2:sp,tip:.5});tf.translate(t0.x,t0.y,t0.z-.01);gs.push(tf);const tf2=FIN(v=>[0,0,0],v=>[-.1*v,0,-.09*v-.01],{T:.004,nrm:[0,1,0],nv:7,c1:bd,c2:sp,tip:.5});tf2.translate(t0.x,t0.y,t0.z-.01);gs.push(tf2);
+ gs.push(orient(serpHead(bd,sp,bl,'#ff7a1a',1,rn),[ft.x,ft.y,ft.z],[e.x,e.y,e.z]));
+ for(const sd of[-1,1]){const i=118,pq=path[i];const f=FIN(v=>[0,0,-.02+.02*v],v=>[sd*.07*v,-.02*v,.06-.02*v],{T:.003,nrm:[0,1,0],nv:7,c1:bd,c2:sp,tip:.5});f.translate(pq.x+sd*.032,pq.y-.01,pq.z);gs.push(f)}
+ const t0=path[0];for(const sd of[-1,1]){const tf=FIN(v=>[0,0,0],v=>[sd*.1*v,0,-.09*v-.01],{T:.004,nrm:[0,1,0],nv:7,c1:bd,c2:sp,tip:.5});tf.translate(t0.x,t0.y,t0.z-.01);gs.push(tf)}
  return MG(gs)};
 SPN('Leviatán').pat=4;
 
-// --- Escila: masa de roca y carne con seis cuellos de cabeza canina de tres hileras de dientes y doce patas colgantes
-SPN('Escila').g=()=>{const gs=[],sk=HX('#4a5058'),rd=HX('#6a3a3a'),rn=mb(77);
- {const rk=[];for(let i=0;i<9;i++){const a=i/9*6.283;rk.push(P(S_(.2+.1*rn(),16,12),'#1d2025',{p:[Math.cos(a)*.34,.02,Math.sin(a)*.34],s:[1,.7+.4*rn(),1]}))}
- rk.push(P(S_(.4,20,14),'#191c20',{p:[0,.03,0],s:[1.2,.55,1.1]}));gs.push(richer(MG(rk),.03))}
- gs.push(LOFT(.55,s=>{const f=Math.pow(Math.sin(Math.PI*(.05+.9*s)),.6);return{w:.17*f,ht:.14*f,hb:.12*f,p:2.2,yc:0}},(s,c,sn)=>MX3(MX3(sk,rd,.45+.2*Math.sin(s*20)),HX('#8a6a58'),ST(0,-1,sn)*.4),30,22,[0,.2,0]));
- const headG=(sc)=>{const g=MG([P(S_(1,12,9),'#555b64',{p:[0,0,0],s:[.05,.045,.065]}),P(S_(1,10,7),'#4c525a',{p:[0,-.006,.062],s:[.03,.026,.05]}),P(S_(1,8,6),'#2a2326',{p:[0,-.02,.07],s:[.026,.01,.045]}),
-   ...[-1,1].flatMap(sd=>[P(S_(.009,8,6),'#e9d27a',{p:[sd*.03,.016,.04],e:1.1}),P(S_(.004,5,4),'#14100a',{p:[sd*.036,.016,.044]}),P(CO(.012,.03,5),'#43484f',{p:[sd*.04,.04,.0],r:[-.3,0,sd*.5]})]),
-   ...[0,1,2].flatMap(row=>Array.from({length:7},(_,k)=>[-1,1].map(sd=>P(CO(.0034,.014,4),'#ece6d2',{p:[sd*(.012+.0024*row+.001*k),-.016+row*.0009,.036+k*.0105+row*.002],r:[Math.PI,0,0]})))).flat(2),
-   P(S_(.007,6,4),'#14100a',{p:[0,.004,.108]})]);g.scale(sc,sc,sc);return g};
+// --- Escila: masa de roca y carne con costillas a la vista, seis cuellos con cabezas esqueléticas de lobo y doce patas con garras
+SPN('Escila').g=()=>{const gs=[],rn=mb(77);
+ {const rk=[];for(let i=0;i<9;i++){const a=i/9*6.283;rk.push(P(S_(.2+.1*rn(),16,12),'#14161a',{p:[Math.cos(a)*.34,.02,Math.sin(a)*.34],s:[1,.7+.4*rn(),1]}))}
+ rk.push(P(S_(.4,20,14),'#101215',{p:[0,.03,0],s:[1.2,.55,1.1]}));gs.push(richer(MG(rk),.012))}
+ gs.push(richer(LOFT(.55,s=>{const f=Math.pow(Math.sin(Math.PI*(.05+.9*s)),.6);return{w:.17*f,ht:.14*f,hb:.12*f,p:2.2,yc:0}},(s,c,sn)=>MX3(MX3(HX('#1e2024'),HX('#3a1c1e'),.4+.3*Math.sin(s*20)),HX('#54443a'),ST(0,-1,sn)*.3),30,22,[0,.2,0]),.02));
+ for(let k=0;k<9;k++){const z=-.2+k*.05,w=.17*Math.pow(Math.sin(Math.PI*(.05+.9*(z+.275)/.55)),.6);for(const sd of[-1,1])gs.push(P(new T.TorusGeometry(Math.max(w*.9,.03),.006,5,12,Math.PI*.85),'#b4a88a',{p:[0,.2,z],r:[0,0,sd>0?-Math.PI*.42:Math.PI*1.42],s:[sd,1,1]}))}
+ const headG=()=>{const g=[];
+  g.push(LOFT(.13,s=>{const f=Math.max(Math.pow(Math.sin(Math.PI*Math.min(.97,.1+.88*s)),.5),.06);return{w:.024*f,ht:.022*f,hb:.008*f,p:2.7,yc:.002}},(s,c,sn)=>MX3(HX('#262a2e'),HX('#4a2c2c'),.5*ST(0,1,s)),22,16,[0,0,.04]));
+  g.push(P(S_(1,8,6),'#1a0a0a',{p:[0,-.014,.045],s:[.021,.005,.065],r:[.28,0,0]}));
+  for(const sd of[-1,1]){g.push(...socketG(sd*.024,.012,.022,sd,.0075,'#d6ff7a',2),P(CO(.007,.03,5),'#16181b',{p:[sd*.022,.024,-.006],r:[-.4,0,sd*.5]}));
+   for(const row of[0,1,2])for(let k=0;k<8;k++){if(rn()<.18)continue;g.push(...fangG(sd*(.0105+.0022*row+.0008*k+(rn()-.5)*.002),-.004-.0012*row,.032+k*.0085+row*.002+(rn()-.5)*.003,.008+rn()*.016+(k===0&&row===0?.022:0),.0022,rn,1))}}
+  g.push(P(S_(.005,6,4),'#050505',{p:[0,.005,.118]}));return MG(g)};
  const hi=[[1,.5,.2],[.8,.4,.55],[.1,.5,.9],[-.7,.4,.6],[-1,.5,.1],[-.4,.5,-.8]];
  hi.forEach((d,i)=>{const dir=V3(d).normalize(),b=V3([dir.x*.12,.28,dir.z*.12]);
   const cs=[b.toArray(),[dir.x*.25,.5+.12*Math.sin(i),dir.z*.25],[dir.x*.45,.62+.1*Math.cos(i*2),dir.z*.45],[dir.x*.66,.5+.12*Math.sin(i*3),dir.z*.66],[dir.x*.8,.34+.1*Math.cos(i*3),dir.z*.8]];
   const pts=curveP(cs,40),endDir=pts[39].clone().sub(pts[36]).normalize();
-  gs.push(sweepG(pts,u=>.026-.011*u,(u,c,sn)=>MX3(MX3(HX('#2e3238'),HX('#5a3030'),.3+.3*u),HX('#6a5444'),ST(0,-1,sn)*.3),12));
-  const hg=headG(1.35);hg.applyQuaternion(new T.Quaternion().setFromUnitVectors(V3([0,0,1]),endDir.clone().add(V3([0,-.25,0])).normalize()));hg.translate(pts[39].x,pts[39].y,pts[39].z);gs.push(hg)});
- for(let i=0;i<12;i++){const a=i/12*6.283+.2;gs.push(...armG([Math.cos(a)*.16,.12,Math.sin(a)*.16],[Math.cos(a),-.5,Math.sin(a)],.3+.06*rn(),.022,0,'#5a4048',.3,0,6))}
+  gs.push(richer(sweepG(pts,u=>.02-.008*u+.002*Math.sin(u*30),(u,c,sn)=>MX3(MX3(HX('#202328'),HX('#4a2224'),.3+.4*u),HX('#5c4a3c'),ST(0,-1,sn)*.3),12),.01));
+  for(let k=2;k<38;k+=3){const q=pts[k],t=pts[k+1].clone().sub(pts[k-1]).normalize();const g2=P(CO(.004,.018,4),'#b4a88a',{});g2.applyQuaternion(new T.Quaternion().setFromUnitVectors(V3([0,1,0]),V3([0,1,0]).sub(t.clone().multiplyScalar(t.y)).normalize()));g2.translate(q.x,q.y+.016,q.z);gs.push(g2)}
+  const hg=headG();hg.scale(1.2,1.2,1.2);hg.applyQuaternion(new T.Quaternion().setFromUnitVectors(V3([0,0,1]),endDir.clone().add(V3([0,-.3,0])).normalize()));hg.translate(pts[39].x,pts[39].y,pts[39].z);gs.push(hg)});
+ for(let i=0;i<12;i++){const a=i/12*6.283+.2,base=[Math.cos(a)*.16,.12,Math.sin(a)*.16],dd=[Math.cos(a),-.5,Math.sin(a)],ln=.3+.06*rn();gs.push(...armG(base,dd,ln,.02,0,'#2a2226',.3,0,6));
+  const tip=V3(base).addScaledVector(V3(dd).normalize(),ln*.95);for(let c=-1;c<=1;c++)gs.push(P(CO(.004,.026,4),'#b4a88a',{p:[tip.x+c*.006,tip.y-.014,tip.z+c*.004],r:[Math.PI+.4*c,0,0]}))}
  return MG(gs)};
 SPN('Escila').pat=5;
 
-// --- Jörmungandr: serpiente anillada que rodea el mundo mordiéndose la cola
-SPN('Jörmungandr').g=()=>{const gs=[],R=.36,bd=HX('#3d5033'),bl=HX('#b0a984'),dk=HX('#222d1c');
+// --- Jörmungandr: serpiente anillada de escamas oscuras y cuernos, mordiéndose la cola
+SPN('Jörmungandr').g=()=>{const gs=[],R=.36,bd=HX('#1c2616'),bl=HX('#585a44'),dk=HX('#0b100a'),rn=mb(23);
  const th0=.12,th1=6.283-.62,pts=Array.from({length:260},(_,i)=>{const u=i/259,th=th0+(th1-th0)*u;return V3([Math.cos(th)*(R+.012*Math.sin(u*40)),.035*Math.sin(u*18)+.02,Math.sin(th)*(R+.012*Math.sin(u*40))])});
  const rad=u=>.03*Math.pow(Math.sin(Math.PI*(.94*Math.pow(u,.7))),.5)+.0025;
- gs.push(sweepG(pts,rad,(u,c,sn)=>{const band=.5+.5*Math.sin(u*420);const k=MX3(MX3(bd,dk,.55*ST(.1,1,sn)+.2*band),bl,ST(0,-.6,sn)*.8);return k},20));
- for(let i=8;i<pts.length-14;i+=3){const u=i/259,a=pts[i+1].clone().sub(pts[i-1]).normalize(),up=V3([0,1,0]),r=rad(u),g=P(CO(r*.34,r*.9,5),'#1a2415',{});g.applyQuaternion(new T.Quaternion().setFromUnitVectors(V3([0,1,0]),up.clone().addScaledVector(a,-.35).normalize()));g.translate(pts[i].x,pts[i].y+r*.9,pts[i].z);gs.push(g);if(i%12===8)gs.push(P(S_(r*.16,5,4),'#6dffb0',{p:[pts[i].x,pts[i].y+r*1.85,pts[i].z],e:2.4}))}
+ gs.push(richer(sweepG(pts,rad,(u,c,sn)=>{const band=.5+.5*Math.sin(u*420);return MX3(MX3(bd,dk,.55*ST(.1,1,sn)+.2*band),bl,ST(0,-.6,sn)*.6)},20),.015));
+ for(let i=8;i<pts.length-14;i+=3){if(rn()<.12)continue;const u=i/259,a=pts[i+1].clone().sub(pts[i-1]).normalize(),up=V3([0,1,0]),r=rad(u),g=P(CO(r*(.25+.2*rn()),r*(.7+.6*rn()),5),'#0f160c',{});g.applyQuaternion(new T.Quaternion().setFromUnitVectors(V3([0,1,0]),up.clone().addScaledVector(a,-.35).normalize()));g.translate(pts[i].x,pts[i].y+r*.9,pts[i].z);gs.push(g);if(i%15===8)gs.push(P(S_(r*.14,5,4),'#5aff9a',{p:[pts[i].x,pts[i].y+r*1.7,pts[i].z],e:1.8}))}
  const e=pts[pts.length-1],ft=pts[pts.length-1].clone().sub(pts[pts.length-4]).normalize();
- const head=MG([LOFT(.16,s=>{const f=Math.max(Math.pow(Math.sin(Math.PI*Math.min(.97,.1+.88*s)),.6),.05);return{w:.045*f,ht:.032*f,hb:.02*f,p:2.4,yc:.003}},(s,c,sn)=>MX3(MX3(bd,dk,.5*ST(.2,1,sn)),bl,ST(0,-.7,sn)*.5),28,20,[0,0,.06]),
-  P(S_(1,10,6),'#33422a',{p:[0,-.024,.085],s:[.038,.012,.075]}),
-  ...Array.from({length:9},(_,k)=>[-1,1].map(sd=>P(CO(.0032,.019,4),'#e5dfc9',{p:[sd*(.03-.0014*k),-.01,.06+k*.0095],r:[Math.PI,0,0]}))).flat(),
-  ...[-1,1].flatMap(sd=>[P(S_(.0095,8,6),'#7dff9a',{p:[sd*.037,.014,.098],e:2.2}),P(S_(.0042,6,4),'#07140a',{p:[sd*.046,.014,.101]}),P(CO(.006,.028,5),'#222d1c',{p:[sd*.02,.026,.07],r:[-.5,0,sd*.6]})])]);
- gs.push(orient(head,[ft.x,ft.y,ft.z],[e.x,e.y,e.z]));
+ gs.push(orient(serpHead(bd,dk,bl,'#8aff6a',.95,rn),[ft.x,ft.y,ft.z],[e.x,e.y,e.z]));
  return MG(gs)};
 SPN('Jörmungandr').pat=4;

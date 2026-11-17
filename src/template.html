@@ -356,13 +356,13 @@ const SPS=[
  note:'Los pepinos de mar dominan la megafauna de las fosas; Elpidia atakama se registró a ~8.070 m (Fosa Perú-Chile).'},
 // ---- objetos humanos ----
 // ---- fondo de la fosa: criaturas míticas (no son fauna real) ----
-{n:'Kraken',vq:'Criatura de mito o leyenda: no es un animal real.',l:'Folclore escandinavo',d:[7500,8400],k:'W',sz:[48,64],lam:.012,R:90,W:.004,cap:6,det:200,anim:'p.x+=sin(uT*.9+ph+p.z*5.)*.03*smoothstep(.1,.5,p.z);',
+{n:'Kraken',vq:'Criatura de mito o leyenda: no es un animal real.',l:'Folclore escandinavo',d:[7500,8400],k:'W',sz:[48,64],sparse:{G:800,n:8,slot:0},lam:.012,R:90,W:.004,cap:6,det:200,anim:'p.x+=sin(uT*.9+ph+p.z*5.)*.03*smoothstep(.1,.5,p.z);',
  g:()=>MG([P(S_(.1,6,4),'#a14a3e')]),note:'Monstruo marino del folclore de Noruega e Islandia. El obispo Erik Pontoppidan lo describió en su Historia natural de Noruega (1752–53) como una bestia del tamaño de una isla. Suele relacionárselo con los avistamientos de calamares gigantes.'},
-{n:'Leviatán',vq:'Criatura de mito o leyenda: no es un animal real.',l:'Biblia hebrea · Job 41',d:[7500,8400],k:'W',sz:[110,150],lam:.008,R:140,W:.003,cap:4,det:260,anim:'p.x+=sin(uT*.7+ph+p.z*4.)*.05*smoothstep(.45,-.5,p.z);',
+{n:'Leviatán',vq:'Criatura de mito o leyenda: no es un animal real.',l:'Biblia hebrea · Job 41',d:[7500,8400],k:'W',sz:[110,150],sparse:{G:800,n:8,slot:1},lam:.008,R:140,W:.003,cap:4,det:260,anim:'p.x+=sin(uT*.7+ph+p.z*4.)*.05*smoothstep(.45,-.5,p.z);',
  g:()=>MG([P(S_(.1,6,4),'#35505a')]),note:'Monstruo marino de la Biblia hebrea: aparece en Job 41, el Salmo 74 e Isaías 27. Job lo describe con el cuerpo cubierto de escudos y ojos «como los párpados del alba». Se lo compara con el Lotan de los textos de Ugarit.'},
-{n:'Escila',vq:'Criatura de mito o leyenda: no es un animal real.',l:'Odisea · canto XII',d:[7500,8400],k:'F',sz:[44,58],lam:.012,det:200,lift:2,
+{n:'Escila',vq:'Criatura de mito o leyenda: no es un animal real.',l:'Odisea · canto XII',d:[7500,8400],k:'F',sz:[44,58],sparse:{G:800,n:8,slot:2},lam:.012,det:200,lift:2,
  g:()=>MG([P(S_(.1,6,4),'#3a4048')]),note:'Monstruo de la Odisea: seis cabezas sobre largos cuellos, cada una con tres hileras de dientes, y doce patas colgantes; su voz sonaba como la de un cachorro. Vivía en una cueva frente a Caribdis, en un estrecho por el que debía pasar Odiseo.'},
-{n:'Jörmungandr',vq:'Criatura de mito o leyenda: no es un animal real.',l:'Mito nórdico · Edda en prosa',d:[7500,8400],k:'F',sz:[170,230],lam:.006,det:320,lift:6,
+{n:'Jörmungandr',vq:'Criatura de mito o leyenda: no es un animal real.',l:'Mito nórdico · Edda en prosa',d:[7500,8400],k:'F',sz:[170,230],sparse:{G:800,n:8,slot:3},lam:.006,det:320,lift:6,
  g:()=>MG([P(S_(.1,6,4),'#35452e')]),note:'Serpiente del mito nórdico (Edda en prosa de Snorri Sturluson), hijo de Loki y de la giganta Angrboða. Crece hasta rodear Midgard y morderse la cola. En el Ragnarök se enfrenta a Thor.'},
 {n:'Botella de plástico',l:'Residuo',d:[0,8400],k:'F',sz:[.25,.3],lam:.5,cap:400,det:12,
  g:()=>MG([P(CY(.04,.04,.18,8),'#9fd0e6'),P(CY(.04,.012,.07,8),'#9fd0e6',{p:[0,.18,0]}),P(CY(.014,.014,.03,6),'#e8e8e8',{p:[0,.25,0]})]),
@@ -472,6 +472,11 @@ function put(sp,x,y,z,sx,sy,sz,yaw,t3,cx,cy,cz,w){if(sp.cnt>=sp.cap)return;const
 const CS=50;let last={x:1e9,z:1e9,y:1e9};
 function rebuild(){const dep=-cam.position.y,cx=Math.floor(cam.position.x/CS),cz=Math.floor(cam.position.z/CS),cy=Math.floor(dep/CS),RH=2;
  for(const sp0 of SPS){if(!sp0.mesh)continue;const sp=sp0;sp.cnt=0;const lamK=sp.lam*(QS[QL].den||1)*(sp.lam<10&&!sp.nocat?(dep>6000?6:dep>150?3:1):1);
+  if(sp.sparse){const G=sp.sparse.G,gx0=Math.floor(cam.position.x/G),gz0=Math.floor(cam.position.z/G);
+   for(let gx=gx0-2;gx<=gx0+2;gx++)for(let gz=gz0-2;gz<=gz0+2;gz++){const r=mb(seedOf(gx,gz,77,5));if(Math.floor(r()*sp.sparse.n)!==sp.sparse.slot)continue;
+    const x=(gx+.15+.7*r())*G,z=(gz+.15+.7*r())*G,df=floorAt(x,z);if(df<sp.d[0]||df>sp.d[1]){r();r();continue}
+    const s=sp.sz[0]+(sp.sz[1]-sp.sz[0])*r(),y=sp.k==='F'?-df+(sp.lift||0):-(df-50-r()*70);put(sp,x,y,z,s,s,s,r()*6.283,[1,1,1],x,y,z,r())}
+   sp.cnt=Math.min(sp.cnt,sp.cap);upl(sp);continue}
   if(sp.k==='C'){for(const c of CH){if(Math.hypot(c[0]-cam.position.x,c[1]-cam.position.z)>250)continue;const y=-floorAt(c[0],c[1])-.5+c[2]*1.05,r=mb(seedOf(Math.round(c[0]),Math.round(c[1]),1,sp.i));for(let j=0;j<14;j++)put(sp,c[0],y,c[1],1,1,1,0,[1,1,1],c[0],y,c[1],r())}}
   else for(let ix=cx-RH;ix<=cx+RH;ix++)for(let iz=cz-RH;iz<=cz+RH;iz++){
    if(sp.k==='F'||sp.k==='H'){const r=mb(seedOf(ix,iz,7,sp.i));const clump=sp.k==='F'&&!sp.nocat&&sp.lam>=1.5;let n=Math.floor(lamK*(clump?3.4:1)+r());
