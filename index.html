@@ -340,7 +340,7 @@ struct CO{@builtin(position)cp:vec4f,@location(0)n:vec3f,@location(1)v:vec3f,@lo
  var o:CO;o.cp=g.vp*vec4f(wp,1.);o.n=nw;o.v=g.cam.xyz-wp;o.t=i.t;return o;}
 @fragment fn fs(i:CO)->@location(0) vec4f{
  let e0=ss(.05,.7,abs(dot(normalize(i.n),normalize(i.v))));
- let a=g.fl.y*e0*e0*pow(max(1.-i.t,0.),1.6)*(.06+.1*(1.-g.sun.w))*ss(0.,.08,i.t);
+ let a=g.fl.y*e0*e0*pow(max(1.-i.t,0.),1.6)*(.06+.1*(1.-g.sun.w))*ss(0.,.08,i.t)*select(1.,.2,g.ex.x>11.&&(u32(g.ex.w)&65536u)==0u);
  return vec4f(vec3f(.7,.9,1.)*a,a);}
 `;
 
@@ -381,12 +381,32 @@ const P_DEPTH=(ms)=>WC+VQ+`@group(1) @binding(0) var tZ:texture_depth${ms?'_mult
 @fragment fn fs(@builtin(position) fc:vec4f)->@location(0) vec4f{return vec4f(textureLoad(tZ,vec2i(fc.xy),0),0.,0.,1.);}
 `;
 const P_RAYS=WC+VQ+`@group(1) @binding(0) var tZ:texture_2d<f32>;
+fn vlH(p:vec3f)->f32{var q=fract(p*vec3f(.1031,.1030,.0973));q+=dot(q,q.yzx+33.33);return fract((q.x+q.y)*q.z);}
+fn vlN(p:vec3f)->f32{let i=floor(p);let f=fract(p);let u=f*f*(3.-2.*f);
+ let a=mix(mix(vlH(i),vlH(i+vec3f(1.,0.,0.)),u.x),mix(vlH(i+vec3f(0.,1.,0.)),vlH(i+vec3f(1.,1.,0.)),u.x),u.y);
+ let b=mix(mix(vlH(i+vec3f(0.,0.,1.)),vlH(i+vec3f(1.,0.,1.)),u.x),mix(vlH(i+vec3f(0.,1.,1.)),vlH(i+vec3f(1.,1.,1.)),u.x),u.y);return mix(a,b,u.z);}
+fn vlHG(c:f32,k:f32)->f32{let k2=k*k;return (1.-k2)/(12.566*pow(1.+k2-2.*k*c,1.5));}
+fn lampVol(ro:vec3f,rd:vec3f,tmax:f32,nSt:i32,jt:f32)->vec3f{
+ var acc=vec3f(0.);let ld=normalize(g.ff.xyz);
+ for(var s=0;s<40;s++){if(s>=nSt){break;}
+  let u0=(f32(s)+jt)/f32(nSt);let u1=(f32(s)+1.+jt)/f32(nSt);let t=tmax*u0*u0;let dt=tmax*(u1*u1-u0*u0);let p=ro+rd*t;
+  let dn=.25+.55*vlN(p*.42+vec3f(0.,g.cam.w*.06,0.))+2.2*pow(vlN(p*1.9+vec3f(3.,g.cam.w*.1,7.)),3.);
+  var li=0.;
+  for(var k=0;k<2;k++){let sx=select(-.7,.7,k==1);let Lp=ro+g.rr.xyz*sx-g.uu.xyz*.5;
+   let lv=p-Lp;let dist=max(length(lv),.4);let dv=lv/dist;let cone=smoothstep(.95,.98,dot(dv,ld));
+   let att=exp(-dot(g.sig.xyz,vec3f(.33))*dist)/(1.+dist*dist*.02);
+   let ph=mix(.3,vlHG(-dot(dv,rd),.5)*6.,.5);
+   li+=cone*att*ph;}
+  acc+=vec3f(1.,.93,.82)*li*dn*dt;}
+ return acc*.03*g.fl.y*(1.-.9*clamp(g.sun.w*1.6,0.,1.));}
 @fragment fn fs(@builtin(position) fc:vec4f)->@location(0) vec4f{
  let uv=fc.xy*2.*g.res.zw;let nd=vec2f(uv.x*2.-1.,1.-uv.y*2.);
  let rv=g.ff.xyz+g.rr.xyz*(nd.x*g.pp.x)+g.uu.xyz*(nd.y*g.pp.y);let rl=length(rv);let rd=rv/rl;
  let dd=textureLoad(tZ,vec2i(fc.xy*2.),0).x;let vz=g.pp.w*g.pp.z/(g.pp.w-dd*(g.pp.w-g.pp.z));
  var tm=min(vz*rl,120.);if(rd.y>1e-4){tm=min(tm,-g.cam.y/rd.y);}
- if(g.cam.y<-260.||tm<=0.){return vec4f(0.,0.,0.,1.);}
+ var vc=vec3f(0.);
+ if(g.ex.x>11.&&g.fl.y>.01&&(u32(g.ex.w)&65536u)==0u&&tm>0.){vc=lampVol(g.cam.xyz,rd,min(tm,70.),i32(g.ex.x*1.1),ign(fc.xy+vec2f(g.cam.w*60.,0.)));}
+ if(g.cam.y<-260.||tm<=0.){return vec4f(vc,1.);}
  let ns0=i32(g.ex.x);let ns=max(4,min(ns0,i32(ceil(f32(ns0)*tm/70.))));var acc=vec3f(0.);let dt=tm/f32(ns);let j=ign(fc.xy);
  for(var n=0;n<18;n++){
   if(n>=ns){break;}
@@ -398,7 +418,7 @@ const P_RAYS=WC+VQ+`@group(1) @binding(0) var tZ:texture_2d<f32>;
   acc=acc+exp(-g.sig.xyz*t+g.kd.xyz*(p.y/g.sun.y))*(.012+pat*6.)*(.06+.94*vis);
  }
  let mu=max(dot(rd,g.sun.xyz),0.);let ph=.2+2.*mu*mu*mu;
- return vec4f(min(acc*dt*g.sig.xyz*WCOL*SUNC*ph*g.ex.y,vec3f(20.)),1.);}
+ return vec4f(min(acc*dt*g.sig.xyz*WCOL*SUNC*ph*g.ex.y,vec3f(20.))+vc,1.);}
 `;
 const P_KAR=WC+VQ+`@group(1) @binding(0) var tIn:texture_2d<f32>;
 fn kar(c0:vec3f)->vec4f{var c=max(c0,vec3f(0.));if(!(dot(c,c)<1e8)){c=vec3f(0.);}let w=1./(1.+max(c.r,max(c.g,c.b)));return vec4f(c*w,w);}
