@@ -862,7 +862,27 @@ function debris(seed,n,R,pal,wx,extra){const r=mb(seed),out=[];
   else out.push(P(S_(.2+r()*.35,7,5),'#222120',{p:[lx,ly+.1,lz]}))}
  return MG(out.concat(extra?extra(r,wx):[]))}
 
+const titaRig=()=>{const out=[],rc='#3d2f26',rd='#4a3a30',dk='#0c0b0a';
+ // ventiladores de cuello de cisne en la cubierta de proa
+ [[-8,13],[8,15],[-8.5,22],[8.5,24],[-7.5,30],[7.5,28]].forEach(([x,z],i)=>{const d=x<0?1:-1;
+  out.push(P(CY(.32,.38,1.5,8),rc,{p:[x,25.9,z]}),P(seg(V3([x,26.6,z]),V3([x+d*.55,27.5,z]),.3,.3,7),rc),P(CY(.78,.34,.62,10),rd,{p:[x+d*.9,27.5,z],r:[0,0,d*Math.PI/2]}),P(CY(.62,.62,.05,10),dk,{p:[x+d*1.2,27.5,z],r:[0,0,d*Math.PI/2]}))});
+ // bitas de amarre en las bordas
+ [-1,1].forEach(s=>[40,44,48,52].forEach(z=>{const u=(z+60)/120,t=(u-.5)/.5,hb=14*Math.pow(Math.max(1-Math.pow(t,1.8),0),.55),x=s*(hb-1.6);out.push(P(CY(.3,.34,.9,8),rd,{p:[x,25.4,z]}),P(CY(.4,.4,.14,8),rc,{p:[x,25.9,z]}))}));
+ // escotilla de proa con brazola y abertura oscura
+ out.push(P(BXs(6,.8,7,.12,1),rd,{p:[0,25.5,47]}),P(BXs(4.8,.1,5.8,.03,1),dk,{p:[0,26.12,47]}),P(BXs(6.4,.18,.3,.05,1),rc,{p:[0,26,43.5]}));
+ // cadena del ancla: eslabones alternados desde el molinete hacia la gatera
+ for(let i=0;i<18;i++)out.push(P(new T.TorusGeometry(.26,.07,5,8),'#2e241c',{p:[1.4+Math.sin(i*.5)*.5,25.5,36+i*1.15],r:[i%2?Math.PI/2:0,0,i%2?0:Math.PI/2],s:[1,1,1.5]}));
+ // ventanas de la superestructura: frente del puente y laterales
+ for(let x=-9;x<=9;x+=1.8)out.push(P(BXs(1,.9,.5,.04,1),dk,{p:[x,27.4,1.1]}));
+ for(let x=-9;x<=9;x+=3.6)out.push(P(BXs(1.2,.8,.5,.04,1),dk,{p:[x,24.4,1.15]}));
+ [-1,1].forEach(s=>{for(let z=-19;z<=-1;z+=2)out.push(P(BXs(.5,.9,1,.04,1),dk,{p:[s*10.6,27.4,z]}));for(let z=-19;z<=-1;z+=3)out.push(P(BXs(.5,.8,1.2,.04,1),dk,{p:[s*10.6,24.4,z]}))});
+ // aparejos de los pescantes (cabos caídos)
+ [-36,-30,-24,-18].forEach(z=>[-1,1].forEach(s=>{const sg=hs(z*3+s,4);out.push(P(seg(V3([s*9.6,32.3,z]),V3([s*(9.8+sg*.8),27.5-sg*1.2,z+(sg-.5)*1.5]),.035,.03,4),'#2a2018'),P(BXs(.25,.5,.25,.05,1),'#2a2018',{p:[s*(9.8+sg*.8),27.4-sg*1.2,z+(sg-.5)*1.5]}))}));
+ // cofa y mástil de proa
+ out.push(P(CY(.95,.85,1.7,10),rc,{p:[0,38.2,40.5],r:[.35,0,.04]}),P(new T.TorusGeometry(.95,.09,5,14),rd,{p:[0,39.1,41.1],r:[Math.PI/2+.35,0,0]}));
+ return out};
 WR.titanic.g=()=>MG([
+ ...titaRig(),
  ...[-36,-30,-24,-18].flatMap(z=>[-1,1].flatMap(s=>[P(seg(V3([s*11.2,27,z]),V3([s*11.2,31,z]),.12,.1,5),'#3d2f26'),P(seg(V3([s*11.2,31,z]),V3([s*9.6,32.3,z]),.1,.08,5),'#3d2f26')])),
  ...[30,36].flatMap(z=>[-1,1].map(s=>P(CY(.9,.7,1.4,10),'#4a3a30',{p:[s*3,25.2,z]}))),
  P(BXs(3,1.5,3,.2,2),'#4a3a30',{p:[0,25.2,24]}),P(seg(V3([5,25.2,20]),V3([5,34,20]),.25,.2,6),'#3d2f26'),P(seg(V3([5,34,20]),V3([5,30,32]),.16,.1,5),'#3d2f26'),
