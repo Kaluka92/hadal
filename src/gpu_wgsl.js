@@ -148,8 +148,8 @@ fn h2(p:vec2f)->f32{return fract(sin(dot(p,vec2f(127.1,311.7)))*43758.5453);}
  col=col+alb*lamp+alb*vec3f(.22,.23,.24)*g.fl.x*(.5+.5*up)*.28;
  if(g.so.w>.5){col=col+alb*vec3f(.95,.97,1.)*(.35+.65*max(dot(N,V),0.))*(2.6/(1.+d*d/4500.))*(1.-.9*clamp(g.sun.w*1.6,0.,1.));}
  col=col+vec3f(1.,.95,.85)*M.b.w*pow(max(dot(N,V),0.),18.)*spot*exp(-d*.03)*lampk*(4./(1.+d*d*.003))*(d*d/(d*d+64.));
- {let rimw=pow(1.-max(dot(N,V),0.),3.)*select(1.,0.,(matT>2.5&&matT<3.5)||(dm&1024u)!=0u);
-  col=col+alb*(ambL(i.wp,N)*1.1+vec3f(1.,.93,.82)*(2.9/(1.+d*d*.003))*spot*lampk*.5)*rimw*.65;}
+ {let nvr=dot(n0,V);let rimw=select(0.,pow(1.-clamp(nvr,0.,1.),6.),nvr>.02)*select(1.,0.,(matT>2.5&&matT<3.5)||(dm&1024u)!=0u);
+  col=col+alb*(ambL(i.wp,N)*.55+vec3f(1.,.93,.82)*(2.9/(1.+d*d*.003))*spot*lampk*.5)*rimw*.5;}
  col=col*exp(-g.sig.xyz*d)+fogIn(g.cam.xyz,-V,d);
  if((dm&256u)==0u){col=mix(col,fogIn(g.cam.xyz,-V,240.),ss(100.,185.,length((i.wp-g.cam.xyz).xz)));}
  let em=select(i.e,0.,matT>2.5);
@@ -161,7 +161,7 @@ fn h2(p:vec2f)->f32{return fract(sin(dot(p,vec2f(127.1,311.7)))*43758.5453);}
 `;
 
 // ---- terreno: la grilla de vértices se calcula en la GPU (con el mismo ruido entero que la CPU) ----
-const TERR=`struct TU{n:vec4f};
+const TERR=`struct TU{n:vec4f,f:vec4f};
 @group(0) @binding(0) var<uniform> tu:TU;
 @group(0) @binding(1) var<storage,read_write> vb:array<f32>;
 var<private> KN:array<vec2f,24>=array<vec2f,24>(vec2f(-3000.,0.),vec2f(0.,1.),vec2f(250.,22.),vec2f(850.,28.),vec2f(1300.,110.),vec2f(1500.,115.),vec2f(2300.,330.),vec2f(2450.,335.),vec2f(3100.,600.),vec2f(3500.,605.),vec2f(4600.,1500.),vec2f(4800.,1505.),vec2f(5800.,2600.),vec2f(6400.,2610.),vec2f(7600.,3800.),vec2f(9800.,3900.),vec2f(11000.,4790.),vec2f(11700.,4795.),vec2f(12800.,5600.),vec2f(13800.,5610.),vec2f(15000.,6890.),vec2f(15350.,6895.),vec2f(16400.,8100.),vec2f(40000.,8110.));
@@ -192,6 +192,38 @@ fn tcol(d:f32)->vec3f{for(var i=0;i<5;i++){let a=TS[i];let b=TS[i+1];if(d<b.x){l
  let c0=tcol(df);let c=(c0+(vec3f(.3,.3,.32)-c0)*rkm)*k;
  let av=(floorAt(x-st,z)+floorAt(x+st,z)+floorAt(x,z-st)+floorAt(x,z+st)+floorAt(x-2.*st,z)+floorAt(x+2.*st,z)+floorAt(x,z-2.*st)+floorAt(x,z+2.*st))/8.;
  let ao=clamp(1.-(df-av)*.55,.3,1.);
+ let o=i*10u;
+ vb[o]=x;vb[o+1u]=-df;vb[o+2u]=z;vb[o+3u]=nn.x;vb[o+4u]=nn.y;vb[o+5u]=nn.z;vb[o+6u]=c.x;vb[o+7u]=c.y;vb[o+8u]=c.z;vb[o+9u]=ao;
+}
+
+fn fdf(x:f32,z:f32)->f32{let dd=max(abs(x-tu.f.x),abs(z-tu.f.y));return ssg(tu.f.z,tu.f.z-8.,dd);}
+// relieve fino (>=0, queda siempre por encima del terreno grueso): rizos de arena, montículos de bioturbación y guijarros
+fn micro(x:f32,z:f32,d0:f32)->vec2f{
+ let rk=ssg(.55,.72,fbm(x*.004+9.,z*.004));
+ let amp=.03*(1.-ssg(30.,260.,d0))*(1.-rk);
+ let ph=(x*.8+z*.6)*8.4+6.*fbm(x*.15,z*.15)+3.*fbm(x*.9+11.,z*.9);
+ var h=amp*(.5+.5*sin(ph)+.18*sin(2.*ph+1.))+.03*ssg(60.,300.,d0)*fbm(x*.9+5.,z*.9);
+ let dens=.1+.4*rk;var pb=0.;var pid=-1.;
+ for(var oy=-1;oy<=1;oy++){for(var ox=-1;ox<=1;ox++){
+  let cx=i32(floor(x/.4))+ox;let cz=i32(floor(z/.4))+oy;
+  if(ih(cx,cz)>dens){continue;}
+  let c=vec2f(f32(cx)+ih(cx+17,cz+5),f32(cz)+ih(cx+3,cz+29))*.4;let r=.09+.13*ih(cx+41,cz+7);
+  let d=length(vec2f(x,z)-c)/r;
+  if(d<1.){let b=sqrt(max(1.-d*d,0.))*r*.5;if(b>pb){pb=b;pid=ih(cx+9,cz+13);}}}}
+ return vec2f(h+pb,pid);}
+fn fineH(x:f32,z:f32)->f32{let d0=floorAt(x,z);return d0-micro(x,z,d0).x*fdf(x,z)-.01;}
+@compute @workgroup_size(8,8) fn mainF(@builtin(global_invocation_id) id:vec3u){
+ if(id.x>=251u||id.y>=251u){return;}
+ let i=id.y*251u+id.x;let st=tu.f.z/125.;
+ let x=tu.f.x+(f32(id.x)-125.)*st;let z=tu.f.y+(f32(id.y)-125.)*st;
+ let d0=floorAt(x,z);let fd=fdf(x,z);let m=micro(x,z,d0);let df=d0-m.x*fd-.01;
+ let fx=(fineH(x+st,z)-fineH(x-st,z))/(2.*st);let fz=(fineH(x,z+st)-fineH(x,z-st))/(2.*st);
+ let nn=normalize(vec3f(fx,1.,fz));
+ let k=.85+.3*fbm(x*.2,z*.2);let rkm=ssg(1.5,5.,baseD(x)-d0)*.75;
+ let c0=tcol(d0);var c=(c0+(vec3f(.3,.3,.32)-c0)*rkm)*k;
+ if(m.y>=0.){c=mix(c,c*(.5+.6*m.y)+vec3f(.015),smoothstep(0.,.015,m.x)*fd);}
+ let g1=1.8;let av=(floorAt(x-g1,z)+floorAt(x+g1,z)+floorAt(x,z-g1)+floorAt(x,z+g1)+floorAt(x-2.*g1,z)+floorAt(x+2.*g1,z)+floorAt(x,z-2.*g1)+floorAt(x,z+2.*g1))/8.;
+ let ao=clamp(1.-(d0-av)*.55,.3,1.)*mix(1.,clamp(.82+m.x*6.,.82,1.),fd);
  let o=i*10u;
  vb[o]=x;vb[o+1u]=-df;vb[o+2u]=z;vb[o+3u]=nn.x;vb[o+4u]=nn.y;vb[o+5u]=nn.z;vb[o+6u]=c.x;vb[o+7u]=c.y;vb[o+8u]=c.z;vb[o+9u]=ao;
 }

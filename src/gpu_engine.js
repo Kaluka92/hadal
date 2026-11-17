@@ -361,14 +361,20 @@ for(const sp of SPS){try{FISHLO=(sp.cap||500)>400;const g=sp.g();sp.geo=gpuGeo(g
  sp.mu=mkMatU(mode,sp.R,sp.W,sp.alpha,{cs:mode?1:.15,spec:mode?.55:.12,tr:sp.tr,pat:sp.pat,iri:sp.iri,shrink:mode===0,...(sp.mo||{})})}catch(e){console.warn('especie',sp.n,e);sp.geo=null}}
 
 // ---- terreno: vértices por compute shader, índices estáticos ----
-const TN=251,tvb=mkBuf(TN*TN*40,UB.VERTEX|UB.STORAGE|UB.COPY_SRC),tu=mkBuf(16,UB.UNIFORM|UB.COPY_DST);
+const TN=251,tvb=mkBuf(TN*TN*40,UB.VERTEX|UB.STORAGE|UB.COPY_SRC),tu=mkBuf(32,UB.UNIFORM|UB.COPY_DST),tvbF=mkBuf(TN*TN*40,UB.VERTEX|UB.STORAGE|UB.COPY_SRC);
 {const ix=new Uint32Array(250*250*6);let o=0;for(let r=0;r<250;r++)for(let c=0;c<250;c++){const a=r*TN+c,b=a+1,cc=a+TN,d=cc+1;ix.set([a,cc,b,b,cc,d],o);o+=6}
  var tib=mkBuf(ix.byteLength,UB.INDEX|UB.COPY_DST,ix)}
 const terrMod=smod(TERR,'terreno');
 const terrPipe=await device.createComputePipelineAsync({layout:'auto',compute:{module:terrMod,entryPoint:'main'}});
 const terrBG=device.createBindGroup({layout:terrPipe.getBindGroupLayout(0),entries:[{binding:0,resource:{buffer:tu}},{binding:1,resource:{buffer:tvb}}]});
+const terrPipeF=await device.createComputePipelineAsync({layout:'auto',compute:{module:terrMod,entryPoint:'mainF'}});
+const terrBGF=device.createBindGroup({layout:terrPipeF.getBindGroupLayout(0),entries:[{binding:0,resource:{buffer:tu}},{binding:1,resource:{buffer:tvbF}}]});
+let fc={x:1e9,z:1e9},fineDirty=true,fineOn=false;const TNR=31.25;
+function writeTU(){device.queue.writeBuffer(tu,0,new Float32Array([tc.x,tc.z,1.8,0,fc.x,fc.z,TNR,0]))}
+function fineCheck(){const on=QL>=1&&(DBGM&32768)===0;if(on&&!fineOn)fc={x:1e9,z:1e9};fineOn=on;if(!on)return;
+ if(Math.hypot(cam.position.x-fc.x,cam.position.z-fc.z)>8){fc={x:Math.round(cam.position.x/4)*4,z:Math.round(cam.position.z/4)*4};writeTU();fineDirty=true}}
 let tc={x:1e9,z:1e9},terrDirty=true;
-function terrain(){const cx=Math.round(cam.position.x/25)*25,cz=Math.round(cam.position.z/25)*25;tc={x:cx,z:cz};device.queue.writeBuffer(tu,0,new Float32Array([cx,cz,1.8,0]));terrDirty=true}
+function terrain(){const cx=Math.round(cam.position.x/25)*25,cz=Math.round(cam.position.z/25)*25;tc={x:cx,z:cz};writeTU();terrDirty=true}
 
 // ---- geometría de los conos de luz ----
 const coneV=(()=>{const R=16,H=46,N=28,a=[];const pt=i=>{const th=i/N*6.2832;return[Math.cos(th)*R,-Math.sin(th)*R,-H]};
@@ -450,6 +456,7 @@ function lightMatrix(){const L=SUN;shR.crossVectors(zAx,L).normalize();shU.cross
 
 // ---- cuadro completo ----
 function drawStatic(p,list,shadow){for(const s of list){if(shadow&&!s.caster)continue;p.setPipeline(shadow?mkP(['',false,true].join('|')):mkP(['',false,false].join('|')));p.setBindGroup(1,s.mat.bg);p.setVertexBuffer(0,s.geo.buf);p.setVertexBuffer(1,s.ibuf);if(s.ind){p.setIndexBuffer(s.ind.idx,'uint32');p.drawIndexedIndirect(s.ind.args,0)}else p.draw(s.geo.n,1)}}
+function drawTerrainF(p){p.setPipeline(mkP(['',false,false].join('|')));p.setBindGroup(1,matTerr.bg);p.setVertexBuffer(0,tvbF);p.setVertexBuffer(1,identBuf);p.setIndexBuffer(tib,'uint32');p.drawIndexed(250*250*6)}
 function drawTerrain(p,shadow){p.setPipeline(mkP(['',false,shadow].join('|')));p.setBindGroup(1,matTerr.bg);p.setVertexBuffer(0,tvb);p.setVertexBuffer(1,identBuf);p.setIndexBuffer(tib,'uint32');p.drawIndexed(250*250*6)}
 var LODR=[35,60,80,110,140][QL],MIDR=LODR+12,CULLR=90;
 function upl(sp){device.queue.writeBuffer(sp.geoN?sp.sbuf:sp.ibuf,0,sp.inst.buffer,0,sp.cnt*96)}
@@ -474,6 +481,8 @@ function frame(t,dep,sunD){
  const wantSh=!!texSh&&dep<110;const doSh=wantSh&&(shFrame++%Math.max(1,QS[QL].shE))===0;if(doSh)lightMatrix();shOn=wantSh?1:0;
  fillG(Gf,vp,t,dep,sunD);device.queue.writeBuffer(gBuf,0,Gf);
  const enc=device.createCommandEncoder();
+ fineCheck();
+ if(fineOn&&fineDirty){const c=enc.beginComputePass();c.setPipeline(terrPipeF);c.setBindGroup(0,terrBGF);c.dispatchWorkgroups(32,32);c.end();fineDirty=false}
  if(terrDirty){const c=enc.beginComputePass();c.setPipeline(terrPipe);c.setBindGroup(0,terrBG);c.dispatchWorkgroups(32,32);c.end();terrDirty=false}
  if((cFrame++%3)===0)fsp(enc,PP.cau,vCau,[bgDummy],false,'causticas');
  cullPass(enc,vp,doSh);
@@ -483,7 +492,7 @@ function frame(t,dep,sunD){
   p.setBindGroup(0,bgSh);drawTerrain(p,true);drawStatic(p,STAT,true);drawSpecies(p,false,true);p.end()}
  const p=enc.beginRenderPass({timestampWrites:tw('principal'),colorAttachments:[{view:SC>1?TG.v.ms:TG.v.hdr,resolveTarget:SC>1?TG.v.hdr:undefined,clearValue:{r:0,g:0,b:0,a:1},loadOp:'clear',storeOp:SC>1?'discard':'store'}],
   depthStencilAttachment:{view:TG.v.depth,depthClearValue:1,depthLoadOp:'clear',depthStoreOp:'store'}});
- p.setBindGroup(0,bg0);p.setPipeline(PP.bgf);p.draw(3);if(!(SKIP&&SKIP.has('terreno')))drawTerrain(p,false);if(!(SKIP&&SKIP.has('estaticos')))drawStatic(p,STAT,false);if(!(SKIP&&SKIP.has('especies')))drawSpecies(p,false,false);
+ p.setBindGroup(0,bg0);p.setPipeline(PP.bgf);p.draw(3);if(!(SKIP&&SKIP.has('terreno')))drawTerrain(p,false);if(fineOn&&!(SKIP&&SKIP.has('terreno')))drawTerrainF(p);if(!(SKIP&&SKIP.has('estaticos')))drawStatic(p,STAT,false);if(!(SKIP&&SKIP.has('especies')))drawSpecies(p,false,false);
  if(dep<160&&!(SKIP&&SKIP.has('superficie'))){p.setPipeline(PP.surf);p.draw(4)}
  if(!(SKIP&&SKIP.has('especies')))drawSpecies(p,true,false);
  if(!(SKIP&&SKIP.has('nieve'))){p.setPipeline(PP.snow);p.draw(4,4000)}

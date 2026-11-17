@@ -42,6 +42,7 @@ La resolución interna se ajusta sola. Si Ultra o Premium no sostienen unos ~50 
 - **Detalle triplanar con gradientes explícitos y atenuación por profundidad**, y materiales procedurales distintos por tipo de superficie (roca, sedimento, chapa remachada, madera con tablones y agujeros de broma).
 - **Bioluminiscencia por compute**: 48.000 partículas excitadas por la estela del submarino.
 - **Gobernador de rendimiento** con consultas de marca de tiempo: ajusta resolución y radio de detalle, y baja de nivel de calidad si hace falta.
+- **Terreno de alta resolución cerca de la cámara.** Un parche de 251×251 vértices (paso de 25 cm, ±31 m) se recalcula por compute alrededor del submarino y suma, sobre el terreno grueso, rizos de arena, montículos de bioturbación y guijarros procedurales (siempre por encima del terreno grueso, con fundido en el borde, para no necesitar recortes ni costuras). Se activa desde Medio; bit de depuración 32768.
 - **Antialiasing temporal (TAA) en Ultra y Premium.** Jitter de subpíxel (Halton 2,3 de 8 muestras) en la proyección, reproyección del historial con la profundidad y la matriz previa, y recorte por varianza de la vecindad 3×3 para limitar el ghosting en la vegetación que se mueve; el resultado se copia al buffer HDR antes del bloom y del pase final. Interruptor de depuración: bit 16384.
 - **Efectos de impacto**: sacudida de cámara y aberración cromática al tocar el fondo a velocidad.
 - **Diario de campo y recorrido guiado**: registra lo que ves, con profundidad y fuente, y se guarda en el navegador.
