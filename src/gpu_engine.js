@@ -416,7 +416,7 @@ function buildTargets(){for(const k in TG)for(const t of [].concat(TG[k]))t&&t.d
  const pr=Math.min(devicePixelRatio,2);canvas.width=Math.max(8,Math.floor(innerWidth*pr));canvas.height=Math.max(8,Math.floor(innerHeight*pr));
  canvas.style.cssText='display:block;width:100vw;height:100vh;touch-action:none';
  const W=Math.max(8,Math.min(4096,Math.floor(canvas.width*RS))),H=Math.max(8,Math.min(4096,Math.floor(canvas.height*RS)));TG.W=W;TG.H=H;
- TG.hdr=mkTex(W,H,HDR,UT.RENDER_ATTACHMENT|UT.TEXTURE_BINDING|UT.COPY_DST);TG.taa=QL>=3?[0,1].map(()=>mkTex(W,H,HDR,UT.RENDER_ATTACHMENT|UT.TEXTURE_BINDING|UT.COPY_SRC)):null;taaReset=true;TG.ms=SC>1?mkTex(W,H,HDR,UT.RENDER_ATTACHMENT,{sampleCount:SC}):null;
+ TG.hdr=mkTex(W,H,HDR,UT.RENDER_ATTACHMENT|UT.TEXTURE_BINDING|UT.COPY_DST);TG.taa=QL>=1?[0,1].map(()=>mkTex(W,H,HDR,UT.RENDER_ATTACHMENT|UT.TEXTURE_BINDING|UT.COPY_SRC)):null;taaReset=true;TG.ms=SC>1?mkTex(W,H,HDR,UT.RENDER_ATTACHMENT,{sampleCount:SC}):null;
  TG.depth=mkTex(W,H,DEPTH,UT.RENDER_ATTACHMENT|UT.TEXTURE_BINDING,{sampleCount:SC});TG.z=mkTex(W,H,'r32float',UT.RENDER_ATTACHMENT|UT.TEXTURE_BINDING|UT.COPY_SRC);
  TG.rays=mkTex(W>>1,H>>1,HDR,UT.RENDER_ATTACHMENT|UT.TEXTURE_BINDING);TG.bl=[];let w=W,h=H;for(let i=0;i<3;i++){w=Math.max(2,w>>1);h=Math.max(2,h>>1);TG.bl.push(mkTex(w,h,HDR,UT.RENDER_ATTACHMENT|UT.TEXTURE_BINDING))}
  TG.v={taa:TG.taa?TG.taa.map(t=>t.createView()):null,hdr:TG.hdr.createView(),ms:TG.ms?TG.ms.createView():null,depth:TG.depth.createView(),z:TG.z.createView(),rays:TG.rays.createView(),bl:TG.bl.map(t=>t.createView())};
@@ -480,7 +480,7 @@ function drawSpecies(p,alpha,shadow){for(const sp of SPS){if(!sp.geo||!sp.cnt||(
 var switching=false;
 function frame(t,dep,sunD){
  if(switching)return;
- camBasis();const sk=SHK*SHK,sx=(Math.random()-.5)*sk*.22,sy=(Math.random()-.5)*sk*.16,view=M4.view([cam.position.x+camR.x*sx+camU.x*sy,cam.position.y+camR.y*sx+camU.y*sy,cam.position.z+camR.z*sx+camU.z*sy],[camR.x,camR.y,camR.z],[camU.x,camU.y,camU.z],[-camV.x,-camV.y,-camV.z]);const vpU=M4.mul(PROJ(),view),taaOn=QL>=3&&(DBGM&16384)===0&&!!TG.taa&&!!PP.taa;let vp=vpU;if(taaOn){const k=taaIdx8++&7,hx=hal(k+1,2)-.5,hy=hal(k+1,3)-.5;taaJ=[hx*2/TG.W,hy*2/TG.H];vp=M4.mul(new Float32Array([1,0,0,0,0,1,0,0,0,0,1,0,taaJ[0],taaJ[1],0,1]),vpU)}else taaJ=[0,0];
+ camBasis();const sk=SHK*SHK,sx=(Math.random()-.5)*sk*.22,sy=(Math.random()-.5)*sk*.16,view=M4.view([cam.position.x+camR.x*sx+camU.x*sy,cam.position.y+camR.y*sx+camU.y*sy,cam.position.z+camR.z*sx+camU.z*sy],[camR.x,camR.y,camR.z],[camU.x,camU.y,camU.z],[-camV.x,-camV.y,-camV.z]);const vpU=M4.mul(PROJ(),view),taaOn=QL>=1&&(DBGM&16384)===0&&!!TG.taa&&!!PP.taa;let vp=vpU;if(taaOn){const k=taaIdx8++&7,hx=hal(k+1,2)-.5,hy=hal(k+1,3)-.5;taaJ=[hx*2/TG.W,hy*2/TG.H];vp=M4.mul(new Float32Array([1,0,0,0,0,1,0,0,0,0,1,0,taaJ[0],taaJ[1],0,1]),vpU)}else taaJ=[0,0];
  const wantSh=!!texSh&&dep<110;const doSh=wantSh&&(shFrame++%Math.max(1,QS[QL].shE))===0;if(doSh)lightMatrix();shOn=wantSh?1:0;
  fillG(Gf,vp,t,dep,sunD);device.queue.writeBuffer(gBuf,0,Gf);
  const enc=device.createCommandEncoder();

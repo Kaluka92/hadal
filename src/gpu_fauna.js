@@ -15,12 +15,12 @@ const FX=(()=>{
    const r0=(e?ns:0)*(na+1);for(let j=0;j<na;j++){if(e)ix.push(ci,r0+j,r0+j+1);else ix.push(ci,r0+j+1,r0+j)}}
   return GF(pos,col,ix)}
  // aleta: borde de ataque le(v) y de fuga te(v) (v=0 raíz, v=1 punta), espesor T con perfil de ala
- function fin(le,te,{T=.01,nrm=[0,1,0],nu=7,nv=9,c1,c2,tip=.6}={}){const pos=[],col=[],ix=[];
+ function fin(le,te,{T=.01,nrm=[0,1,0],nu=13,nv=11,c1,c2,tip=.6}={}){const pos=[],col=[],ix=[];
   for(const sd of[1,-1]){const b0=pos.length/3;
    for(let iv=0;iv<=nv;iv++){const v=iv/nv,A=le(v),B=te(v);
     for(let iu=0;iu<=nu;iu++){const u=iu/nu,th=T*pw(Math.max(1-v,0),tip)*pw(4*u*(1-u),.6);
      pos.push(A[0]+(B[0]-A[0])*u+nrm[0]*sd*th,A[1]+(B[1]-A[1])*u+nrm[1]*sd*th,A[2]+(B[2]-A[2])*u+nrm[2]*sd*th);
-     const k=mx3(c1,c2,Math.min(1,u*.5+v*.6));col.push(k[0],k[1],k[2])}}
+     const k0=mx3(c1,c2,Math.min(1,u*.5+v*.6)),ry=.9+.1*Math.cos(iu*2.2)*(.4+.6*v),k=[k0[0]*ry,k0[1]*ry,k0[2]*ry];col.push(k[0],k[1],k[2])}}
    for(let iv=0;iv<nv;iv++)for(let iu=0;iu<nu;iu++){const a=b0+iv*(nu+1)+iu,b=a+1,c=a+nu+1,d=c+1;ix.push(a,c,b,b,c,d)}}
   return GF(pos,col,ix)}
  const ry=(sec,z,sd,k=.92)=>{const q=sec(Math.min(Math.max(z+.5,0),1));return sd>0?(q.yc||0)+q.ht*k:(q.yc||0)-q.hb*k};
@@ -148,8 +148,8 @@ function fishG(c1,c2,o={}){const R=o.R||.1,tl=o.tl||.2,lt=o.lt||.5;
  const sec=s=>{const f=Math.max(tf(1-s),.004);return{w:R*lt*f,ht:R*f*1.05,hb:R*f*.95,p:2.2,yc:0}};
  const A=HX(c1),Bc=HX(c2),belly=MX3(A,[1,1,1],.5),dk=MX3(A,[0,0,0],.3);
  const colf=(s,c,y)=>MX3(MX3(belly,A,ST(-.55,.05,y)),dk,ST(.35,.9,y));
- const lo=FISHLO,gs=[LOFT(1,sec,colf,lo?12:30,lo?6:12)],tw=tl*.9,fo={T:.004,nrm:[1,0,0],nu:lo?1:3,nv:lo?2:4,c1:Bc,c2:Bc};
- for(const sd of[-1,1])gs.push(FIN(v=>[0,sd*tw*v,-.5-.02*v],v=>[0,sd*tw*v,-.5-tl*(o.fork?(.55+.45*v):(1-.5*v*v))],fo));
+ const lo=FISHLO,gs=[LOFT(1,sec,colf,lo?14:48,lo?7:20)],tw=tl*.9,fo={T:.004,nrm:[1,0,0],nu:lo?2:8,nv:lo?3:7,c1:Bc,c2:Bc};
+ for(const sd of[-1,1])gs.push(FIN(v=>[0,sd*tw*v,-.5-.02*v-.22*tl*v*v],v=>[0,sd*tw*v,-.5-tl*(o.fork?(.28+.9*Math.pow(v,1.5)):(1-.45*v*v))],{...fo,nu:lo?2:10,nv:lo?3:9}));
  if(o.dor!==0){const h=o.dor||.12,y=RY(sec,0,1,.85);gs.push(FIN(v=>[0,y+h*v,.12-.08*v],v=>[0,y+h*v,-.12+.06*v],{...fo,nv:lo?1:3}));
   if(!lo){const yb=RY(sec,-.25,-1,.85);gs.push(FIN(v=>[0,yb-h*.6*v,-.15],v=>[0,yb-h*.6*v,-.3+.05*v],{...fo,nv:3}))}}
  for(const sd of[-1,1]){if(!lo){gs.push(FIN(v=>[sd*(R*lt*.5+.04*v),-R*.8-.02*v,.1],v=>[sd*(R*lt*.5+.04*v),-R*.8-.03*v,.0-.03*v],{T:.003,nu:3,nv:2,c1:Bc,c2:Bc}));
@@ -450,3 +450,22 @@ SPN('Jörmungandr').g=()=>{const gs=[],R=.36,bd=HX('#1c2616'),bl=HX('#585a44'),d
  gs.push(orient(serpHead(bd,dk,bl,'#8aff6a',.95,rn),[ft.x,ft.y,ft.z],[e.x,e.y,e.z]));
  return MG(gs)};
 SPN('Jörmungandr').pat=4;
+
+// --- Pez espada: cuerpo esbelto, pico largo y aplanado, vela dorsal alta, cola lunada y quillas
+SPN('Pez espada').g=()=>{const tf=u=>Math.pow(Math.sin(Math.PI*Math.pow(u,.58)),.8)*(1-.1*u);
+ const sec=s=>{const f=Math.max(tf(1-s),.004);return{w:.052*f,ht:.088*f,hb:.078*f,p:2.3,yc:.004}};
+ const top=HX('#18233d'),mid=HX('#5a7290'),bel=HX('#d8dde0'),dk=HX('#10192c');
+ const colf=(s,c,sn)=>{let k=MX3(MX3(bel,mid,ST(-.55,-.05,sn)),top,ST(.05,.55,sn));if(s>.85&&sn<-.1)k=MX3(k,dk,.4);return k};
+ const fd=HX('#1c2b49'),fl=HX('#3a5070'),gs=[LOFT(1,sec,colf,84,32)];
+ gs.push(P(seg(V3([0,.004,.47]),V3([0,-.004,.93]),.024,.0028,10),'#27313f'),P(seg(V3([0,-.012,.47]),V3([0,-.012,.64]),.013,.004,7),'#1f2833'));
+ const lobe=sd=>FIN(v=>[0,sd*.2*v,-.5-.03*v*v],v=>[0,sd*.2*v,-.5-.075-.19*Math.pow(v,1.25)],{T:.006,nrm:[1,0,0],nu:16,nv:14,c1:HX('#1b2a46'),c2:fd,tip:.35});
+ gs.push(lobe(1),lobe(-1));
+ {const y=RY(sec,.2,1,.88);gs.push(FIN(v=>[0,y+.13*v,.2-.1*v],v=>[0,y+.13*v,-.12+.03*v],{T:.004,nrm:[1,0,0],nu:16,nv:12,c1:fd,c2:HX('#2e4467'),tip:.5}))}
+ {const y=RY(sec,-.3,1,.88);gs.push(FIN(v=>[0,y+.028*v,-.28-.01*v],v=>[0,y+.028*v,-.35],{T:.003,nrm:[1,0,0],nu:6,nv:5,c1:fd,c2:fd}))}
+ {const yb=RY(sec,-.18,-1,.88);gs.push(FIN(v=>[0,yb-.05*v,-.17],v=>[0,yb-.05*v,-.27],{T:.003,nrm:[1,0,0],nu:8,nv:6,c1:fd,c2:fd}),FIN(v=>[0,yb-.022*v,-.32],v=>[0,yb-.022*v,-.37],{T:.003,nrm:[1,0,0],nu:5,nv:4,c1:fd,c2:fd}))}
+ for(const sd of[-1,1]){gs.push(FIN(v=>[sd*(.04+.17*v),-.05-.015*v,.26-.05*v],v=>[sd*(.04+.17*v),-.05-.03*v,.26-.075-.16*v],{T:.004,nu:12,nv:10,c1:fd,c2:fl,tip:.5}));
+  gs.push(FIN(v=>[sd*(.012+.045*v),-.012,-.42-.004*v],v=>[sd*(.012+.045*v),-.012,-.47],{T:.003,nrm:[0,1,0],nu:5,nv:4,c1:fd,c2:fd}));
+  gs.push(...EYE(sd*.046,.018,.4,.02))}
+ gs.push(P(CY(.014,.008,.012,6),'#0b111b',{p:[0,.0,.49],r:[Math.PI/2,0,0]}));
+ return MG(gs)};
+SPN('Pez espada').pat=0;

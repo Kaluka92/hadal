@@ -197,7 +197,9 @@ fn h2(p:vec2f)->f32{return fract(sin(dot(p,vec2f(127.1,311.7)))*43758.5453);}
  if(pat>.5&&pat<1.5){alb=alb*mix(.62,1.38,ss(.1,.9,.5-.5*dv));}
  else if(pat>1.5&&pat<2.5){let st=ss(.35,.65,sin(i.l.z*38.+i.l.y*6.));alb=alb*mix(1.,.45,st*ss(-.2,.6,dv));}
  else if(pat>2.5&&pat<3.5){let st=ss(.45,.8,textureSample(tDet,sL,i.l.xz*3.+vec2f(i.l.y*2.)).a);alb=alb*mix(1.05,.6,st);}
- else if(pat>3.5&&pat<4.5){let u=vec2f(i.l.z*85.,atan2(i.l.y,i.l.x)*11.);let rw=floor(u.y);let sh=.5*(rw-2.*floor(rw*.5));let uv=vec2f(fract(u.x+sh),fract(u.y));let cl=vec2f(floor(u.x+sh),rw);let ed=ss(0.,.3,uv.y)*ss(0.,.18,uv.x)*ss(1.,.82,uv.x);let hv=h2(cl);alb=alb*mix(.82,1.05,ed)*(.94+.12*hv);gloss=mix(gloss,.75,ed*.6);bh=ed*.7+.3*hv;let nvv=max(dot(N,V),0.);let irid=.5+.5*cos(6.28318*(nvv*1.4+hv*.3+vec3f(0.,.33,.67)));alb=alb+(irid-.5)*.2*ed*pow(1.-nvv,1.4)+vec3f(.04,.07,.09)*ss(.012,.003,abs(i.l.y-.012))*.6;alb=alb*(1.-.35*ss(.011,.003,abs(i.l.y-.012)));}
+ else if(pat>3.5&&pat<4.5){let u=vec2f(i.l.z*62.,atan2(i.l.y,i.l.x)*8.6);let a=fract(u)-.5;let b=fract(u+.5)-.5;let sc=vec2f(1.,1.12);let da=length(a*sc);let db=length(b*sc);let useA=da<db;let d=min(da,db);let cc=select(floor(u+.5),floor(u),useA);let lc=select(b,a,useA);let hv=h2(cc);
+  let fwq=fwidth(u.x)+fwidth(u.y);let aa=ss(.5,.14,fwq);let ed=ss(.66,.28,d);let rim=ss(.2,.52,d)*sat1(.55-lc.x*1.6)*.55;
+  alb=mix(alb,alb*(mix(.74,1.08,ed)*(.93+.14*hv)+rim*.22),aa);gloss=mix(gloss,.78,ed*.6*aa);bh=(ed*.62+.3*hv-rim*.4)*aa;}
  else if(pat>4.5&&pat<5.5){let n1=textureSample(tDet,sL,i.l.zy*vec2f(9.,9.)+vec2f(i.l.x*4.)).g;let n2=textureSample(tDet,sL,i.l.zy*vec2f(60.,60.)+vec2f(i.l.x*20.)).g;alb=alb*(.8+.4*n1)*(.94+.12*n2);bh=n2*.6+n1*.25;}
  else if(pat>5.5&&pat<6.5){let c=floor(i.l.xz*vec2f(70.,70.)+vec2f(i.l.y*45.));let hv=h2(c);let pu=.5+.5*sin(g.cam.w*(1.4+hv*2.2)+hv*40.);let sp=step(.6,hv)*pu;let hc=h2(c+vec2f(7.,3.));let tcol=mix(vec3f(.34,.12,.1),vec3f(.62,.36,.1),hc);alb=mix(alb,alb*tcol*1.6,sp*.75);let ir=step(.82,h2(c+vec2f(3.,9.)))*(1.-step(.6,hv))*(.5+.5*sin(g.cam.w*.9+hv*30.));alb=alb+vec3f(.03,.16,.2)*ir;bh=sp*.8+ir*.3;}
  let dhx=dpdx(bh);let dhy=dpdy(bh);let px=dpdx(i.wp);let py=dpdy(i.wp);
@@ -505,10 +507,15 @@ const P_FIN=WC+VQ+`@group(1) @binding(0) var tS:texture_2d<f32>;
 @group(1) @binding(4) var tB1:texture_2d<f32>;
 @group(1) @binding(5) var tB2:texture_2d<f32>;
 fn tmap(x:vec3f)->vec3f{return clamp((x*(2.51*x+.03))/(x*(2.43*x+.59)+.14),vec3f(0.),vec3f(1.));}
+fn crom(uv:vec2f)->vec3f{let sz=vec2f(textureDimensions(tS));let p=uv*sz;let tc=floor(p-.5)+.5;let f=p-tc;
+ let w0=f*(-.5+f*(1.-.5*f));let w1=1.+f*f*(-2.5+1.5*f);let w2=f*(.5+f*(2.-1.5*f));let w3=f*f*(-.5+.5*f);
+ let w12=w1+w2;let t0=(tc-1.)/sz;let t3=(tc+2.)/sz;let t12=(tc+w2/w12)/sz;
+ var r=textureSampleLevel(tS,sK,vec2f(t12.x,t0.y),0.).rgb*(w12.x*w0.y)+textureSampleLevel(tS,sK,vec2f(t0.x,t12.y),0.).rgb*(w0.x*w12.y)+textureSampleLevel(tS,sK,t12,0.).rgb*(w12.x*w12.y)+textureSampleLevel(tS,sK,vec2f(t3.x,t12.y),0.).rgb*(w3.x*w12.y)+textureSampleLevel(tS,sK,vec2f(t12.x,t3.y),0.).rgb*(w12.x*w3.y);
+ return max(r,vec3f(0.));}
 @fragment fn fs(@builtin(position) fc:vec4f)->@location(0) vec4f{
- let uv=fc.xy*g.cv.zw;var c=textureSampleLevel(tS,sK,uv,0.).rgb;
+ let uv=fc.xy*g.cv.zw;var c=select(textureSampleLevel(tS,sK,uv,0.).rgb,crom(uv),g.res.x/g.cv.x<.98);
  if(g.so.z>.004){let dv=(uv-.5)*g.so.z*.03;c=vec3f(textureSampleLevel(tS,sK,uv+dv,0.).r,c.g,textureSampleLevel(tS,sK,uv-dv,0.).b);}
- {let rr=g.res.x/g.cv.x;let amt=clamp((1.-rr)*1.6,0.,.7);
+ {let rr=g.res.x/g.cv.x;let amt=clamp((1.-rr)*1.1,0.,.4);
   if(amt>.01){let e=1./vec2f(textureDimensions(tS));
    let n1=textureSampleLevel(tS,sK,uv+vec2f(e.x,0.),0.).rgb;let n2=textureSampleLevel(tS,sK,uv-vec2f(e.x,0.),0.).rgb;let n3=textureSampleLevel(tS,sK,uv+vec2f(0.,e.y),0.).rgb;let n4=textureSampleLevel(tS,sK,uv-vec2f(0.,e.y),0.).rgb;
    let bl=(n1+n2+n3+n4)*.25;let mn=min(c,min(min(n1,n2),min(n3,n4)));let mx=max(c,max(max(n1,n2),max(n3,n4)));
@@ -1128,12 +1135,12 @@ const FX=(()=>{
    const r0=(e?ns:0)*(na+1);for(let j=0;j<na;j++){if(e)ix.push(ci,r0+j,r0+j+1);else ix.push(ci,r0+j+1,r0+j)}}
   return GF(pos,col,ix)}
  // aleta: borde de ataque le(v) y de fuga te(v) (v=0 raíz, v=1 punta), espesor T con perfil de ala
- function fin(le,te,{T=.01,nrm=[0,1,0],nu=7,nv=9,c1,c2,tip=.6}={}){const pos=[],col=[],ix=[];
+ function fin(le,te,{T=.01,nrm=[0,1,0],nu=13,nv=11,c1,c2,tip=.6}={}){const pos=[],col=[],ix=[];
   for(const sd of[1,-1]){const b0=pos.length/3;
    for(let iv=0;iv<=nv;iv++){const v=iv/nv,A=le(v),B=te(v);
     for(let iu=0;iu<=nu;iu++){const u=iu/nu,th=T*pw(Math.max(1-v,0),tip)*pw(4*u*(1-u),.6);
      pos.push(A[0]+(B[0]-A[0])*u+nrm[0]*sd*th,A[1]+(B[1]-A[1])*u+nrm[1]*sd*th,A[2]+(B[2]-A[2])*u+nrm[2]*sd*th);
-     const k=mx3(c1,c2,Math.min(1,u*.5+v*.6));col.push(k[0],k[1],k[2])}}
+     const k0=mx3(c1,c2,Math.min(1,u*.5+v*.6)),ry=.9+.1*Math.cos(iu*2.2)*(.4+.6*v),k=[k0[0]*ry,k0[1]*ry,k0[2]*ry];col.push(k[0],k[1],k[2])}}
    for(let iv=0;iv<nv;iv++)for(let iu=0;iu<nu;iu++){const a=b0+iv*(nu+1)+iu,b=a+1,c=a+nu+1,d=c+1;ix.push(a,c,b,b,c,d)}}
   return GF(pos,col,ix)}
  const ry=(sec,z,sd,k=.92)=>{const q=sec(Math.min(Math.max(z+.5,0),1));return sd>0?(q.yc||0)+q.ht*k:(q.yc||0)-q.hb*k};
@@ -1261,8 +1268,8 @@ function fishG(c1,c2,o={}){const R=o.R||.1,tl=o.tl||.2,lt=o.lt||.5;
  const sec=s=>{const f=Math.max(tf(1-s),.004);return{w:R*lt*f,ht:R*f*1.05,hb:R*f*.95,p:2.2,yc:0}};
  const A=HX(c1),Bc=HX(c2),belly=MX3(A,[1,1,1],.5),dk=MX3(A,[0,0,0],.3);
  const colf=(s,c,y)=>MX3(MX3(belly,A,ST(-.55,.05,y)),dk,ST(.35,.9,y));
- const lo=FISHLO,gs=[LOFT(1,sec,colf,lo?12:30,lo?6:12)],tw=tl*.9,fo={T:.004,nrm:[1,0,0],nu:lo?1:3,nv:lo?2:4,c1:Bc,c2:Bc};
- for(const sd of[-1,1])gs.push(FIN(v=>[0,sd*tw*v,-.5-.02*v],v=>[0,sd*tw*v,-.5-tl*(o.fork?(.55+.45*v):(1-.5*v*v))],fo));
+ const lo=FISHLO,gs=[LOFT(1,sec,colf,lo?14:48,lo?7:20)],tw=tl*.9,fo={T:.004,nrm:[1,0,0],nu:lo?2:8,nv:lo?3:7,c1:Bc,c2:Bc};
+ for(const sd of[-1,1])gs.push(FIN(v=>[0,sd*tw*v,-.5-.02*v-.22*tl*v*v],v=>[0,sd*tw*v,-.5-tl*(o.fork?(.28+.9*Math.pow(v,1.5)):(1-.45*v*v))],{...fo,nu:lo?2:10,nv:lo?3:9}));
  if(o.dor!==0){const h=o.dor||.12,y=RY(sec,0,1,.85);gs.push(FIN(v=>[0,y+h*v,.12-.08*v],v=>[0,y+h*v,-.12+.06*v],{...fo,nv:lo?1:3}));
   if(!lo){const yb=RY(sec,-.25,-1,.85);gs.push(FIN(v=>[0,yb-h*.6*v,-.15],v=>[0,yb-h*.6*v,-.3+.05*v],{...fo,nv:3}))}}
  for(const sd of[-1,1]){if(!lo){gs.push(FIN(v=>[sd*(R*lt*.5+.04*v),-R*.8-.02*v,.1],v=>[sd*(R*lt*.5+.04*v),-R*.8-.03*v,.0-.03*v],{T:.003,nu:3,nv:2,c1:Bc,c2:Bc}));
@@ -1563,6 +1570,25 @@ SPN('Jörmungandr').g=()=>{const gs=[],R=.36,bd=HX('#1c2616'),bl=HX('#585a44'),d
  gs.push(orient(serpHead(bd,dk,bl,'#8aff6a',.95,rn),[ft.x,ft.y,ft.z],[e.x,e.y,e.z]));
  return MG(gs)};
 SPN('Jörmungandr').pat=4;
+
+// --- Pez espada: cuerpo esbelto, pico largo y aplanado, vela dorsal alta, cola lunada y quillas
+SPN('Pez espada').g=()=>{const tf=u=>Math.pow(Math.sin(Math.PI*Math.pow(u,.58)),.8)*(1-.1*u);
+ const sec=s=>{const f=Math.max(tf(1-s),.004);return{w:.052*f,ht:.088*f,hb:.078*f,p:2.3,yc:.004}};
+ const top=HX('#18233d'),mid=HX('#5a7290'),bel=HX('#d8dde0'),dk=HX('#10192c');
+ const colf=(s,c,sn)=>{let k=MX3(MX3(bel,mid,ST(-.55,-.05,sn)),top,ST(.05,.55,sn));if(s>.85&&sn<-.1)k=MX3(k,dk,.4);return k};
+ const fd=HX('#1c2b49'),fl=HX('#3a5070'),gs=[LOFT(1,sec,colf,84,32)];
+ gs.push(P(seg(V3([0,.004,.47]),V3([0,-.004,.93]),.024,.0028,10),'#27313f'),P(seg(V3([0,-.012,.47]),V3([0,-.012,.64]),.013,.004,7),'#1f2833'));
+ const lobe=sd=>FIN(v=>[0,sd*.2*v,-.5-.03*v*v],v=>[0,sd*.2*v,-.5-.075-.19*Math.pow(v,1.25)],{T:.006,nrm:[1,0,0],nu:16,nv:14,c1:HX('#1b2a46'),c2:fd,tip:.35});
+ gs.push(lobe(1),lobe(-1));
+ {const y=RY(sec,.2,1,.88);gs.push(FIN(v=>[0,y+.13*v,.2-.1*v],v=>[0,y+.13*v,-.12+.03*v],{T:.004,nrm:[1,0,0],nu:16,nv:12,c1:fd,c2:HX('#2e4467'),tip:.5}))}
+ {const y=RY(sec,-.3,1,.88);gs.push(FIN(v=>[0,y+.028*v,-.28-.01*v],v=>[0,y+.028*v,-.35],{T:.003,nrm:[1,0,0],nu:6,nv:5,c1:fd,c2:fd}))}
+ {const yb=RY(sec,-.18,-1,.88);gs.push(FIN(v=>[0,yb-.05*v,-.17],v=>[0,yb-.05*v,-.27],{T:.003,nrm:[1,0,0],nu:8,nv:6,c1:fd,c2:fd}),FIN(v=>[0,yb-.022*v,-.32],v=>[0,yb-.022*v,-.37],{T:.003,nrm:[1,0,0],nu:5,nv:4,c1:fd,c2:fd}))}
+ for(const sd of[-1,1]){gs.push(FIN(v=>[sd*(.04+.17*v),-.05-.015*v,.26-.05*v],v=>[sd*(.04+.17*v),-.05-.03*v,.26-.075-.16*v],{T:.004,nu:12,nv:10,c1:fd,c2:fl,tip:.5}));
+  gs.push(FIN(v=>[sd*(.012+.045*v),-.012,-.42-.004*v],v=>[sd*(.012+.045*v),-.012,-.47],{T:.003,nrm:[0,1,0],nu:5,nv:4,c1:fd,c2:fd}));
+  gs.push(...EYE(sd*.046,.018,.4,.02))}
+ gs.push(P(CY(.014,.008,.012,6),'#0b111b',{p:[0,.0,.49],r:[Math.PI/2,0,0]}));
+ return MG(gs)};
+SPN('Pez espada').pat=0;
 
 // ================= MOTOR WebGPU =================
 const WA=(()=>{const SWw='p.x+=sin(uT*7.+ph-p.z*9.)*.06*ss(.2,-.5,p.z);';
@@ -1982,7 +2008,7 @@ function buildTargets(){for(const k in TG)for(const t of [].concat(TG[k]))t&&t.d
  const pr=Math.min(devicePixelRatio,2);canvas.width=Math.max(8,Math.floor(innerWidth*pr));canvas.height=Math.max(8,Math.floor(innerHeight*pr));
  canvas.style.cssText='display:block;width:100vw;height:100vh;touch-action:none';
  const W=Math.max(8,Math.min(4096,Math.floor(canvas.width*RS))),H=Math.max(8,Math.min(4096,Math.floor(canvas.height*RS)));TG.W=W;TG.H=H;
- TG.hdr=mkTex(W,H,HDR,UT.RENDER_ATTACHMENT|UT.TEXTURE_BINDING|UT.COPY_DST);TG.taa=QL>=3?[0,1].map(()=>mkTex(W,H,HDR,UT.RENDER_ATTACHMENT|UT.TEXTURE_BINDING|UT.COPY_SRC)):null;taaReset=true;TG.ms=SC>1?mkTex(W,H,HDR,UT.RENDER_ATTACHMENT,{sampleCount:SC}):null;
+ TG.hdr=mkTex(W,H,HDR,UT.RENDER_ATTACHMENT|UT.TEXTURE_BINDING|UT.COPY_DST);TG.taa=QL>=1?[0,1].map(()=>mkTex(W,H,HDR,UT.RENDER_ATTACHMENT|UT.TEXTURE_BINDING|UT.COPY_SRC)):null;taaReset=true;TG.ms=SC>1?mkTex(W,H,HDR,UT.RENDER_ATTACHMENT,{sampleCount:SC}):null;
  TG.depth=mkTex(W,H,DEPTH,UT.RENDER_ATTACHMENT|UT.TEXTURE_BINDING,{sampleCount:SC});TG.z=mkTex(W,H,'r32float',UT.RENDER_ATTACHMENT|UT.TEXTURE_BINDING|UT.COPY_SRC);
  TG.rays=mkTex(W>>1,H>>1,HDR,UT.RENDER_ATTACHMENT|UT.TEXTURE_BINDING);TG.bl=[];let w=W,h=H;for(let i=0;i<3;i++){w=Math.max(2,w>>1);h=Math.max(2,h>>1);TG.bl.push(mkTex(w,h,HDR,UT.RENDER_ATTACHMENT|UT.TEXTURE_BINDING))}
  TG.v={taa:TG.taa?TG.taa.map(t=>t.createView()):null,hdr:TG.hdr.createView(),ms:TG.ms?TG.ms.createView():null,depth:TG.depth.createView(),z:TG.z.createView(),rays:TG.rays.createView(),bl:TG.bl.map(t=>t.createView())};
@@ -2046,7 +2072,7 @@ function drawSpecies(p,alpha,shadow){for(const sp of SPS){if(!sp.geo||!sp.cnt||(
 var switching=false;
 function frame(t,dep,sunD){
  if(switching)return;
- camBasis();const sk=SHK*SHK,sx=(Math.random()-.5)*sk*.22,sy=(Math.random()-.5)*sk*.16,view=M4.view([cam.position.x+camR.x*sx+camU.x*sy,cam.position.y+camR.y*sx+camU.y*sy,cam.position.z+camR.z*sx+camU.z*sy],[camR.x,camR.y,camR.z],[camU.x,camU.y,camU.z],[-camV.x,-camV.y,-camV.z]);const vpU=M4.mul(PROJ(),view),taaOn=QL>=3&&(DBGM&16384)===0&&!!TG.taa&&!!PP.taa;let vp=vpU;if(taaOn){const k=taaIdx8++&7,hx=hal(k+1,2)-.5,hy=hal(k+1,3)-.5;taaJ=[hx*2/TG.W,hy*2/TG.H];vp=M4.mul(new Float32Array([1,0,0,0,0,1,0,0,0,0,1,0,taaJ[0],taaJ[1],0,1]),vpU)}else taaJ=[0,0];
+ camBasis();const sk=SHK*SHK,sx=(Math.random()-.5)*sk*.22,sy=(Math.random()-.5)*sk*.16,view=M4.view([cam.position.x+camR.x*sx+camU.x*sy,cam.position.y+camR.y*sx+camU.y*sy,cam.position.z+camR.z*sx+camU.z*sy],[camR.x,camR.y,camR.z],[camU.x,camU.y,camU.z],[-camV.x,-camV.y,-camV.z]);const vpU=M4.mul(PROJ(),view),taaOn=QL>=1&&(DBGM&16384)===0&&!!TG.taa&&!!PP.taa;let vp=vpU;if(taaOn){const k=taaIdx8++&7,hx=hal(k+1,2)-.5,hy=hal(k+1,3)-.5;taaJ=[hx*2/TG.W,hy*2/TG.H];vp=M4.mul(new Float32Array([1,0,0,0,0,1,0,0,0,0,1,0,taaJ[0],taaJ[1],0,1]),vpU)}else taaJ=[0,0];
  const wantSh=!!texSh&&dep<110;const doSh=wantSh&&(shFrame++%Math.max(1,QS[QL].shE))===0;if(doSh)lightMatrix();shOn=wantSh?1:0;
  fillG(Gf,vp,t,dep,sunD);device.queue.writeBuffer(gBuf,0,Gf);
  const enc=device.createCommandEncoder();

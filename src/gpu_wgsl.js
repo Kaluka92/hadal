@@ -129,7 +129,9 @@ fn h2(p:vec2f)->f32{return fract(sin(dot(p,vec2f(127.1,311.7)))*43758.5453);}
  if(pat>.5&&pat<1.5){alb=alb*mix(.62,1.38,ss(.1,.9,.5-.5*dv));}
  else if(pat>1.5&&pat<2.5){let st=ss(.35,.65,sin(i.l.z*38.+i.l.y*6.));alb=alb*mix(1.,.45,st*ss(-.2,.6,dv));}
  else if(pat>2.5&&pat<3.5){let st=ss(.45,.8,textureSample(tDet,sL,i.l.xz*3.+vec2f(i.l.y*2.)).a);alb=alb*mix(1.05,.6,st);}
- else if(pat>3.5&&pat<4.5){let u=vec2f(i.l.z*85.,atan2(i.l.y,i.l.x)*11.);let rw=floor(u.y);let sh=.5*(rw-2.*floor(rw*.5));let uv=vec2f(fract(u.x+sh),fract(u.y));let cl=vec2f(floor(u.x+sh),rw);let ed=ss(0.,.3,uv.y)*ss(0.,.18,uv.x)*ss(1.,.82,uv.x);let hv=h2(cl);alb=alb*mix(.82,1.05,ed)*(.94+.12*hv);gloss=mix(gloss,.75,ed*.6);bh=ed*.7+.3*hv;let nvv=max(dot(N,V),0.);let irid=.5+.5*cos(6.28318*(nvv*1.4+hv*.3+vec3f(0.,.33,.67)));alb=alb+(irid-.5)*.2*ed*pow(1.-nvv,1.4)+vec3f(.04,.07,.09)*ss(.012,.003,abs(i.l.y-.012))*.6;alb=alb*(1.-.35*ss(.011,.003,abs(i.l.y-.012)));}
+ else if(pat>3.5&&pat<4.5){let u=vec2f(i.l.z*62.,atan2(i.l.y,i.l.x)*8.6);let a=fract(u)-.5;let b=fract(u+.5)-.5;let sc=vec2f(1.,1.12);let da=length(a*sc);let db=length(b*sc);let useA=da<db;let d=min(da,db);let cc=select(floor(u+.5),floor(u),useA);let lc=select(b,a,useA);let hv=h2(cc);
+  let fwq=fwidth(u.x)+fwidth(u.y);let aa=ss(.5,.14,fwq);let ed=ss(.66,.28,d);let rim=ss(.2,.52,d)*sat1(.55-lc.x*1.6)*.55;
+  alb=mix(alb,alb*(mix(.74,1.08,ed)*(.93+.14*hv)+rim*.22),aa);gloss=mix(gloss,.78,ed*.6*aa);bh=(ed*.62+.3*hv-rim*.4)*aa;}
  else if(pat>4.5&&pat<5.5){let n1=textureSample(tDet,sL,i.l.zy*vec2f(9.,9.)+vec2f(i.l.x*4.)).g;let n2=textureSample(tDet,sL,i.l.zy*vec2f(60.,60.)+vec2f(i.l.x*20.)).g;alb=alb*(.8+.4*n1)*(.94+.12*n2);bh=n2*.6+n1*.25;}
  else if(pat>5.5&&pat<6.5){let c=floor(i.l.xz*vec2f(70.,70.)+vec2f(i.l.y*45.));let hv=h2(c);let pu=.5+.5*sin(g.cam.w*(1.4+hv*2.2)+hv*40.);let sp=step(.6,hv)*pu;let hc=h2(c+vec2f(7.,3.));let tcol=mix(vec3f(.34,.12,.1),vec3f(.62,.36,.1),hc);alb=mix(alb,alb*tcol*1.6,sp*.75);let ir=step(.82,h2(c+vec2f(3.,9.)))*(1.-step(.6,hv))*(.5+.5*sin(g.cam.w*.9+hv*30.));alb=alb+vec3f(.03,.16,.2)*ir;bh=sp*.8+ir*.3;}
  let dhx=dpdx(bh);let dhy=dpdy(bh);let px=dpdx(i.wp);let py=dpdy(i.wp);
@@ -437,10 +439,15 @@ const P_FIN=WC+VQ+`@group(1) @binding(0) var tS:texture_2d<f32>;
 @group(1) @binding(4) var tB1:texture_2d<f32>;
 @group(1) @binding(5) var tB2:texture_2d<f32>;
 fn tmap(x:vec3f)->vec3f{return clamp((x*(2.51*x+.03))/(x*(2.43*x+.59)+.14),vec3f(0.),vec3f(1.));}
+fn crom(uv:vec2f)->vec3f{let sz=vec2f(textureDimensions(tS));let p=uv*sz;let tc=floor(p-.5)+.5;let f=p-tc;
+ let w0=f*(-.5+f*(1.-.5*f));let w1=1.+f*f*(-2.5+1.5*f);let w2=f*(.5+f*(2.-1.5*f));let w3=f*f*(-.5+.5*f);
+ let w12=w1+w2;let t0=(tc-1.)/sz;let t3=(tc+2.)/sz;let t12=(tc+w2/w12)/sz;
+ var r=textureSampleLevel(tS,sK,vec2f(t12.x,t0.y),0.).rgb*(w12.x*w0.y)+textureSampleLevel(tS,sK,vec2f(t0.x,t12.y),0.).rgb*(w0.x*w12.y)+textureSampleLevel(tS,sK,t12,0.).rgb*(w12.x*w12.y)+textureSampleLevel(tS,sK,vec2f(t3.x,t12.y),0.).rgb*(w3.x*w12.y)+textureSampleLevel(tS,sK,vec2f(t12.x,t3.y),0.).rgb*(w12.x*w3.y);
+ return max(r,vec3f(0.));}
 @fragment fn fs(@builtin(position) fc:vec4f)->@location(0) vec4f{
- let uv=fc.xy*g.cv.zw;var c=textureSampleLevel(tS,sK,uv,0.).rgb;
+ let uv=fc.xy*g.cv.zw;var c=select(textureSampleLevel(tS,sK,uv,0.).rgb,crom(uv),g.res.x/g.cv.x<.98);
  if(g.so.z>.004){let dv=(uv-.5)*g.so.z*.03;c=vec3f(textureSampleLevel(tS,sK,uv+dv,0.).r,c.g,textureSampleLevel(tS,sK,uv-dv,0.).b);}
- {let rr=g.res.x/g.cv.x;let amt=clamp((1.-rr)*1.6,0.,.7);
+ {let rr=g.res.x/g.cv.x;let amt=clamp((1.-rr)*1.1,0.,.4);
   if(amt>.01){let e=1./vec2f(textureDimensions(tS));
    let n1=textureSampleLevel(tS,sK,uv+vec2f(e.x,0.),0.).rgb;let n2=textureSampleLevel(tS,sK,uv-vec2f(e.x,0.),0.).rgb;let n3=textureSampleLevel(tS,sK,uv+vec2f(0.,e.y),0.).rgb;let n4=textureSampleLevel(tS,sK,uv-vec2f(0.,e.y),0.).rgb;
    let bl=(n1+n2+n3+n4)*.25;let mn=min(c,min(min(n1,n2),min(n3,n4)));let mx=max(c,max(max(n1,n2),max(n3,n4)));
