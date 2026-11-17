@@ -1,6 +1,6 @@
 // ================= SHADERS WGSL =================
 // bloque común: uniformes globales, agua física (absorción y dispersión por canal)
-const WC=`struct G{vp:mat4x4f,shm:mat4x4f,cam:vec4f,fwd:vec4f,sig:vec4f,kd:vec4f,sun:vec4f,fl:vec4f,res:vec4f,pp:vec4f,rr:vec4f,uu:vec4f,ff:vec4f,ex:vec4f,cv:vec4f,so:vec4f};
+const WC=`struct G{vp:mat4x4f,shm:mat4x4f,cam:vec4f,fwd:vec4f,sig:vec4f,kd:vec4f,sun:vec4f,fl:vec4f,res:vec4f,pp:vec4f,rr:vec4f,uu:vec4f,ff:vec4f,ex:vec4f,cv:vec4f,so:vec4f,fo:vec4f};
 @group(0) @binding(0) var<uniform> g:G;
 @group(0) @binding(1) var sL:sampler;
 @group(0) @binding(2) var sC:sampler_comparison;
@@ -146,6 +146,8 @@ fn h2(p:vec2f)->f32{return fract(sin(dot(p,vec2f(127.1,311.7)))*43758.5453);}
  let lampk=g.fl.y*(1.-.9*clamp(g.sun.w*1.6,0.,1.));
  let lamp=vec3f(1.,.93,.82)*(2.9/(1.+d*d*.003))*(d*d/(d*d+64.))*spot*nl*lampk;
  col=col+alb*lamp+alb*vec3f(.22,.23,.24)*g.fl.x*(.5+.5*up)*.28;
+ if(M.c.x>.05&&(dm&131072u)==0u){let th=pow(max(dot(N,V),0.),.6);let tint=alb*alb*3.;
+  col=col+tint*lamp*M.c.x*(.5+1.6*th)+tint*vec3f(.35,.5,.7)*M.c.x*ambL(i.wp,N)*(.4+th)*.9;}
  if(g.so.w>.5){col=col+alb*vec3f(.95,.97,1.)*(.35+.65*max(dot(N,V),0.))*(2.6/(1.+d*d/4500.))*(1.-.9*clamp(g.sun.w*1.6,0.,1.));}
  col=col+vec3f(1.,.95,.85)*M.b.w*pow(max(dot(N,V),0.),18.)*spot*exp(-d*.03)*lampk*(4./(1.+d*d*.003))*(d*d/(d*d+64.));
  {let nvr=dot(n0,V);let rimw=select(0.,pow(1.-clamp(nvr,0.,1.),6.),nvr>.02)*select(1.,0.,(matT>2.5&&matT<3.5)||(dm&1024u)!=0u);
@@ -398,6 +400,26 @@ fn tmap(x:vec3f)->vec3f{return clamp((x*(2.51*x+.03))/(x*(2.43*x+.59)+.14),vec3f
     let zt=textureLoad(tZ,clamp(ip+o,vec2i(0),vec2i(zs)-1),0).x;let vt=g.pp.w*g.pp.z/(g.pp.w-zt*(g.pp.w-g.pp.z));
     let df=vz-vt;occ+=smoothstep(.04,.25,df)*(1.-smoothstep(.8,2.5,df));}
    c=c*(1.-.6*occ/f32(nT));}}
+
+ {let tr=select(select(0,1,(u32(g.ex.w)&4096u)!=0u),2,(u32(g.ex.w)&8192u)!=0u);
+  if(tr>0&&(u32(g.ex.w)&262144u)==0u){
+   let zs=vec2f(textureDimensions(tZ));let ip=vec2i(uv*zs);let ff=max(g.fo.x,.8);
+   let vzC=select(g.pp.w*g.pp.z/(g.pp.w-zd*(g.pp.w-g.pp.z)),400.,zd>.99999);
+   let rmax=g.fo.y;let coc=clamp(abs(vzC-ff)/max(vzC,.5)*1.0,0.,1.)*rmax;
+   if(coc>.6){let nT=select(10,18,tr==2);let ang0=ign(fc.xy+17.)*6.2832;var acc=c*1.;var wsum=1.;
+    for(var i=0;i<18;i++){if(i>=nT){break;}
+     let a=ang0+f32(i)*2.39996;let r=coc*sqrt((f32(i)+.5)/f32(nT));let o=vec2f(cos(a),sin(a))*r;
+     let q=clamp(ip+vec2i(o*(zs.y/g.cv.y)),vec2i(0),vec2i(zs)-1);let zt=textureLoad(tZ,q,0).x;
+     let vt=select(g.pp.w*g.pp.z/(g.pp.w-zt*(g.pp.w-g.pp.z)),400.,zt>.99999);
+     let ct=clamp(abs(vt-ff)/max(vt,.5)*1.0,0.,1.)*rmax;
+     let wt=select(0.,1.,ct>=r*.7)*select(.15,1.,vt>=vzC*.8);
+     acc+=textureSampleLevel(tS,sK,uv+o*g.cv.zw,0.).rgb*wt;wsum+=wt;}
+    c=acc/wsum;}}}
+ if((u32(g.ex.w)&(4096u|8192u))!=0u&&(u32(g.ex.w)&524288u)==0u){
+  var st=vec3f(0.);let e=vec2f(1.,0.);
+  for(var k=1;k<=6;k++){let kk=f32(k);let wk=exp(-kk*.42);st+=(textureSampleLevel(tB,sK,uv+e*kk*.018,0.).rgb+textureSampleLevel(tB,sK,uv-e*kk*.018,0.).rgb)*wk;}
+  c=c+st*vec3f(.55,.8,1.)*.045;
+  let dsp=(uv-.5)*.012;c=c+vec3f(textureSampleLevel(tB,sK,uv+dsp,0.).r-textureSampleLevel(tB,sK,uv,0.).r,0.,textureSampleLevel(tB,sK,uv-dsp,0.).b-textureSampleLevel(tB,sK,uv,0.).b)*.35;}
  c=c+textureSampleLevel(tR,sK,uv,0.).rgb;
  let bl=textureSampleLevel(tB,sK,uv,0.).rgb*.45+textureSampleLevel(tB1,sK,uv,0.).rgb*.35+textureSampleLevel(tB2,sK,uv,0.).rgb*.3;c=mix(c,bl,.07)+bl*.035;
  c=c*g.ex.z;let q=uv-.5;c=c*(1.-dot(q,q)*.9);

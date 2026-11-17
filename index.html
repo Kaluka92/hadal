@@ -68,7 +68,7 @@ const floorAt=(x,z)=>{const b=base(x);let n=(5*(gfbm(x*.01,z*.01)-.5)+1.2*(gfbm(
 const rc=mb(11),CH=Array.from({length:9},()=>[6000+rc()*260,(rc()-.5)*140,6+rc()*8]);
 // ================= SHADERS WGSL =================
 // bloque común: uniformes globales, agua física (absorción y dispersión por canal)
-const WC=`struct G{vp:mat4x4f,shm:mat4x4f,cam:vec4f,fwd:vec4f,sig:vec4f,kd:vec4f,sun:vec4f,fl:vec4f,res:vec4f,pp:vec4f,rr:vec4f,uu:vec4f,ff:vec4f,ex:vec4f,cv:vec4f,so:vec4f};
+const WC=`struct G{vp:mat4x4f,shm:mat4x4f,cam:vec4f,fwd:vec4f,sig:vec4f,kd:vec4f,sun:vec4f,fl:vec4f,res:vec4f,pp:vec4f,rr:vec4f,uu:vec4f,ff:vec4f,ex:vec4f,cv:vec4f,so:vec4f,fo:vec4f};
 @group(0) @binding(0) var<uniform> g:G;
 @group(0) @binding(1) var sL:sampler;
 @group(0) @binding(2) var sC:sampler_comparison;
@@ -214,6 +214,8 @@ fn h2(p:vec2f)->f32{return fract(sin(dot(p,vec2f(127.1,311.7)))*43758.5453);}
  let lampk=g.fl.y*(1.-.9*clamp(g.sun.w*1.6,0.,1.));
  let lamp=vec3f(1.,.93,.82)*(2.9/(1.+d*d*.003))*(d*d/(d*d+64.))*spot*nl*lampk;
  col=col+alb*lamp+alb*vec3f(.22,.23,.24)*g.fl.x*(.5+.5*up)*.28;
+ if(M.c.x>.05&&(dm&131072u)==0u){let th=pow(max(dot(N,V),0.),.6);let tint=alb*alb*3.;
+  col=col+tint*lamp*M.c.x*(.5+1.6*th)+tint*vec3f(.35,.5,.7)*M.c.x*ambL(i.wp,N)*(.4+th)*.9;}
  if(g.so.w>.5){col=col+alb*vec3f(.95,.97,1.)*(.35+.65*max(dot(N,V),0.))*(2.6/(1.+d*d/4500.))*(1.-.9*clamp(g.sun.w*1.6,0.,1.));}
  col=col+vec3f(1.,.95,.85)*M.b.w*pow(max(dot(N,V),0.),18.)*spot*exp(-d*.03)*lampk*(4./(1.+d*d*.003))*(d*d/(d*d+64.));
  {let nvr=dot(n0,V);let rimw=select(0.,pow(1.-clamp(nvr,0.,1.),6.),nvr>.02)*select(1.,0.,(matT>2.5&&matT<3.5)||(dm&1024u)!=0u);
@@ -466,6 +468,26 @@ fn tmap(x:vec3f)->vec3f{return clamp((x*(2.51*x+.03))/(x*(2.43*x+.59)+.14),vec3f
     let zt=textureLoad(tZ,clamp(ip+o,vec2i(0),vec2i(zs)-1),0).x;let vt=g.pp.w*g.pp.z/(g.pp.w-zt*(g.pp.w-g.pp.z));
     let df=vz-vt;occ+=smoothstep(.04,.25,df)*(1.-smoothstep(.8,2.5,df));}
    c=c*(1.-.6*occ/f32(nT));}}
+
+ {let tr=select(select(0,1,(u32(g.ex.w)&4096u)!=0u),2,(u32(g.ex.w)&8192u)!=0u);
+  if(tr>0&&(u32(g.ex.w)&262144u)==0u){
+   let zs=vec2f(textureDimensions(tZ));let ip=vec2i(uv*zs);let ff=max(g.fo.x,.8);
+   let vzC=select(g.pp.w*g.pp.z/(g.pp.w-zd*(g.pp.w-g.pp.z)),400.,zd>.99999);
+   let rmax=g.fo.y;let coc=clamp(abs(vzC-ff)/max(vzC,.5)*1.0,0.,1.)*rmax;
+   if(coc>.6){let nT=select(10,18,tr==2);let ang0=ign(fc.xy+17.)*6.2832;var acc=c*1.;var wsum=1.;
+    for(var i=0;i<18;i++){if(i>=nT){break;}
+     let a=ang0+f32(i)*2.39996;let r=coc*sqrt((f32(i)+.5)/f32(nT));let o=vec2f(cos(a),sin(a))*r;
+     let q=clamp(ip+vec2i(o*(zs.y/g.cv.y)),vec2i(0),vec2i(zs)-1);let zt=textureLoad(tZ,q,0).x;
+     let vt=select(g.pp.w*g.pp.z/(g.pp.w-zt*(g.pp.w-g.pp.z)),400.,zt>.99999);
+     let ct=clamp(abs(vt-ff)/max(vt,.5)*1.0,0.,1.)*rmax;
+     let wt=select(0.,1.,ct>=r*.7)*select(.15,1.,vt>=vzC*.8);
+     acc+=textureSampleLevel(tS,sK,uv+o*g.cv.zw,0.).rgb*wt;wsum+=wt;}
+    c=acc/wsum;}}}
+ if((u32(g.ex.w)&(4096u|8192u))!=0u&&(u32(g.ex.w)&524288u)==0u){
+  var st=vec3f(0.);let e=vec2f(1.,0.);
+  for(var k=1;k<=6;k++){let kk=f32(k);let wk=exp(-kk*.42);st+=(textureSampleLevel(tB,sK,uv+e*kk*.018,0.).rgb+textureSampleLevel(tB,sK,uv-e*kk*.018,0.).rgb)*wk;}
+  c=c+st*vec3f(.55,.8,1.)*.045;
+  let dsp=(uv-.5)*.012;c=c+vec3f(textureSampleLevel(tB,sK,uv+dsp,0.).r-textureSampleLevel(tB,sK,uv,0.).r,0.,textureSampleLevel(tB,sK,uv-dsp,0.).b-textureSampleLevel(tB,sK,uv,0.).b)*.35;}
  c=c+textureSampleLevel(tR,sK,uv,0.).rgb;
  let bl=textureSampleLevel(tB,sK,uv,0.).rgb*.45+textureSampleLevel(tB1,sK,uv,0.).rgb*.35+textureSampleLevel(tB2,sK,uv,0.).rgb*.3;c=mix(c,bl,.07)+bl*.035;
  c=c*g.ex.z;let q=uv-.5;c=c*(1.-dot(q,q)*.9);
@@ -1358,7 +1380,7 @@ const sClamp=device.createSampler({magFilter:'linear',minFilter:'linear',address
 const dF=mkTex(1,1,HDR,UT.TEXTURE_BINDING),dF8=mkTex(1,1,'rgba8unorm',UT.TEXTURE_BINDING),dD=mkTex(1,1,DEPTH,UT.TEXTURE_BINDING|UT.RENDER_ATTACHMENT);
 const texCau=mkTex(256,256,HDR,UT.RENDER_ATTACHMENT|UT.TEXTURE_BINDING),texDet=mkTex(512,512,'rgba8unorm',UT.RENDER_ATTACHMENT|UT.TEXTURE_BINDING,{mipLevelCount:10});
 const vCau=texCau.createView(),vDet=texDet.createView();
-const gBuf=mkBuf(352,UB.UNIFORM|UB.COPY_DST),gShBuf=mkBuf(352,UB.UNIFORM|UB.COPY_DST);
+const gBuf=mkBuf(368,UB.UNIFORM|UB.COPY_DST),gShBuf=mkBuf(368,UB.UNIFORM|UB.COPY_DST);
 
 // ---- calidad ----
 var QL=1,RS=.75,perfOn=false,fpsS=16.7;
@@ -1721,7 +1743,7 @@ function buildTargets(){for(const k in TG)for(const t of [].concat(TG[k]))t&&t.d
  canvas.style.cssText='display:block;width:100vw;height:100vh;touch-action:none';
  const W=Math.max(8,Math.min(4096,Math.floor(canvas.width*RS))),H=Math.max(8,Math.min(4096,Math.floor(canvas.height*RS)));TG.W=W;TG.H=H;
  TG.hdr=mkTex(W,H,HDR,UT.RENDER_ATTACHMENT|UT.TEXTURE_BINDING|UT.COPY_DST);TG.taa=QL>=3?[0,1].map(()=>mkTex(W,H,HDR,UT.RENDER_ATTACHMENT|UT.TEXTURE_BINDING|UT.COPY_SRC)):null;taaReset=true;TG.ms=SC>1?mkTex(W,H,HDR,UT.RENDER_ATTACHMENT,{sampleCount:SC}):null;
- TG.depth=mkTex(W,H,DEPTH,UT.RENDER_ATTACHMENT|UT.TEXTURE_BINDING,{sampleCount:SC});TG.z=mkTex(W,H,'r32float',UT.RENDER_ATTACHMENT|UT.TEXTURE_BINDING);
+ TG.depth=mkTex(W,H,DEPTH,UT.RENDER_ATTACHMENT|UT.TEXTURE_BINDING,{sampleCount:SC});TG.z=mkTex(W,H,'r32float',UT.RENDER_ATTACHMENT|UT.TEXTURE_BINDING|UT.COPY_SRC);
  TG.rays=mkTex(W>>1,H>>1,HDR,UT.RENDER_ATTACHMENT|UT.TEXTURE_BINDING);TG.bl=[];let w=W,h=H;for(let i=0;i<3;i++){w=Math.max(2,w>>1);h=Math.max(2,h>>1);TG.bl.push(mkTex(w,h,HDR,UT.RENDER_ATTACHMENT|UT.TEXTURE_BINDING))}
  TG.v={taa:TG.taa?TG.taa.map(t=>t.createView()):null,hdr:TG.hdr.createView(),ms:TG.ms?TG.ms.createView():null,depth:TG.depth.createView(),z:TG.z.createView(),rays:TG.rays.createView(),bl:TG.bl.map(t=>t.createView())};
  const b1=(l,v)=>device.createBindGroup({layout:l,entries:[{binding:0,resource:v}]});
@@ -1741,14 +1763,15 @@ var SKIP=null;
 function fsp(enc,pipe,view,bgs,load,nm){if(SKIP&&SKIP.has(nm))return;const p=enc.beginRenderPass({colorAttachments:[{view,loadOp:load?'load':'clear',clearValue:{r:0,g:0,b:0,a:1},storeOp:'store'}],timestampWrites:(nm==='bloom-fin'&&GT&&!PROF)?{querySet:GT.qs,endOfPassWriteIndex:1}:tw(nm||'pantalla')});p.setPipeline(pipe);bgs.forEach((b,i)=>p.setBindGroup(i,b));p.draw(3);p.end()}
 
 // ---- uniformes globales ----
+var focusV=10,focusT=10,focusBusy=false,focusPend=false,focusBuf=null,focusN=0;
 var taaIdx8=0,taaJ=[0,0],taaPrev=null,taaPrevCam=[0,0,0],taaH=0,taaReset=true;function hal(i,b){let f=1,r=0;while(i>0){f/=b;r+=f*(i%b);i=Math.floor(i/b)}return r}
 const taaU=mkBuf(96,UB.UNIFORM|UB.COPY_DST);
-var SHK=0;var SO=[-1,0,0,0];const Gf=new Float32Array(88),GfS=new Float32Array(88),SUN=new T.Vector3(.25,.92,.17).normalize();let lightVP=new Float32Array(16),shOn=0,shFrame=0;
+var SHK=0;var SO=[-1,0,0,0];const Gf=new Float32Array(92),GfS=new Float32Array(92),SUN=new T.Vector3(.25,.92,.17).normalize();let lightVP=new Float32Array(16),shOn=0,shFrame=0;
 const camV=new T.Vector3(),camR=new T.Vector3(),camU=new T.Vector3();
 function camBasis(){const sy=Math.sin(yaw),cy=Math.cos(yaw),sp=Math.sin(pitch),cp=Math.cos(pitch);camV.set(-sy*cp,sp,-cy*cp);camR.set(cy,0,-sy);camU.set(sp*sy,cp,sp*cy)}
 function fillG(a,vp,t,dep,sunD){a.set(vp,0);a.set(lightVP,16);const W=TG.W,H=TG.H,tY=Math.tan(35*Math.PI/180),tX=tY*(canvas.width/canvas.height);
  a.set([cam.position.x,cam.position.y,cam.position.z,t, camV.x,camV.y,camV.z,0, .05,.022,.018,0, .060,.026,.018,0, SUN.x,SUN.y,SUN.z,sunD, lampAmb?.9:0,1,shOn,texSh?texSh.width:1,
-  W,H,1/W,1/H, tX,tY,.2,600, camR.x,camR.y,camR.z,0, camU.x,camU.y,camU.z,0, camV.x,camV.y,camV.z,0, QS[QL].steps,.05,exposure,(DBGM|(QL>=3?4096:0)|(QL>=4?8192:0)), canvas.width,canvas.height,1/canvas.width,1/canvas.height, SO[0],SO[1],SO[2]||0,lampMode===2?1:0],32)}
+  W,H,1/W,1/H, tX,tY,.2,600, camR.x,camR.y,camR.z,0, camU.x,camU.y,camU.z,0, camV.x,camV.y,camV.z,0, QS[QL].steps,.05,exposure,(DBGM|(QL>=3?4096:0)|(QL>=4?8192:0)), canvas.width,canvas.height,1/canvas.width,1/canvas.height, SO[0],SO[1],SO[2]||0,lampMode===2?1:0],32);a[88]=focusV;a[89]=Math.max(2,3.5*canvas.height/720)}
 let exposure=.7;
 const PROJ=()=>M4.persp(70*Math.PI/180,canvas.width/canvas.height,.2,600);
 
@@ -1804,6 +1827,7 @@ function frame(t,dep,sunD){
  p.setPipeline(PP.plk);p.setBindGroup(1,pkRBG);p.draw(4,PKN);
  if(!(SKIP&&SKIP.has('conos'))){p.setPipeline(PP.cone);p.setVertexBuffer(0,coneV.buf);p.draw(coneV.n,2)}p.end();
  fsp(enc,PP.dep,TG.v.z,[bg0,TG.bg.dep],false,'profundidad');
+ if(QL>=3&&!focusBusy&&(focusN++%6)===0){focusBuf=focusBuf||device.createBuffer({size:256,usage:GPUBufferUsage.COPY_DST|GPUBufferUsage.MAP_READ});enc.copyTextureToBuffer({texture:TG.z,origin:[TG.W>>1,TG.H>>1]},{buffer:focusBuf,bytesPerRow:256},[1,1]);focusBusy=true;focusPend=true}
  if(taaOn){const valid=taaPrev&&Math.hypot(cam.position.x-taaPrevCam[0],cam.position.y-taaPrevCam[1],cam.position.z-taaPrevCam[2])<8&&SHK<.05&&!taaReset;
   const u=new Float32Array(24);if(taaPrev)u.set(taaPrev,0);u[16]=taaJ[0];u[17]=taaJ[1];u[20]=valid?1:0;device.queue.writeBuffer(taaU,0,u);
   const o=1-taaH;fsp(enc,PP.taa,TG.v.taa[o],[bg0,TG.bg.taa[taaH]],false,'taa');enc.copyTextureToTexture({texture:TG.taa[o]},{texture:TG.hdr},[TG.W,TG.H]);taaH=o;taaReset=false}
@@ -1815,6 +1839,8 @@ function frame(t,dep,sunD){
  if(PROF){enc.resolveQuerySet(PROF.qs,0,2*PROF.n,PROF.rb,0);enc.copyBufferToBuffer(PROF.rb,0,PROF.mb,0,16*PROF.n)}
  else if(GT&&!GT.busy[GT.idx]){enc.resolveQuerySet(GT.qs,0,2,GT.rb,0);enc.copyBufferToBuffer(GT.rb,0,GT.ring[GT.idx],0,16);GT.cur=GT.idx;GT.idx=(GT.idx+1)%3}
  device.queue.submit([enc.finish()]);
+ if(focusPend){focusPend=false;focusBuf.mapAsync(GPUMapMode.READ).then(()=>{const z=new Float32Array(focusBuf.getMappedRange().slice(0,4))[0];focusBuf.unmap();focusBusy=false;focusT=z>.99999?10:Math.max(1.2,Math.min(20,120/(600-z*599.8)));}).catch(()=>{focusBusy=false})}
+ focusV=Math.exp(Math.log(focusV)+(Math.log(focusT)-Math.log(focusV))*.12);
  if(GT&&GT.cur>=0){const i=GT.cur;GT.cur=-1;GT.busy[i]=true;GT.ring[i].mapAsync(GPUMapMode.READ).then(()=>{const a=new BigUint64Array(GT.ring[i].getMappedRange().slice(0));GT.ring[i].unmap();GT.busy[i]=false;const ms=Number(a[1]-a[0])/1e6;if(ms>0&&ms<250)GT.ms=GT.ms?GT.ms*.85+ms*.15:ms}).catch(()=>{GT.busy[i]=false})}}
 function rs(){buildTargets()}addEventListener('resize',()=>{if(PP.fin)rs()});
 function setQ(q,reset){const oldSC=SC;QL=q;LODR=[35,60,80,110,140][q];MIDR=LODR+12;try{localStorage.hadalQ=q}catch(e){}if(reset!==false)RS=QS[q].rs0;RS=Math.min(RS,QS[q].rsMax);
@@ -1906,6 +1932,8 @@ if(location.hash==='#debug')window.__vis=async()=>{const rd=[];for(const sp of S
 if(location.hash==='#debug')window.__mob=()=>SPS.filter(s=>s.mobile&&s.cnt>0).map(s=>({n:s.n,cnt:s.cnt,R:s.R,p:[...s.inst.slice(20,23)].map(Math.round)}));
 if(location.hash==='#debug')window.__sps=()=>SPS;
 if(location.hash==='#debug')window.__shk=()=>[SHK,window.__hitT||0];
+if(location.hash==='#debug')window.__look=(nm,dist=2.5)=>{const t=performance.now()/1000;let best=null,bd=1e9;for(const sp of SPS){if(sp.n!==nm||!sp.cnt)continue;for(let i=0;i<sp.cnt;i++){entPos(sp,i,t,tmp);const d=tmp.distanceTo(cam.position);if(d<bd){bd=d;best=tmp.clone()}}}
+ if(!best)return null;const f=best.clone().sub(cam.position).normalize();cam.position.copy(best).addScaledVector(f,-dist);yaw=Math.atan2(-f.x,-f.z);pitch=Math.asin(f.y);return bd};
 if(location.hash==='#debug')window.__near=()=>{const t=performance.now()/1000,cp=cam.position,o=[];for(const sp of SPS){if(!sp.cnt||!sp.mobile)continue;for(let i=0;i<sp.cnt;i++){entPos(sp,i,t,tmp);o.push({n:sp.n,d:+Math.hypot(tmp.x-cp.x,tmp.y-cp.y,tmp.z-cp.z).toFixed(1),r:+(sp.sph[0]*Math.max(Math.hypot(sp.inst[i*24],sp.inst[i*24+2]),sp.inst[i*24+5])).toFixed(1),R:sp.R,s:+Math.hypot(sp.inst[i*24],sp.inst[i*24+2]).toFixed(2)})}}o.sort((a,b)=>a.d-b.d);return o.slice(0,6)};
 if(location.hash==='#debug')window.__spot=(n,size,yaw=0,sy)=>{const sp=SPS.find(s=>s.n===n);device.queue.writeBuffer(sp.mu.buf,0,new Float32Array([0]));sp.cnt=0;camBasis();const p=cam.position,x=p.x+camV.x*size*1.5,y=p.y+camV.y*size*1.5,z=p.z+camV.z*size*1.5;put(sp,x,y,z,size,sy||size,size,yaw,[1,1,1],x,y,z,.3);upl(sp)};
 if(location.hash==='#debug')window.__gpu={device,get TG(){return TG},get PP(){return PP},SPS,STAT,cam,tvb,floorAt,UB,matWreck,LIFE,WR};

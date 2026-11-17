@@ -59,6 +59,8 @@ if(location.hash==='#debug')window.__vis=async()=>{const rd=[];for(const sp of S
 if(location.hash==='#debug')window.__mob=()=>SPS.filter(s=>s.mobile&&s.cnt>0).map(s=>({n:s.n,cnt:s.cnt,R:s.R,p:[...s.inst.slice(20,23)].map(Math.round)}));
 if(location.hash==='#debug')window.__sps=()=>SPS;
 if(location.hash==='#debug')window.__shk=()=>[SHK,window.__hitT||0];
+if(location.hash==='#debug')window.__look=(nm,dist=2.5)=>{const t=performance.now()/1000;let best=null,bd=1e9;for(const sp of SPS){if(sp.n!==nm||!sp.cnt)continue;for(let i=0;i<sp.cnt;i++){entPos(sp,i,t,tmp);const d=tmp.distanceTo(cam.position);if(d<bd){bd=d;best=tmp.clone()}}}
+ if(!best)return null;const f=best.clone().sub(cam.position).normalize();cam.position.copy(best).addScaledVector(f,-dist);yaw=Math.atan2(-f.x,-f.z);pitch=Math.asin(f.y);return bd};
 if(location.hash==='#debug')window.__near=()=>{const t=performance.now()/1000,cp=cam.position,o=[];for(const sp of SPS){if(!sp.cnt||!sp.mobile)continue;for(let i=0;i<sp.cnt;i++){entPos(sp,i,t,tmp);o.push({n:sp.n,d:+Math.hypot(tmp.x-cp.x,tmp.y-cp.y,tmp.z-cp.z).toFixed(1),r:+(sp.sph[0]*Math.max(Math.hypot(sp.inst[i*24],sp.inst[i*24+2]),sp.inst[i*24+5])).toFixed(1),R:sp.R,s:+Math.hypot(sp.inst[i*24],sp.inst[i*24+2]).toFixed(2)})}}o.sort((a,b)=>a.d-b.d);return o.slice(0,6)};
 if(location.hash==='#debug')window.__spot=(n,size,yaw=0,sy)=>{const sp=SPS.find(s=>s.n===n);device.queue.writeBuffer(sp.mu.buf,0,new Float32Array([0]));sp.cnt=0;camBasis();const p=cam.position,x=p.x+camV.x*size*1.5,y=p.y+camV.y*size*1.5,z=p.z+camV.z*size*1.5;put(sp,x,y,z,size,sy||size,size,yaw,[1,1,1],x,y,z,.3);upl(sp)};
 if(location.hash==='#debug')window.__gpu={device,get TG(){return TG},get PP(){return PP},SPS,STAT,cam,tvb,floorAt,UB,matWreck,LIFE,WR};

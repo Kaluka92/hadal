@@ -54,7 +54,7 @@ const sClamp=device.createSampler({magFilter:'linear',minFilter:'linear',address
 const dF=mkTex(1,1,HDR,UT.TEXTURE_BINDING),dF8=mkTex(1,1,'rgba8unorm',UT.TEXTURE_BINDING),dD=mkTex(1,1,DEPTH,UT.TEXTURE_BINDING|UT.RENDER_ATTACHMENT);
 const texCau=mkTex(256,256,HDR,UT.RENDER_ATTACHMENT|UT.TEXTURE_BINDING),texDet=mkTex(512,512,'rgba8unorm',UT.RENDER_ATTACHMENT|UT.TEXTURE_BINDING,{mipLevelCount:10});
 const vCau=texCau.createView(),vDet=texDet.createView();
-const gBuf=mkBuf(352,UB.UNIFORM|UB.COPY_DST),gShBuf=mkBuf(352,UB.UNIFORM|UB.COPY_DST);
+const gBuf=mkBuf(368,UB.UNIFORM|UB.COPY_DST),gShBuf=mkBuf(368,UB.UNIFORM|UB.COPY_DST);
 
 // ---- calidad ----
 var QL=1,RS=.75,perfOn=false,fpsS=16.7;
@@ -417,7 +417,7 @@ function buildTargets(){for(const k in TG)for(const t of [].concat(TG[k]))t&&t.d
  canvas.style.cssText='display:block;width:100vw;height:100vh;touch-action:none';
  const W=Math.max(8,Math.min(4096,Math.floor(canvas.width*RS))),H=Math.max(8,Math.min(4096,Math.floor(canvas.height*RS)));TG.W=W;TG.H=H;
  TG.hdr=mkTex(W,H,HDR,UT.RENDER_ATTACHMENT|UT.TEXTURE_BINDING|UT.COPY_DST);TG.taa=QL>=3?[0,1].map(()=>mkTex(W,H,HDR,UT.RENDER_ATTACHMENT|UT.TEXTURE_BINDING|UT.COPY_SRC)):null;taaReset=true;TG.ms=SC>1?mkTex(W,H,HDR,UT.RENDER_ATTACHMENT,{sampleCount:SC}):null;
- TG.depth=mkTex(W,H,DEPTH,UT.RENDER_ATTACHMENT|UT.TEXTURE_BINDING,{sampleCount:SC});TG.z=mkTex(W,H,'r32float',UT.RENDER_ATTACHMENT|UT.TEXTURE_BINDING);
+ TG.depth=mkTex(W,H,DEPTH,UT.RENDER_ATTACHMENT|UT.TEXTURE_BINDING,{sampleCount:SC});TG.z=mkTex(W,H,'r32float',UT.RENDER_ATTACHMENT|UT.TEXTURE_BINDING|UT.COPY_SRC);
  TG.rays=mkTex(W>>1,H>>1,HDR,UT.RENDER_ATTACHMENT|UT.TEXTURE_BINDING);TG.bl=[];let w=W,h=H;for(let i=0;i<3;i++){w=Math.max(2,w>>1);h=Math.max(2,h>>1);TG.bl.push(mkTex(w,h,HDR,UT.RENDER_ATTACHMENT|UT.TEXTURE_BINDING))}
  TG.v={taa:TG.taa?TG.taa.map(t=>t.createView()):null,hdr:TG.hdr.createView(),ms:TG.ms?TG.ms.createView():null,depth:TG.depth.createView(),z:TG.z.createView(),rays:TG.rays.createView(),bl:TG.bl.map(t=>t.createView())};
  const b1=(l,v)=>device.createBindGroup({layout:l,entries:[{binding:0,resource:v}]});
@@ -437,14 +437,15 @@ var SKIP=null;
 function fsp(enc,pipe,view,bgs,load,nm){if(SKIP&&SKIP.has(nm))return;const p=enc.beginRenderPass({colorAttachments:[{view,loadOp:load?'load':'clear',clearValue:{r:0,g:0,b:0,a:1},storeOp:'store'}],timestampWrites:(nm==='bloom-fin'&&GT&&!PROF)?{querySet:GT.qs,endOfPassWriteIndex:1}:tw(nm||'pantalla')});p.setPipeline(pipe);bgs.forEach((b,i)=>p.setBindGroup(i,b));p.draw(3);p.end()}
 
 // ---- uniformes globales ----
+var focusV=10,focusT=10,focusBusy=false,focusPend=false,focusBuf=null,focusN=0;
 var taaIdx8=0,taaJ=[0,0],taaPrev=null,taaPrevCam=[0,0,0],taaH=0,taaReset=true;function hal(i,b){let f=1,r=0;while(i>0){f/=b;r+=f*(i%b);i=Math.floor(i/b)}return r}
 const taaU=mkBuf(96,UB.UNIFORM|UB.COPY_DST);
-var SHK=0;var SO=[-1,0,0,0];const Gf=new Float32Array(88),GfS=new Float32Array(88),SUN=new T.Vector3(.25,.92,.17).normalize();let lightVP=new Float32Array(16),shOn=0,shFrame=0;
+var SHK=0;var SO=[-1,0,0,0];const Gf=new Float32Array(92),GfS=new Float32Array(92),SUN=new T.Vector3(.25,.92,.17).normalize();let lightVP=new Float32Array(16),shOn=0,shFrame=0;
 const camV=new T.Vector3(),camR=new T.Vector3(),camU=new T.Vector3();
 function camBasis(){const sy=Math.sin(yaw),cy=Math.cos(yaw),sp=Math.sin(pitch),cp=Math.cos(pitch);camV.set(-sy*cp,sp,-cy*cp);camR.set(cy,0,-sy);camU.set(sp*sy,cp,sp*cy)}
 function fillG(a,vp,t,dep,sunD){a.set(vp,0);a.set(lightVP,16);const W=TG.W,H=TG.H,tY=Math.tan(35*Math.PI/180),tX=tY*(canvas.width/canvas.height);
  a.set([cam.position.x,cam.position.y,cam.position.z,t, camV.x,camV.y,camV.z,0, .05,.022,.018,0, .060,.026,.018,0, SUN.x,SUN.y,SUN.z,sunD, lampAmb?.9:0,1,shOn,texSh?texSh.width:1,
-  W,H,1/W,1/H, tX,tY,.2,600, camR.x,camR.y,camR.z,0, camU.x,camU.y,camU.z,0, camV.x,camV.y,camV.z,0, QS[QL].steps,.05,exposure,(DBGM|(QL>=3?4096:0)|(QL>=4?8192:0)), canvas.width,canvas.height,1/canvas.width,1/canvas.height, SO[0],SO[1],SO[2]||0,lampMode===2?1:0],32)}
+  W,H,1/W,1/H, tX,tY,.2,600, camR.x,camR.y,camR.z,0, camU.x,camU.y,camU.z,0, camV.x,camV.y,camV.z,0, QS[QL].steps,.05,exposure,(DBGM|(QL>=3?4096:0)|(QL>=4?8192:0)), canvas.width,canvas.height,1/canvas.width,1/canvas.height, SO[0],SO[1],SO[2]||0,lampMode===2?1:0],32);a[88]=focusV;a[89]=Math.max(2,3.5*canvas.height/720)}
 let exposure=.7;
 const PROJ=()=>M4.persp(70*Math.PI/180,canvas.width/canvas.height,.2,600);
 
@@ -500,6 +501,7 @@ function frame(t,dep,sunD){
  p.setPipeline(PP.plk);p.setBindGroup(1,pkRBG);p.draw(4,PKN);
  if(!(SKIP&&SKIP.has('conos'))){p.setPipeline(PP.cone);p.setVertexBuffer(0,coneV.buf);p.draw(coneV.n,2)}p.end();
  fsp(enc,PP.dep,TG.v.z,[bg0,TG.bg.dep],false,'profundidad');
+ if(QL>=3&&!focusBusy&&(focusN++%6)===0){focusBuf=focusBuf||device.createBuffer({size:256,usage:GPUBufferUsage.COPY_DST|GPUBufferUsage.MAP_READ});enc.copyTextureToBuffer({texture:TG.z,origin:[TG.W>>1,TG.H>>1]},{buffer:focusBuf,bytesPerRow:256},[1,1]);focusBusy=true;focusPend=true}
  if(taaOn){const valid=taaPrev&&Math.hypot(cam.position.x-taaPrevCam[0],cam.position.y-taaPrevCam[1],cam.position.z-taaPrevCam[2])<8&&SHK<.05&&!taaReset;
   const u=new Float32Array(24);if(taaPrev)u.set(taaPrev,0);u[16]=taaJ[0];u[17]=taaJ[1];u[20]=valid?1:0;device.queue.writeBuffer(taaU,0,u);
   const o=1-taaH;fsp(enc,PP.taa,TG.v.taa[o],[bg0,TG.bg.taa[taaH]],false,'taa');enc.copyTextureToTexture({texture:TG.taa[o]},{texture:TG.hdr},[TG.W,TG.H]);taaH=o;taaReset=false}
@@ -511,6 +513,8 @@ function frame(t,dep,sunD){
  if(PROF){enc.resolveQuerySet(PROF.qs,0,2*PROF.n,PROF.rb,0);enc.copyBufferToBuffer(PROF.rb,0,PROF.mb,0,16*PROF.n)}
  else if(GT&&!GT.busy[GT.idx]){enc.resolveQuerySet(GT.qs,0,2,GT.rb,0);enc.copyBufferToBuffer(GT.rb,0,GT.ring[GT.idx],0,16);GT.cur=GT.idx;GT.idx=(GT.idx+1)%3}
  device.queue.submit([enc.finish()]);
+ if(focusPend){focusPend=false;focusBuf.mapAsync(GPUMapMode.READ).then(()=>{const z=new Float32Array(focusBuf.getMappedRange().slice(0,4))[0];focusBuf.unmap();focusBusy=false;focusT=z>.99999?10:Math.max(1.2,Math.min(20,120/(600-z*599.8)));}).catch(()=>{focusBusy=false})}
+ focusV=Math.exp(Math.log(focusV)+(Math.log(focusT)-Math.log(focusV))*.12);
  if(GT&&GT.cur>=0){const i=GT.cur;GT.cur=-1;GT.busy[i]=true;GT.ring[i].mapAsync(GPUMapMode.READ).then(()=>{const a=new BigUint64Array(GT.ring[i].getMappedRange().slice(0));GT.ring[i].unmap();GT.busy[i]=false;const ms=Number(a[1]-a[0])/1e6;if(ms>0&&ms<250)GT.ms=GT.ms?GT.ms*.85+ms*.15:ms}).catch(()=>{GT.busy[i]=false})}}
 function rs(){buildTargets()}addEventListener('resize',()=>{if(PP.fin)rs()});
 function setQ(q,reset){const oldSC=SC;QL=q;LODR=[35,60,80,110,140][q];MIDR=LODR+12;try{localStorage.hadalQ=q}catch(e){}if(reset!==false)RS=QS[q].rs0;RS=Math.min(RS,QS[q].rsMax);
