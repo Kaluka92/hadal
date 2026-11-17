@@ -920,7 +920,7 @@ const bisRig=()=>{const out=[],g1='#3a4046',g2='#4a5058',dk='#0c0d0e',nat=z=>hul
  // bitas siguiendo la borda
  [-1,1].forEach(s=>[-112,-106,-100,92,98,104,110].forEach(z=>{const x=s*(Math.min(nat(z),18)-1.5);out.push(P(CY(.32,.38,1,8),g2,{p:[x,16.5,z]}),P(CY(.45,.45,.16,8),g1,{p:[x,17.05,z]}))}));
  // proyectores y plataformas junto a la chimenea
- [-1,1].forEach(s=>[[-44,33],[-68,33]].forEach(([z,y])=>out.push(P(CY(.9,.9,.5,10),g1,{p:[s*5.5,y,z]}),P(CY(.8,.8,1,10),g2,{p:[s*5.5,y+.7,z],r:[0,0,0]}),P(CY(.62,.62,.06,10),'#8a8f94',{p:[s*5.5,y+1.25,z]}))));
+ [-1,1].forEach(s=>[[-44,33],[-68,33]].forEach(([z,y])=>out.push(P(CY(.45,.55,y-16.5,8),g2,{p:[s*5.5,16.5+(y-16.5)/2,z]}),P(CY(.9,.9,.5,10),g1,{p:[s*5.5,y,z]}),P(CY(.8,.8,1,10),g2,{p:[s*5.5,y+.7,z],r:[0,0,0]}),P(CY(.62,.62,.06,10),'#8a8f94',{p:[s*5.5,y+1.25,z]}))));
  // grúa de popa con pluma
  out.push(P(CY(.6,.8,7,8),g2,{p:[0,20,-112]}),P(seg(V3([0,23,-112]),V3([0,30,-100]),.3,.2,6),g1),P(seg(V3([0,30,-100]),V3([0,18,-98]),.03,.03,4),'#2a2420'));
  // ventiladores con rejilla
