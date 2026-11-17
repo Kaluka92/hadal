@@ -40,7 +40,7 @@ function detect(t){let best=null,bs=1e9;camBasis();f.copy(camV);const cp=cam.pos
 // ================= ARRANQUE Y BUCLE =================
 const dive=$('dive');dive.disabled=true;dive.textContent='Preparando el océano…';
 window.__st=()=>SPS.filter(s=>s.cnt).map(s=>s.n+':'+s.cnt).join(' | ');window.__go=(x,dep,z,yw,p)=>{cam.position.set(x,-dep,z);yaw=yw;pitch=p;rebuild();terrain()};
-{const st=$('start');dive.onclick=()=>{st.style.display='none';audio()};document.querySelectorAll('#ql button').forEach(b=>b.onclick=()=>setQ(+b.dataset.q));
+{const st=$('start');dive.onclick=()=>{st.style.display='none';audio();startIntro()};document.querySelectorAll('#ql button').forEach(b=>b.onclick=()=>setQ(+b.dataset.q));
  if(/directo|debug/.test(location.hash))st.style.display='none';
  addEventListener('keydown',e=>{if(e.code==='KeyG'&&st.style.display==='none')setQ((QL+1)%5);if(e.code==='KeyH'){perfOn=!perfOn;$('perf').style.display=perfOn?'block':'none'}})}
 await buildPipes();buildShadow();buildTargets();await initTextures();rebuild();terrain();
@@ -77,11 +77,21 @@ function lensFX(emerged){if(!lensEl){lensEl=document.createElement('div');lensEl
  else{const fl=document.createElement('div');fl.className='fl';fl.style.background='radial-gradient(ellipse at 50% 30%,rgba(255,255,255,.8),rgba(210,240,250,.45) 45%,rgba(120,200,230,.15))';lensEl.appendChild(fl);requestAnimationFrame(()=>{fl.style.opacity='0'});setTimeout(()=>fl.remove(),1500);
   for(let i=0;i<70;i++){const b=document.createElement('div');b.className='bu';const sz=3+rnd()*rnd()*30;b.style.cssText+='width:'+sz+'px;height:'+sz+'px;left:'+rnd()*W+'px;top:'+(H*(.35+rnd()*.65))+'px;opacity:.9';lensEl.appendChild(b);
    requestAnimationFrame(()=>{b.style.opacity='0';b.style.transform='translateY(-'+(120+rnd()*H*.5)+'px)'});setTimeout(()=>b.remove(),2100)}}}
+
+// ---- arranque cinematográfico: tormenta en la superficie, título y descenso hasta el bosque de kelp ----
+var INTRO=null;
+function startIntro(){if(window.__noIntro||(location.hash==='#debug'&&!window.__forceIntro))return;const t0=performance.now()/1000;cam.position.set(480,oceanH(480,0,t0)+1.7,0);yaw=-Math.PI/2-.35;pitch=.05;vel.set(0,0,0);window.__afloat=true;rebuild();terrain();
+ INTRO={t:0,yaw0:yaw};
+ let el=document.getElementById('introT');if(!el){el=document.createElement('div');el.id='introT';el.style.cssText='position:fixed;inset:0;z-index:5;pointer-events:none;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#eaf6fb;font-family:Inter,system-ui,sans-serif;text-shadow:0 2px 30px #000;opacity:0;transition:opacity 2.2s ease';el.innerHTML='<div style="font-size:min(14vw,120px);font-weight:800;letter-spacing:.14em">HADAL</div><div style="font-size:min(3.2vw,22px);letter-spacing:.2em;opacity:.8;margin-top:6px">DE LA SUPERFICIE A 8.100 METROS</div>';document.body.appendChild(el)}
+ requestAnimationFrame(()=>{el.style.opacity='1'});setTimeout(()=>{el.style.opacity='0'},4800);setTimeout(()=>el.remove(),7500);
+ const skip=()=>{INTRO=null;window.__afloat=false;removeEventListener('keydown',skip);removeEventListener('pointerdown',skip);const e=document.getElementById('introT');if(e)e.remove()};
+ setTimeout(()=>{addEventListener('keydown',skip);addEventListener('pointerdown',skip)},800)}
 function loop(now){requestAnimationFrame(loop);const dt=Math.min((now-lastT)/1000,.05);lastT=now;const t=now/1000;fr++;tourTick(dt);
  camBasis();f.copy(camV);rr.copy(camR);
  const ax=(keys.KeyD||keys.ArrowRight?1:0)-(keys.KeyA||keys.ArrowLeft?1:0),az=(keys.KeyW||keys.ArrowUp?1:0)-(keys.KeyS||keys.ArrowDown?1:0)+tgo,ay=(keys.Space?1:0)-(keys.KeyC?1:0)+tup-tdn;
  const sh=keys.ShiftLeft||keys.ShiftRight;tv.set(0,0,0).addScaledVector(f,az).addScaledVector(rr,ax);if(tv.lengthSq()>0)tv.normalize().multiplyScalar(sh?26:9);
  if(ay)tv.y+=ay*(keys.KeyQ?200:sh?26:9);
+ if(INTRO){INTRO.t+=dt;if(INTRO.t<6.5){window.__afloat=true;yaw=INTRO.yaw0+INTRO.t*.075;pitch+=(.07-pitch)*dt}else if(INTRO.t<15){window.__afloat=false;tv.set(0,-Math.min(8,(INTRO.t-6.5)*2.2),0);pitch+=(.22-pitch)*dt*.7}else{INTRO=null}}
  vel.lerp(tv,1-Math.exp(-dt*2.5));cam.position.addScaledVector(vel,dt);
  const p=cam.position,dfl=floorAt(p.x,p.z);const y0=p.y;const swH=oceanH(p.x,p.z,t);
  if(ay>0&&p.y>swH-1.6)window.__afloat=true;else if(ay<0)window.__afloat=false;
@@ -98,11 +108,11 @@ function loop(now){requestAnimationFrame(loop);const dt=Math.min((now-lastT)/100
  if(dr){dr.frequency.value=70-Math.min(dep,8000)/220;fl.frequency.value=260-Math.min(dep,8000)/40}
  if(fr%5===0)detect(t);
  if(fr%6===0){$('dp').textContent=window.__above||dep<=1?'Superficie':Math.round(dep).toLocaleString('es')+' m';$('zn').textContent=window.__above?'Mar gruesa · olas de hasta ~20 m':dep<=1?'Bajo las olas':ZN(dep);
-  const temp=2+16*Math.exp(-dep/350),pr=1+dep/10.06;$('st').textContent=pr.toFixed(0)+' bar · '+temp.toFixed(1)+' °C · luz solar '+(sun>.001?(sun*100).toFixed(sun<.1?1:0)+' %':'0 %')+' · fondo a '+Math.round(dfl-dep)+' m'}
+  const dp0=Math.max(dep,0),temp=2+16*Math.exp(-dp0/350),pr=1+dp0/10.06;$('st').textContent=pr.toFixed(0)+' bar · '+temp.toFixed(1)+' °C · luz solar '+(sun>.001?(sun*100).toFixed(sun<.1?1:0)+' %':'0 %')+' · fondo a '+Math.round(dfl-dep)+' m'}
  {const ex=.5+.42*(1-Math.pow(sun,.35));exposure+=(ex-exposure)*Math.min(1,dt*2)}
  {const hh=dfl-dep,th=Math.hypot(tv.x,tv.z)+Math.max(-tv.y,0)*1.3,spd=Math.max(Math.hypot(vel.x,vel.z)+Math.max(-vel.y,0),th*.5),dn=ay<0?1:0;
   if(hh<12&&spd>1.2){puffAcc+=dt*Math.min(spd,12)*2.2*Math.pow(1-hh/12,1.5)*(1+.5*dn);let nn=0;while(puffAcc>=1&&nn++<6){puffAcc--;const sp=.6+.6*dn,px=p.x-f.x*3-vel.x*.3+(Math.random()-.5)*sp*2,pz=p.z-f.z*3-vel.z*.3+(Math.random()-.5)*sp*2;puffs.set([px,-floorAt(px,pz)+.25,pz,t],puffI*4);puffI=(puffI+1)%256}}puffAcc=Math.min(puffAcc,4);device.queue.writeBuffer(puffBuf,0,puffs)}
- plkUpdate(t,dt,vel.length());sonarTick(t);
+ audioTick(t,Math.max(dep,0),!!window.__above); plkUpdate(t,dt,vel.length());sonarTick(t);
  if(!PROF)frame(t,dep,sun);
  fpsS+=(dt*1000-fpsS)*.05;if(perfOn&&fr%10===0)$('perf').textContent=(1000/fpsS).toFixed(0)+' fps · '+fpsS.toFixed(1)+' ms · render '+Math.round(RS*100)+' % ('+TG.W+'×'+TG.H+') · calidad '+['baja','media','alta','ultra','premium'][QL]+' · WebGPU'+(texSh&&dep<110?' · sombras':'');
  gAcc+=dt*1000;gN++;if(now<9000){gAcc=0;gN=0}if(gAcc>1600){const a0=gAcc/gN,gm=GT&&GT.ms,a=gm?(a0>24?Math.max(a0,gm):gm*1.3):a0;let k=1;if(a>19.5)k=.92;else if(a<13.8&&RS<QS[QL].rsMax)k=1.06;if(a>19.5&&RS<=.5)LODR=Math.max(LODR*.9,20);else if(a<13.8&&RS>=QS[QL].rsMax-.01)LODR=Math.min(LODR*1.05,[35,60,80,160,200][QL]);MIDR=LODR+12;
