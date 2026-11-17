@@ -1182,8 +1182,12 @@ function sharkG(o){const W=o.W,Hh=o.H,sn=o.snout||0,thick=o.thick||1;
  for(const sd of[-1,1]){gs.push(FIN(v=>[sd*(W*.7+o.pec*v),-Hh*.55-.05*v,.24-.03*v],v=>[sd*(W*.7+o.pec*v),-Hh*.55-.09*v,.24-.1-.11*v],{T:.008,c1:fc,c2:HX(o.bel),tip:.5}));
   gs.push(FIN(v=>[sd*(W*.4+.045*v),-Hh*.6-.01*v,-.08],v=>[sd*(W*.4+.045*v),-Hh*.6-.03*v,-.14],{T:.004,nv:4,c1:fc,c2:fc}))}
  gs.push(...EYE(W*.62,Hh*.18,.405,o.eye||.014),...EYE(-W*.62,Hh*.18,.405,o.eye||.014));
+ if(o.teeth){const my=-Hh*.5,tc='#efeadb';
+  for(let i=-8;i<=8;i++){const a=i/8,x=a*W*.8,z=.455-.045*a*a;gs.push(P(CO(.0038,.011+.004*(1-Math.abs(a)),4),tc,{p:[x,my+.004,z],r:[Math.PI,0,0]}),P(CO(.0034,.009+.003*(1-Math.abs(a)),4),tc,{p:[x*.92,my-.016,z-.012]}))}
+  gs.push(P(S_(1,8,6),'#2a1416',{p:[0,my-.004,.43],s:[W*.72,.004,.03]}));
+  for(const sd of[-1,1])gs.push(P(S_(.0035,5,4),'#14181c',{p:[sd*W*.28,Hh*.1,.49]}))}
  return MG(gs)}
-SPN('Tiburón blanco').g=()=>sharkG({W:.075,H:.08,top:'#6d7985',bel:'#eceeef',line:-.12,fin:'#5d6873',dh:.15,pec:.19,asym:1.05,head:.7,eye:.012});
+SPN('Tiburón blanco').g=()=>sharkG({W:.075,H:.08,top:'#6d7985',bel:'#eceeef',line:-.12,fin:'#5d6873',dh:.15,pec:.19,asym:1.05,head:.7,eye:.012,teeth:1});
 SPN('Tiburón blanco').pat=0;
 SPN('Tiburón duende').g=()=>sharkG({W:.045,H:.05,top:'#e0a8a8',bel:'#f0d4d0',line:-.2,fin:'#d49494',dh:.07,pec:.09,asym:.8,snout:1,head:.62,eye:.009});
 SPN('Tiburón duende').pat=0;
