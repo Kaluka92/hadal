@@ -340,6 +340,8 @@ const NA=448u;const NR=256u;const RMAX=3500.;
  let r=1.5+RMAX*pow(s,2.2);let lod=max(r*6.2831853/f32(NA),RMAX*2.2*pow(s,1.2)/f32(NR));
  let p0=g.cam.xz+r*vec2f(cos(a),sin(a));let w=ocean(p0,g.cam.w,lod+max(-g.cam.y-15.,0.)*.5);
  var o:SV;o.wp=vec3f(p0.x+w.d.x,w.d.y,p0.y+w.d.z);o.p0=p0;o.cp=g.vp*vec4f(o.wp,1.);return o;}
+@vertex fn vsq(@builtin(vertex_index) vi:u32)->SV{
+ let q=vec2f(f32(vi&1u),f32(vi>>1u))*2.-1.;var o:SV;let p0=g.cam.xz+q*3500.;o.wp=vec3f(p0.x,0.,p0.y);o.p0=p0;o.cp=g.vp*vec4f(o.wp,1.);return o;}
 @fragment fn fs(i:SV)->@location(0) vec4f{
  let t=g.cam.w;let v=i.wp-g.cam.xyz;let d=length(v);let V=v/d;
  let fw=length(fwidth(i.p0))+max(-g.cam.y-15.,0.)*.5;let w=ocean(i.p0,t,fw);var N=w.n;
@@ -714,15 +716,15 @@ const SPS=[
  g:()=>{const g=new T.IcosahedronGeometry(1,2),p=g.attributes.position;for(let i=0;i<p.count;i++){const k=1+.4*(hs(p.getX(i)*5+1,p.getZ(i)*5+p.getY(i)*3)-.5);p.setXYZ(i,p.getX(i)*k,p.getY(i)*k*.6,p.getZ(i)*k)}return P(g,'#d9d1bd')},
  note:'Organismo unicelular gigante, de unos 10 cm. Se registró a 10.641 m en la Fosa de las Marianas (2011).'},
 // ---- epipelágico ----
-{n:'Sardina',l:'Sardina pilchardus',d:[10,100],k:'W',sz:[.18,.24],lam:.8,school:[30,60],spread:5,R:30,W:.06,cap:5000,det:35,anim:SW,
+{n:'Sardina',l:'Sardina pilchardus',d:[10,100],k:'W',sz:[.18,.24],lam:.6,school:[30,60],spread:5,R:30,W:.06,cap:5000,det:35,anim:SW,
  g:()=>fishG('#aab9c5','#7d8e9b',{R:.09,tl:.18,dor:.08}),note:'Forma cardúmenes densos. De día suele estar a 25–55 m y de noche más cerca de la superficie (10–35 m).'},
-{n:'Caballa atlántica',l:'Scomber scombrus',d:[0,200],k:'W',sz:[.3,.45],lam:.35,school:[20,50],spread:5,R:40,W:.05,cap:3500,det:40,anim:SW,
+{n:'Caballa atlántica',l:'Scomber scombrus',d:[0,200],k:'W',sz:[.3,.45],nocat:1,lam:.4,school:[15,35],spread:5,R:40,W:.05,cap:1800,det:40,anim:SW,
  g:()=>fishG('#2f6f78','#c9d4d6',{R:.1,tl:.2,dor:.07}),note:'Pelágica y migratoria, forma cardúmenes. FishBase da 0–1.000 m, pero casi siempre se la encuentra en los primeros 200 m.'},
-{n:'Anchoa europea',l:'Engraulis encrasicolus',d:[0,400],k:'W',sz:[.12,.18],lam:.6,school:[40,80],spread:4,R:30,W:.06,cap:6000,det:30,anim:SW,
+{n:'Anchoa europea',l:'Engraulis encrasicolus',d:[0,400],k:'W',sz:[.12,.18],nocat:1,lam:.5,school:[25,45],spread:4,R:30,W:.06,cap:3000,det:30,anim:SW,
  g:()=>fishG('#5c7f8f','#c8d2d8',{R:.09,tl:.18,dor:.06}),note:'Forma cardúmenes densos. Según FishBase vive entre 0 y 400 m y llega a ~20 cm (lo común son 13,5 cm).'},
-{n:'Pez espada',vq:'Las fuentes difieren en el tamaño máximo (445 o 455 cm) y en el peso máximo (540 o 650 kg).',l:'Xiphias gladius',d:[0,550],k:'W',sz:[2.6,3.6],lam:.03,R:60,W:.02,cap:80,det:55,anim:'p.x+=sin(uT*3.+ph-p.z*6.)*.03*smoothstep(.1,-.5,p.z);',
+{n:'Pez espada',vq:'Las fuentes difieren en el tamaño máximo (445 o 455 cm) y en el peso máximo (540 o 650 kg).',l:'Xiphias gladius',d:[0,550],k:'W',sz:[2.6,3.6],nocat:1,lam:.02,R:60,W:.02,cap:80,det:55,anim:'p.x+=sin(uT*3.+ph-p.z*6.)*.03*smoothstep(.1,-.5,p.z);',
  g:()=>MG([fishG('#34455c','#c4ccd2',{R:.1,fork:1,tl:.2,dor:.12}),P(CZ(.012,.04,.8,6),'#2a323c',{p:[0,0,.42]})]),note:'FishBase da 0–2.878 m, aunque lo habitual es hasta ~550 m. Alcanza unos 4,5 m (incluido el pico) y hasta ~650 kg.'},
-{n:'Delfín mular',vq:'La profundidad de buceo varía mucho según la población y la fuente.',l:'Tursiops truncatus',d:[0,500],k:'W',sz:[2.4,3.4],lam:.05,school:[3,8],spread:8,R:70,W:.02,cap:120,det:60,anim:'p.y+=sin(uT*2.6+ph-p.z*3.)*.06*smoothstep(0.,-.5,p.z);',
+{n:'Delfín mular',vq:'La profundidad de buceo varía mucho según la población y la fuente.',l:'Tursiops truncatus',d:[0,500],k:'W',sz:[2.4,3.4],nocat:1,lam:.03,school:[3,8],spread:8,R:70,W:.02,cap:120,det:60,anim:'p.y+=sin(uT*2.6+ph-p.z*3.)*.06*smoothstep(0.,-.5,p.z);',
  g:()=>fishG('#6d7a86','#d0d6da',{R:.14,tl:.2,dor:.1}),note:'Mide hasta unos 3,8 m (SeaLifeBase). Los animales oceánicos marcados en Bermudas llegaron a ~1.000 m de profundidad; en otros estudios, 390–492 m.'},
 {n:'Atún rojo',l:'Thunnus thynnus',d:[3,700],k:'W',sz:[1.8,2.8],lam:.1,school:[1,3],spread:6,R:60,W:.025,cap:200,det:60,anim:'p.x+=sin(uT*4.+ph-p.z*6.)*.03*smoothstep(.1,-.5,p.z);',
  g:()=>fishG('#27425e','#3a5a7a',{R:.13,fork:1,tl:.2,dor:.1}),note:'Hasta ~4,5 m y ~680 kg. Tiene endotermia regional: mantiene partes del cuerpo más calientes que el agua. En un estudio con 68 peces marcados, el más profundo llegó a 672 m.'},
@@ -752,9 +754,9 @@ const SPS=[
  g:()=>MG([P(S_(1,12,10),'#e0cdb0',{s:[.28,.34,.4]}),P(S_(1,8,6),'#b87a4a',{s:[.29,.2,.3],p:[0,.12,-.02]}),...Array.from({length:7},(_,i)=>P(seg(V3([(i-3)*.03,0,.3]),V3([(i-3)*.06,-.05,.6]),.012),'#e8c8b0'))]),
  note:'Fósil viviente con concha de cámaras que regula la flotabilidad. Se lo siguió hasta 523 m y el límite conocido es ~700 m (la concha implosiona hacia los 800 m). De noche sube.'},
 // ---- mesopelágico (zona crepuscular) ----
-{n:'Pez linterna',l:'Myctophidae',d:[200,1000],k:'W',sz:[.07,.1],lam:1.1,school:[20,50],spread:3,R:18,W:.07,cap:6000,det:12,anim:SW,
+{n:'Pez linterna',l:'Myctophidae',d:[200,1000],k:'W',sz:[.07,.1],lam:.8,school:[15,35],spread:3,R:18,W:.07,cap:3500,det:12,anim:SW,
  g:()=>fishG('#2e3a45','#2e3a45',{R:.1,tl:.18,dor:.05,glow:'#7fe0ff'}),note:'Entre los vertebrados más abundantes del océano profundo. De día vive a 200–1.000 m y la mayoría sube de noche hacia la superficie.'},
-{n:'Pez hacha',l:'Argyropelecus',d:[200,800],k:'W',sz:[.06,.08],lam:.6,school:[8,20],spread:2.5,R:14,W:.06,cap:2500,det:10,anim:SW,
+{n:'Pez hacha',l:'Argyropelecus',d:[200,800],k:'W',sz:[.06,.08],lam:.45,school:[8,20],spread:2.5,R:14,W:.06,cap:1600,det:10,anim:SW,
  g:()=>fishG('#b8c6d0','#8a98a2',{R:.22,lt:.3,tl:.15,dor:.08,glow:'#8fe8ff'}),note:'Fotóforos ventrales que igualan la luz de arriba y borran su silueta (contrailuminación).'},
 {n:'Pez víbora',l:'Chauliodus sloani',d:[200,1000],k:'W',sz:[.28,.35],lam:.45,R:10,W:.05,cap:150,det:14,anim:SW,
  g:()=>fishG('#1a2530','#1a2530',{R:.06,tl:.12,dor:0,glow:'#66aaff',extra:[...Array.from({length:6},(_,i)=>P(CZ(.006,.001,.07,3),'#eef6f6',{p:[i%2?.03:-.03,-.02-.01*(i%3),.5+(i>>1)*.01]})),P(seg(V3([0,.06,.25]),V3([0,.28,-.05]),.004),'#1a2530'),P(S_(.02,5,4),'#88ccff',{p:[0,.28,-.05],e:1})]}),
@@ -1736,7 +1738,7 @@ function plkStep(enc){const c=enc.beginComputePass();c.setPipeline(pkP);c.setBin
 const STAT=[];
 function addStatic(geo,instance,matU,caster){STAT.push({geo,ibuf:instance,mat:matU,caster:!!caster,anim:''})}
 const matTerr=mkMatU(0,0,0,1,{mt:3,bump:1.15,spec:.05}),matWreck=mkMatU(0,0,0,1,{mt:2,bump:1.0,rust:.75,spec:.14}),matAir=mkMatU(0,0,0,1,{mt:4,bump:.45,rust:.1,spec:.35}),matSteel=mkMatU(0,0,0,1,{mt:2,bump:1.0,rust:.5,spec:.2}),matWood=mkMatU(0,0,0,1,{mt:5,bump:1.0,spec:.06}),matRock=mkMatU(0,0,0,1,{mt:1,bump:1.3,spec:.05}),matArch=mkMatU(0,0,0,1,{mt:1,bump:1.4,spec:.04});
-for(const k in WR){const w=WR[k];w.id=k;w.z=0;w.y=-base(w.x);try{const mx=new Float32Array([1,0,0,0, 0,1,0,0, 0,0,1,0, w.x,w.y,w.z,1]);const wm=k==='af447'?matAir:(k==='bismarck'||k==='roberts')?matSteel:k==='galeon'?matWood:matWreck,ib=instBuf(mx);addStatic(gpuGeo(w.g()),ib,wm,false);if(w.dg)try{addStatic(gpuGeo(w.dg()),ib,wm,false)}catch(e){console.warn('escombros',k,e)}}catch(e){console.warn('naufragio',k,e)}}
+for(const k in WR){const w=WR[k];w.id=k;w.z=0;w.y=-base(w.x);try{const mx=new Float32Array([1,0,0,0, 0,1,0,0, 0,0,1,0, w.x,w.y,w.z,1]);const wm=k==='af447'?matAir:(k==='bismarck'||k==='roberts')?matSteel:k==='galeon'?matWood:matWreck,ib=instBuf(mx);addStatic(gpuGeo(w.g()),ib,wm,false);STAT[STAT.length-1].wk=k;if(w.dg)try{addStatic(gpuGeo(w.dg()),ib,wm,false);STAT[STAT.length-1].wk=k}catch(e){console.warn('escombros',k,e)}}catch(e){console.warn('naufragio',k,e)}}
 try{const gs=[];for(const c of CH){const y=-floorAt(c[0],c[1])-.5;gs.push(P(CY(2.6,1,c[2]*.6,7),'#2b2522',{p:[c[0],y,c[1]]}),P(CY(1,.55,c[2]*.45,7),'#241f1c',{p:[c[0],y+c[2]*.58,c[1]]}),P(S_(.5,8,6),'#ff8a3a',{p:[c[0],y+c[2]*1.02,c[1]],e:.9}))}
  addStatic(gpuGeo(MG(gs)),identBuf,matRock,false)}catch(e){console.warn('fumarolas',e)}
 // ---- rocas con túnel y cámara: campo de distancias + "surface nets" por compute ----
@@ -1910,7 +1912,7 @@ function buildShip(key){const w=WR[key.split('_')[0]],S=SHIPS[key],[NX,NY,NZ]=S.
  const enc=device.createCommandEncoder(),c=enc.beginComputePass();c.setBindGroup(0,bg);
  c.setPipeline(shipP.sample);c.dispatchWorkgroups(Math.ceil((NX+1)/4),Math.ceil((NY+1)/4),Math.ceil((NZ+1)/4));c.setPipeline(shipP.cellv);c.dispatchWorkgroups(Math.ceil(NX/4),Math.ceil(NY/4),Math.ceil(NZ/4));c.setPipeline(shipP.quads);c.dispatchWorkgroups(Math.ceil((NX+1)/4),Math.ceil((NY+1)/4),Math.ceil((NZ+1)/4));c.end();device.queue.submit([enc.finish()]);
  const mx=new Float32Array([1,0,0,0, 0,1,0,0, 0,0,1,0, w.x,w.y,w.z,1]);const mt=(key.startsWith('bismarck')||key==='roberts')?matSteel:key==='af447'?matAir:key.startsWith('galeon')?matWood:matWreck;
- STAT.push({geo:{buf:verts,n:0},ibuf:instBuf(mx),mat:mt,caster:false,ind:{idx,args},anim:'',tag:'casco-'+key})}
+ STAT.push({geo:{buf:verts,n:0},ibuf:instBuf(mx),mat:mt,caster:false,ind:{idx,args},anim:'',tag:'casco-'+key,wk:key.split('_')[0]})}
 for(const k in SHIPS)buildShip(k);
 
 // ---- especies: geometría, instancias y material de cada una ----
@@ -1943,13 +1945,14 @@ const cullMod=smod(CULLW,'culling'),cullP=device.createComputePipeline({layout:d
 const cullBG=(u,sb,n,m,f,a)=>device.createBindGroup({layout:cullBGL,entries:[{binding:0,resource:{buffer:u}},{binding:1,resource:{buffer:sb}},{binding:2,resource:{buffer:n}},{binding:3,resource:{buffer:m}},{binding:4,resource:{buffer:f}},{binding:5,resource:{buffer:a}}]});
 for(const sp of SPS){try{FISHLO=(sp.cap||500)>400;const g=sp.g();sp.geo=gpuGeo(g);const cap=sp.cap||500;sp.cap=cap;sp.inst=new Float32Array(cap*24);sp.ibuf=mkBuf(cap*96,UB.VERTEX|UB.COPY_DST);
  const mode=(sp.k==='W'||sp.k==='H')?1:0;sp.mode=mode;sp.cnt=0;sp.wa=WA[sp.n]||'';
- if(mode===0){const gNg=sp.gN?sp.gN():richer(g,.12);sp.geoN=gpuGeo(gNg);g.computeBoundingSphere();gNg.computeBoundingSphere();const sph=g.boundingSphere.clone().union(gNg.boundingSphere);sp.sph=[sph.center.x,sph.center.y,sph.center.z,sph.radius*1.05];
+ if(mode===0){const gNg=sp.gN?sp.gN():(g.attributes.position.count>1800?g:richer(g,.12));sp.geoN=gpuGeo(gNg);g.computeBoundingSphere();gNg.computeBoundingSphere();const sph=g.boundingSphere.clone().union(gNg.boundingSphere);sp.sph=[sph.center.x,sph.center.y,sph.center.z,sph.radius*1.05];
   if(sp.geo.n/3>250)sp.geoF=gpuGeo(simplify(g,.25));
   const U2=UB.STORAGE|UB.VERTEX;sp.sbuf=mkBuf(cap*96,UB.STORAGE|UB.COPY_DST);sp.oN=mkBuf(cap*96,U2);sp.oM=mkBuf(cap*96,U2);sp.oF=sp.geoF?mkBuf(cap*96,U2):cullDummy;sp.args=mkBuf(48,UB.INDIRECT|UB.STORAGE|UB.COPY_DST|UB.COPY_SRC);sp.uC=mkBuf(176,UB.UNIFORM|UB.COPY_DST);
   sp.cbg=cullBG(sp.uC,sp.sbuf,sp.oN,sp.oM,sp.oF,sp.args);
   if(CASTN.has(sp.n)){sp.oS=mkBuf(cap*96,U2);sp.argsS=mkBuf(48,UB.INDIRECT|UB.STORAGE|UB.COPY_DST);sp.uS=mkBuf(176,UB.UNIFORM|UB.COPY_DST);sp.cbgS=cullBG(sp.uS,sp.sbuf,cullDummy,sp.oS,cullDummy2,sp.argsS)}
  }else{const hi=cap<=1000;sp.geoN=hi?gpuGeo(richer(g,.05)):sp.geo;g.computeBoundingSphere();if(!isFinite(g.boundingSphere.radius))console.warn('NaN en geometría:',sp.n);sp.sph=[g.boundingSphere.radius*1.05,0,0,(sp.R||10)*1.6];sp.mobile=1;
-  const U2=UB.STORAGE|UB.VERTEX;sp.sbuf=mkBuf(cap*96,UB.STORAGE|UB.COPY_DST);sp.oN=mkBuf(cap*96,U2);sp.oM=mkBuf(cap*96,U2);sp.oF=cullDummy;sp.args=mkBuf(48,UB.INDIRECT|UB.STORAGE|UB.COPY_DST|UB.COPY_SRC);sp.uC=mkBuf(176,UB.UNIFORM|UB.COPY_DST);sp.cbg=cullBG(sp.uC,sp.sbuf,sp.oN,sp.oM,sp.oF,sp.args)}
+  if(sp.geo.n/3>120)sp.geoF=gpuGeo(simplify(g,sp.geo.n/3>350?.14:.3));
+  const U2=UB.STORAGE|UB.VERTEX;sp.sbuf=mkBuf(cap*96,UB.STORAGE|UB.COPY_DST);sp.oN=mkBuf(cap*96,U2);sp.oM=mkBuf(cap*96,U2);sp.oF=sp.geoF?mkBuf(cap*96,U2):cullDummy;sp.args=mkBuf(48,UB.INDIRECT|UB.STORAGE|UB.COPY_DST|UB.COPY_SRC);sp.uC=mkBuf(176,UB.UNIFORM|UB.COPY_DST);sp.cbg=cullBG(sp.uC,sp.sbuf,sp.oN,sp.oM,sp.oF,sp.args)}
  sp.mu=mkMatU(mode,sp.R,sp.W,sp.alpha,{cs:mode?1:.15,spec:mode?.55:.12,tr:sp.tr,pat:sp.pat,iri:sp.iri,shrink:mode===0,...(sp.mo||{})})}catch(e){console.warn('especie',sp.n,e);sp.geo=null}}
 
 // ---- terreno: vértices por compute shader, índices estáticos ----
@@ -1985,7 +1988,7 @@ async function buildPipes(){
  need.add(['',false,true].join('|'));
  const mp=new Map();for(const k of need){const [an,al,sh]=k.split('|');mp.set(k,matPipe(an,al==='true',sh==='true'))}
  const surfMod=smod(SURF,'superficie'),snowMod=smod(SNOW,'nieve'),coneMod=smod(CONE,'conos');
- const [surf,snow,cone,cau,det,blit,dep,rays,kar,down,up,fin,pm]=await Promise.all([
+ const [surf,snow,cone,cau,det,blit,dep,rays,kar,down,up,fin,pm,surfF]=await Promise.all([
   device.createRenderPipelineAsync({layout:PL_0,vertex:{module:surfMod,entryPoint:'vs'},fragment:{module:surfMod,entryPoint:'fs',targets:[{format:HDR}]},primitive:{topology:'triangle-list'},depthStencil:{format:DEPTH,depthWriteEnabled:true,depthCompare:'less'},multisample:{count:SC}}),
   device.createRenderPipelineAsync({layout:PL_0,vertex:{module:snowMod,entryPoint:'vs'},fragment:{module:snowMod,entryPoint:'fs',targets:[{format:HDR,blend:BLEND_ADD}]},primitive:{topology:'triangle-strip'},depthStencil:{format:DEPTH,depthWriteEnabled:false,depthCompare:'less'},multisample:{count:SC}}),
   device.createRenderPipelineAsync({layout:PL_0,vertex:{module:coneMod,entryPoint:'vs',buffers:[CONEL]},fragment:{module:coneMod,entryPoint:'fs',targets:[{format:HDR,blend:BLEND_ADD}]},primitive:{topology:'triangle-list',cullMode:'none'},depthStencil:{format:DEPTH,depthWriteEnabled:false,depthCompare:'less'},multisample:{count:SC}}),
@@ -1993,8 +1996,9 @@ async function buildPipes(){
   fsPipe(P_DEPTH(SC>1),'prof',[BGL0,SC>1?BGL_DM:BGL_D1],'r32float'),fsPipe(P_RAYS,'rayos',[BGL0,BGL_Z],HDR),
   fsPipe(P_KAR,'kar',[BGL0,BGL_T],HDR),fsPipe(P_DOWN,'down',[BGL0,BGL_T],HDR),fsPipe(P_UP,'up',[BGL0,BGL_T],HDR,BLEND_1),
   fsPipe(P_FIN,'final',[BGL0,BGL_FIN],FMT),
-  Promise.all([...mp.entries()].map(async([k,p])=>[k,await p]))]);
- PP={surf,snow,cone,cau,det,blit,dep,rays,kar,down,up,fin,mat:new Map(pm)};
+  Promise.all([...mp.entries()].map(async([k,p])=>[k,await p])),
+  device.createRenderPipelineAsync({layout:PL_0,vertex:{module:surfMod,entryPoint:'vsq'},fragment:{module:surfMod,entryPoint:'fs',targets:[{format:HDR}]},primitive:{topology:'triangle-strip'},depthStencil:{format:DEPTH,depthWriteEnabled:true,depthCompare:'less'},multisample:{count:SC}})]);
+ PP={surf,surfF,snow,cone,cau,det,blit,dep,rays,kar,down,up,fin,mat:new Map(pm)};
  PP.bgf=await device.createRenderPipelineAsync({layout:PL_0,vertex:{module:smod(BGF,'fondo-agua'),entryPoint:'vs'},fragment:{module:smod(BGF,'fondo-agua'),entryPoint:'fs',targets:[{format:HDR}]},primitive:{topology:'triangle-list'},depthStencil:{format:DEPTH,depthWriteEnabled:false,depthCompare:'always'},multisample:{count:SC}});
  PP.taa=await fsPipe(P_TAA,'taa',[BGL0,BGL_TAA],HDR);
  PP.plk=await device.createRenderPipelineAsync({layout:PLO(BGL0,pkRBGL),vertex:{module:smod(PLKR,'plancton-dibujo'),entryPoint:'vs'},fragment:{module:smod(PLKR,'plancton-dibujo'),entryPoint:'fs',targets:[{format:HDR,blend:BLEND_ADD}]},primitive:{topology:'triangle-strip'},depthStencil:{format:DEPTH,depthWriteEnabled:false,depthCompare:'less'},multisample:{count:SC}});
@@ -2050,7 +2054,7 @@ function lightMatrix(){const L=SUN;shR.crossVectors(zAx,L).normalize();shU.cross
  const eye=[shC.x+L.x*150,shC.y+L.y*150,shC.z+L.z*150];const v=M4.view(eye,[shR.x,shR.y,shR.z],[shU.x,shU.y,shU.z],[L.x,L.y,L.z]);lightVP=M4.mul(M4.ortho(-S,S,-S,S,1,320),v)}
 
 // ---- cuadro completo ----
-function drawStatic(p,list,shadow){for(const s of list){if(shadow&&!s.caster)continue;p.setPipeline(shadow?mkP(['',false,true].join('|')):mkP(['',false,false].join('|')));p.setBindGroup(1,s.mat.bg);p.setVertexBuffer(0,s.geo.buf);p.setVertexBuffer(1,s.ibuf);if(s.ind){p.setIndexBuffer(s.ind.idx,'uint32');p.drawIndexedIndirect(s.ind.args,0)}else p.draw(s.geo.n,1)}}
+function drawStatic(p,list,shadow){for(const s of list){if(shadow&&!s.caster)continue;if(s.wk){const w=WR[s.wk];if(w&&Math.hypot(cam.position.x-w.x,cam.position.z-w.z,cam.position.y-w.y)>430)continue}p.setPipeline(shadow?mkP(['',false,true].join('|')):mkP(['',false,false].join('|')));p.setBindGroup(1,s.mat.bg);p.setVertexBuffer(0,s.geo.buf);p.setVertexBuffer(1,s.ibuf);if(s.ind){p.setIndexBuffer(s.ind.idx,'uint32');p.drawIndexedIndirect(s.ind.args,0)}else p.draw(s.geo.n,1)}}
 function drawTerrainF(p){p.setPipeline(mkP(['',false,false].join('|')));p.setBindGroup(1,matTerr.bg);p.setVertexBuffer(0,tvbF);p.setVertexBuffer(1,identBuf);p.setIndexBuffer(tib,'uint32');p.drawIndexed(250*250*6)}
 function drawTerrain(p,shadow){p.setPipeline(mkP(['',false,shadow].join('|')));p.setBindGroup(1,matTerr.bg);p.setVertexBuffer(0,tvb);p.setVertexBuffer(1,identBuf);p.setIndexBuffer(tib,'uint32');p.drawIndexed(250*250*6)}
 var LODR=[35,60,80,160,200][QL],MIDR=LODR+12,CULLR=90;
@@ -2059,7 +2063,7 @@ function planesOf(m){const o=new Float32Array(24),row=i=>[m[i],m[4+i],m[8+i],m[1
  defs.forEach(([rk,sg],k)=>{let c;if(sg===0)c=rk;else c=[r3[0]+sg*rk[0],r3[1]+sg*rk[1],r3[2]+sg*rk[2],r3[3]+sg*rk[3]];if(k===5)c=[r3[0]-rk[0],r3[1]-rk[1],r3[2]-rk[2],r3[3]-rk[3]];const l=Math.hypot(c[0],c[1],c[2])||1;o.set([c[0]/l,c[1]/l,c[2]/l,c[3]/l],k*4)});return o}
 function cullPass(enc,vp,doSh){const c=enc.beginComputePass({timestampWrites:(GT&&!PROF)?{querySet:GT.qs,beginningOfPassWriteIndex:0}:tw('culling')});c.setPipeline(cullP);const pl=planesOf(vp),pls=doSh?planesOf(lightVP):null,p=cam.position;
  for(const sp of SPS){if(!sp.cbg||!sp.cnt)continue;
-  const u=sp.uf||(sp.uf=new Float32Array(44));u.set(pl,0);u.set([p.x,p.y,p.z,0,...sp.sph,LODR*LODR,MIDR*MIDR,sp.mobile?350*350:CULLR*CULLR,sp.cnt,sp.geoF?1:0,sp.mobile?1:0,0,0],24);
+  const u=sp.uf||(sp.uf=new Float32Array(44));u.set(pl,0);u.set([p.x,p.y,p.z,0,...sp.sph,sp.mobile?LODR*LODR*.12:LODR*LODR*(sp.geoN&&sp.geoN.n>8000?.35:1),sp.mobile?LODR*LODR*.8:MIDR*MIDR,sp.mobile?Math.pow(Math.max(95,Math.min(350,(sp.sz?sp.sz[1]:1)*650)),2):CULLR*CULLR,sp.cnt,sp.geoF?1:0,sp.mobile?1:0,0,0],24);
   device.queue.writeBuffer(sp.uC,0,u);device.queue.writeBuffer(sp.args,0,new Uint32Array([sp.geoN.n,0,0,0,sp.geo.n,0,0,0,sp.geoF?sp.geoF.n:0,0,0,0]));c.setBindGroup(0,sp.cbg);c.dispatchWorkgroups(Math.ceil(sp.cnt/64));
   if(doSh&&sp.cbgS){const us=sp.ufS||(sp.ufS=new Float32Array(44));us.set(pls,0);us.set([p.x,p.y,p.z,0,...sp.sph,0,6400,6400,sp.cnt,0,0,0,0],24);
    device.queue.writeBuffer(sp.uS,0,us);device.queue.writeBuffer(sp.argsS,0,new Uint32Array([0,0,0,0,sp.geo.n,0,0,0,0,0,0,0]));c.setBindGroup(0,sp.cbgS);c.dispatchWorkgroups(Math.ceil(sp.cnt/64))}}
@@ -2087,8 +2091,8 @@ function frame(t,dep,sunD){
   p.setBindGroup(0,bgSh);drawTerrain(p,true);drawStatic(p,STAT,true);drawSpecies(p,false,true);p.end()}
  const p=enc.beginRenderPass({timestampWrites:tw('principal'),colorAttachments:[{view:SC>1?TG.v.ms:TG.v.hdr,resolveTarget:SC>1?TG.v.hdr:undefined,clearValue:{r:0,g:0,b:0,a:1},loadOp:'clear',storeOp:SC>1?'discard':'store'}],
   depthStencilAttachment:{view:TG.v.depth,depthClearValue:1,depthLoadOp:'clear',depthStoreOp:'store'}});
- p.setBindGroup(0,bg0);p.setPipeline(PP.bgf);p.draw(3);if(!(SKIP&&SKIP.has('terreno')))drawTerrain(p,false);if(fineOn&&!(SKIP&&SKIP.has('terreno')))drawTerrainF(p);if(!(SKIP&&SKIP.has('estaticos')))drawStatic(p,STAT,false);if(!(SKIP&&SKIP.has('especies')))drawSpecies(p,false,false);
- if(dep<160&&!(SKIP&&SKIP.has('superficie'))){p.setPipeline(PP.surf);p.draw(6*448*256)}
+ p.setBindGroup(0,bg0);p.setPipeline(PP.bgf);p.draw(3);if(!(SKIP&&SKIP.has('terreno')))drawTerrain(p,false);if(fineOn&&floorAt(cam.position.x,cam.position.z)-dep<48&&!(SKIP&&SKIP.has('terreno')))drawTerrainF(p);if(!(SKIP&&SKIP.has('estaticos')))drawStatic(p,STAT,false);if(!(SKIP&&SKIP.has('especies')))drawSpecies(p,false,false);
+ if(dep<160&&!(SKIP&&SKIP.has('superficie'))){if(dep>45){p.setPipeline(PP.surfF);p.draw(4)}else{p.setPipeline(PP.surf);p.draw(6*448*256)}}
  if(!(SKIP&&SKIP.has('especies')))drawSpecies(p,true,false);
  if(!(SKIP&&SKIP.has('nieve'))&&!window.__above){p.setPipeline(PP.snow);p.draw(4,4000)}
  p.setPipeline(PP.puff);p.setVertexBuffer(0,puffBuf);p.draw(4,256);

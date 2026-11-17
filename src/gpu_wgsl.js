@@ -272,6 +272,8 @@ const NA=448u;const NR=256u;const RMAX=3500.;
  let r=1.5+RMAX*pow(s,2.2);let lod=max(r*6.2831853/f32(NA),RMAX*2.2*pow(s,1.2)/f32(NR));
  let p0=g.cam.xz+r*vec2f(cos(a),sin(a));let w=ocean(p0,g.cam.w,lod+max(-g.cam.y-15.,0.)*.5);
  var o:SV;o.wp=vec3f(p0.x+w.d.x,w.d.y,p0.y+w.d.z);o.p0=p0;o.cp=g.vp*vec4f(o.wp,1.);return o;}
+@vertex fn vsq(@builtin(vertex_index) vi:u32)->SV{
+ let q=vec2f(f32(vi&1u),f32(vi>>1u))*2.-1.;var o:SV;let p0=g.cam.xz+q*3500.;o.wp=vec3f(p0.x,0.,p0.y);o.p0=p0;o.cp=g.vp*vec4f(o.wp,1.);return o;}
 @fragment fn fs(i:SV)->@location(0) vec4f{
  let t=g.cam.w;let v=i.wp-g.cam.xyz;let d=length(v);let V=v/d;
  let fw=length(fwidth(i.p0))+max(-g.cam.y-15.,0.)*.5;let w=ocean(i.p0,t,fw);var N=w.n;
