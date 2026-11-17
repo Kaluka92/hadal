@@ -91,6 +91,8 @@ SPN('Ballena jorobada').g=()=>whaleG({H:.1,W:.1,p:2.2,hp:.7,tp:.22,top:'#27323e'
 SPN('Ballena jorobada').pat=0;
 SPN('Cachalote').g=()=>whaleG({H:.115,W:.1,p:2.2,hp:.5,tp:.3,top:'#4d555e',bel:'#6b737b',mid:'#3a4148',line:-.5,sperm:1,fin:'#444c54',fk:.12,fl:.07,fz:.18,fc:.04,dh:.02,dz:-.3,ez:.31,er:.007,notch:1});
 SPN('Cachalote').pat=0;
+SPN('Delfín mular').g=()=>whaleG({H:.1,W:.09,p:2.2,hp:.55,tp:.3,top:'#6a7783',bel:'#d4d9dc',line:-.1,fin:'#55616c',fk:.14,fl:.2,fz:.2,fc:.07,dh:.03,dz:-.2,ez:.42,er:.012,notch:1});
+SPN('Delfín mular').pat=0;
 
 // ---------- MANTA RAYA ----------
 SPN('Manta raya').g=()=>{const NX=44,NZ=22,pos=[],col=[],ix=[],ct=HX('#1d2831'),cw=HX('#dfe4e6'),cb=HX('#e6eaec'),cd=HX('#3a4650');

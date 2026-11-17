@@ -59,7 +59,7 @@ const gBuf=mkBuf(368,UB.UNIFORM|UB.COPY_DST),gShBuf=mkBuf(368,UB.UNIFORM|UB.COPY
 // ---- calidad ----
 var QL=1,RS=.75,perfOn=false,fpsS=16.7;
 try{QL=+(localStorage.hadalQ||1)}catch(e){}if(!(QL>=0&&QL<=4))QL=1;
-const QS=[{rs0:.55,rsMax:.7,ms:1,sh:0,shE:0,steps:10,den:.8},{rs0:.75,rsMax:.92,ms:4,sh:1024,shE:3,steps:14,den:1},{rs0:.9,rsMax:1,ms:4,sh:2048,shE:2,steps:18,den:1},{rs0:1,rsMax:1.2,ms:4,sh:4096,shE:1,steps:24,den:1.35},{rs0:1.1,rsMax:1.5,ms:4,sh:6144,shE:1,steps:32,den:1.7}];RS=QS[QL].rs0;
+const QS=[{rs0:.55,rsMax:.7,ms:1,sh:0,shE:0,steps:10,den:.9},{rs0:.75,rsMax:.92,ms:4,sh:1024,shE:3,steps:14,den:1.15},{rs0:.9,rsMax:1,ms:4,sh:2048,shE:2,steps:18,den:1.3},{rs0:1,rsMax:1.2,ms:4,sh:4096,shE:1,steps:24,den:1.7},{rs0:1.1,rsMax:1.5,ms:4,sh:6144,shE:1,steps:32,den:2.1}];RS=QS[QL].rs0;
 let SC=QS[QL].ms,texSh=null;
 
 // ---- grupos de enlace globales ----

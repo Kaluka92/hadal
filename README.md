@@ -25,11 +25,11 @@ Cinco niveles (menú de inicio o tecla G): **Bajo, Medio, Alto, Ultra, Premium**
 
 | | Sombras | Fauna y rocas | Detalle lejano | Resolución interna máx. | Extras |
 |---|---|---|---|---|---|
-| Bajo | — | ×0,8 | 35 m | 70 % | sin MSAA |
-| Medio | 1024 | ×1 | 60 m | 92 % | MSAA ×4 |
-| Alto | 2048 | ×1 | 80 m | 100 % | |
-| Ultra | 4096, 9 muestras | ×1,35 | 110 m | 120 % | TAA, oclusión ambiental (8 muestras) |
-| Premium | 6144, 16 muestras | ×1,7 | 140 m | 150 % (tope 4096 px) | TAA, oclusión ambiental (14 muestras) |
+| Bajo | — | ×0,9 | 35 m | 70 % | sin MSAA |
+| Medio | 1024 | ×1,15 | 60 m | 92 % | MSAA ×4 |
+| Alto | 2048 | ×1,3 | 80 m | 100 % | |
+| Ultra | 4096, 9 muestras | ×1,7 | 110 m | 120 % | TAA, oclusión ambiental (8 muestras) |
+| Premium | 6144, 16 muestras | ×2,1 | 140 m | 150 % (tope 4096 px) | TAA, oclusión ambiental (14 muestras) |
 
 La resolución interna se ajusta sola. Si Ultra o Premium no sostienen unos ~50 cuadros por segundo, el programa baja un nivel y lo avisa. Ultra y Premium están pensados para GPU dedicadas con 10 GB o más, y **no se probaron en una**.
 
@@ -48,6 +48,7 @@ La resolución interna se ajusta sola. Si Ultra o Premium no sostienen unos ~50 
 - **Profundidad de campo con enfoque automático (Ultra y Premium).** El submarino lee la profundidad del centro de la pantalla con una lectura asíncrona de 1 texel (cada 6 cuadros), suaviza el foco en escala logarítmica y limita el rango a 1,2–20 m; en el pase final se desenfoca con un disco de muestras en espiral áurea (10/18), ponderando por el círculo de confusión de cada muestra para que el fondo desenfocado no manche el primer plano. Bit 262144.
 - **Destellos de lente (Ultra y Premium).** Estela anamórfica azulada sobre el bloom y dispersión cromática radial del bloom. Bit 524288.
 - **Antialiasing temporal (TAA) en Ultra y Premium.** Jitter de subpíxel (Halton 2,3 de 8 muestras) en la proyección, reproyección del historial con la profundidad y la matriz previa, y recorte por varianza de la vecindad 3×3 para limitar el ghosting en la vegetación que se mueve; el resultado se copia al buffer HDR antes del bloom y del pase final. Interruptor de depuración: bit 16384.
+- **Piel de la fauna.** Peces con escamas por celdas (relieve por normal derivada, brillo iridiscente según el ángulo de vista y línea lateral); calamares y pulpos con cromatóforos de color variable y iridóforos que centellean. Todo procedural en el fragment shader.
 - **Efectos de impacto**: sacudida de cámara y aberración cromática al tocar el fondo a velocidad.
 - **Diario de campo y recorrido guiado**: registra lo que ves, con profundidad y fuente, y se guarda en el navegador.
 - **Datos con procedencia**: cada ficha marca ✔ (contrastada con fuentes) o ⚠ (sin confirmar). Es una síntesis didáctica, no una referencia científica.
