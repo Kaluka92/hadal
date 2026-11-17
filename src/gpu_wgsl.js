@@ -72,7 +72,7 @@ fn shadowV(p:vec3f,n:vec3f)->f32{
  let e=min(min(uv.x,1.-uv.x),min(uv.y,1.-uv.y));
  if(e<0.||q.z>1.){return 1.;}
  let px=1./g.fl.w;var s=0.;let tr=select(select(0u,1u,(u32(g.ex.w)&4096u)!=0u),2u,(u32(g.ex.w)&8192u)!=0u);
- if(tr>0u&&length(p-g.cam.xyz)<60.){let n=select(3,4,tr==2u);for(var i=0;i<4;i++){if(i>=n){break;}for(var j=0;j<4;j++){if(j>=n){break;}let o=(vec2f(f32(i),f32(j))/f32(n-1)-.5)*2.*px*1.9;s+=textureSampleCompareLevel(tSh,sC,uv+o,q.z-.0025);}}
+ if(tr>0u&&length(p-g.cam.xyz)<60.){let n=select(5,7,tr==2u);for(var i=0;i<7;i++){if(i>=n){break;}for(var j=0;j<7;j++){if(j>=n){break;}let o=(vec2f(f32(i),f32(j))/f32(n-1)-.5)*2.*px*1.9;s+=textureSampleCompareLevel(tSh,sC,uv+o,q.z-.0025);}}
   return mix(1.,s/f32(n*n),ss(0.,.08,e));}
  let nk=select(1,4,length(p-g.cam.xyz)<40.||(u32(g.ex.w)&32u)!=0u);
  for(var k=0;k<4;k++){if(k>=nk){break;}let o=vec2f(f32(k&1),f32(k>>1))*2.-1.;s+=textureSampleCompareLevel(tSh,sC,uv+o*px*.8,q.z-.0025);}
@@ -394,8 +394,8 @@ fn tmap(x:vec3f)->vec3f{return clamp((x*(2.51*x+.03))/(x*(2.43*x+.59)+.14),vec3f
  {let tier=select(select(0,1,(u32(g.ex.w)&4096u)!=0u),2,(u32(g.ex.w)&8192u)!=0u);
   if(tier>0&&zd<.99999&&(u32(g.ex.w)&2048u)==0u){
    let zs=vec2f(textureDimensions(tZ));let ip=vec2i(uv*zs);let vz=g.pp.w*g.pp.z/(g.pp.w-zd*(g.pp.w-g.pp.z));
-   let rad=clamp(.9*(zs.y*.5/g.pp.y)/vz,2.,26.);let nT=select(8,14,tier==2);let ang0=ign(fc.xy)*6.2832;var occ=0.;
-   for(var i=0;i<14;i++){if(i>=nT){break;}
+   let rad=clamp(.9*(zs.y*.5/g.pp.y)/vz,2.,26.);let nT=select(16,28,tier==2);let ang0=ign(fc.xy)*6.2832;var occ=0.;
+   for(var i=0;i<28;i++){if(i>=nT){break;}
     let a=ang0+f32(i)*2.39996;let r=rad*(.25+.75*sqrt((f32(i)+.5)/f32(nT)));let o=vec2i(vec2f(cos(a),sin(a))*r);
     let zt=textureLoad(tZ,clamp(ip+o,vec2i(0),vec2i(zs)-1),0).x;let vt=g.pp.w*g.pp.z/(g.pp.w-zt*(g.pp.w-g.pp.z));
     let df=vz-vt;occ+=smoothstep(.04,.25,df)*(1.-smoothstep(.8,2.5,df));}
@@ -406,8 +406,8 @@ fn tmap(x:vec3f)->vec3f{return clamp((x*(2.51*x+.03))/(x*(2.43*x+.59)+.14),vec3f
    let zs=vec2f(textureDimensions(tZ));let ip=vec2i(uv*zs);let ff=max(g.fo.x,.8);
    let vzC=select(g.pp.w*g.pp.z/(g.pp.w-zd*(g.pp.w-g.pp.z)),400.,zd>.99999);
    let rmax=g.fo.y;let coc=clamp(abs(vzC-ff)/max(vzC,.5)*1.0,0.,1.)*rmax;
-   if(coc>.6){let nT=select(10,18,tr==2);let ang0=ign(fc.xy+17.)*6.2832;var acc=c*1.;var wsum=1.;
-    for(var i=0;i<18;i++){if(i>=nT){break;}
+   if(coc>.6){let nT=select(20,36,tr==2);let ang0=ign(fc.xy+17.)*6.2832;var acc=c*1.;var wsum=1.;
+    for(var i=0;i<36;i++){if(i>=nT){break;}
      let a=ang0+f32(i)*2.39996;let r=coc*sqrt((f32(i)+.5)/f32(nT));let o=vec2f(cos(a),sin(a))*r;
      let q=clamp(ip+vec2i(o*(zs.y/g.cv.y)),vec2i(0),vec2i(zs)-1);let zt=textureLoad(tZ,q,0).x;
      let vt=select(g.pp.w*g.pp.z/(g.pp.w-zt*(g.pp.w-g.pp.z)),400.,zt>.99999);

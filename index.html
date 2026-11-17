@@ -140,7 +140,7 @@ fn shadowV(p:vec3f,n:vec3f)->f32{
  let e=min(min(uv.x,1.-uv.x),min(uv.y,1.-uv.y));
  if(e<0.||q.z>1.){return 1.;}
  let px=1./g.fl.w;var s=0.;let tr=select(select(0u,1u,(u32(g.ex.w)&4096u)!=0u),2u,(u32(g.ex.w)&8192u)!=0u);
- if(tr>0u&&length(p-g.cam.xyz)<60.){let n=select(3,4,tr==2u);for(var i=0;i<4;i++){if(i>=n){break;}for(var j=0;j<4;j++){if(j>=n){break;}let o=(vec2f(f32(i),f32(j))/f32(n-1)-.5)*2.*px*1.9;s+=textureSampleCompareLevel(tSh,sC,uv+o,q.z-.0025);}}
+ if(tr>0u&&length(p-g.cam.xyz)<60.){let n=select(5,7,tr==2u);for(var i=0;i<7;i++){if(i>=n){break;}for(var j=0;j<7;j++){if(j>=n){break;}let o=(vec2f(f32(i),f32(j))/f32(n-1)-.5)*2.*px*1.9;s+=textureSampleCompareLevel(tSh,sC,uv+o,q.z-.0025);}}
   return mix(1.,s/f32(n*n),ss(0.,.08,e));}
  let nk=select(1,4,length(p-g.cam.xyz)<40.||(u32(g.ex.w)&32u)!=0u);
  for(var k=0;k<4;k++){if(k>=nk){break;}let o=vec2f(f32(k&1),f32(k>>1))*2.-1.;s+=textureSampleCompareLevel(tSh,sC,uv+o*px*.8,q.z-.0025);}
@@ -462,8 +462,8 @@ fn tmap(x:vec3f)->vec3f{return clamp((x*(2.51*x+.03))/(x*(2.43*x+.59)+.14),vec3f
  {let tier=select(select(0,1,(u32(g.ex.w)&4096u)!=0u),2,(u32(g.ex.w)&8192u)!=0u);
   if(tier>0&&zd<.99999&&(u32(g.ex.w)&2048u)==0u){
    let zs=vec2f(textureDimensions(tZ));let ip=vec2i(uv*zs);let vz=g.pp.w*g.pp.z/(g.pp.w-zd*(g.pp.w-g.pp.z));
-   let rad=clamp(.9*(zs.y*.5/g.pp.y)/vz,2.,26.);let nT=select(8,14,tier==2);let ang0=ign(fc.xy)*6.2832;var occ=0.;
-   for(var i=0;i<14;i++){if(i>=nT){break;}
+   let rad=clamp(.9*(zs.y*.5/g.pp.y)/vz,2.,26.);let nT=select(16,28,tier==2);let ang0=ign(fc.xy)*6.2832;var occ=0.;
+   for(var i=0;i<28;i++){if(i>=nT){break;}
     let a=ang0+f32(i)*2.39996;let r=rad*(.25+.75*sqrt((f32(i)+.5)/f32(nT)));let o=vec2i(vec2f(cos(a),sin(a))*r);
     let zt=textureLoad(tZ,clamp(ip+o,vec2i(0),vec2i(zs)-1),0).x;let vt=g.pp.w*g.pp.z/(g.pp.w-zt*(g.pp.w-g.pp.z));
     let df=vz-vt;occ+=smoothstep(.04,.25,df)*(1.-smoothstep(.8,2.5,df));}
@@ -474,8 +474,8 @@ fn tmap(x:vec3f)->vec3f{return clamp((x*(2.51*x+.03))/(x*(2.43*x+.59)+.14),vec3f
    let zs=vec2f(textureDimensions(tZ));let ip=vec2i(uv*zs);let ff=max(g.fo.x,.8);
    let vzC=select(g.pp.w*g.pp.z/(g.pp.w-zd*(g.pp.w-g.pp.z)),400.,zd>.99999);
    let rmax=g.fo.y;let coc=clamp(abs(vzC-ff)/max(vzC,.5)*1.0,0.,1.)*rmax;
-   if(coc>.6){let nT=select(10,18,tr==2);let ang0=ign(fc.xy+17.)*6.2832;var acc=c*1.;var wsum=1.;
-    for(var i=0;i<18;i++){if(i>=nT){break;}
+   if(coc>.6){let nT=select(20,36,tr==2);let ang0=ign(fc.xy+17.)*6.2832;var acc=c*1.;var wsum=1.;
+    for(var i=0;i<36;i++){if(i>=nT){break;}
      let a=ang0+f32(i)*2.39996;let r=coc*sqrt((f32(i)+.5)/f32(nT));let o=vec2f(cos(a),sin(a))*r;
      let q=clamp(ip+vec2i(o*(zs.y/g.cv.y)),vec2i(0),vec2i(zs)-1);let zt=textureLoad(tZ,q,0).x;
      let vt=select(g.pp.w*g.pp.z/(g.pp.w-zt*(g.pp.w-g.pp.z)),400.,zt>.99999);
@@ -1455,7 +1455,7 @@ const gBuf=mkBuf(368,UB.UNIFORM|UB.COPY_DST),gShBuf=mkBuf(368,UB.UNIFORM|UB.COPY
 // ---- calidad ----
 var QL=1,RS=.75,perfOn=false,fpsS=16.7;
 try{QL=+(localStorage.hadalQ||1)}catch(e){}if(!(QL>=0&&QL<=4))QL=1;
-const QS=[{rs0:.55,rsMax:.7,ms:1,sh:0,shE:0,steps:10,den:.9},{rs0:.75,rsMax:.92,ms:4,sh:1024,shE:3,steps:14,den:1.15},{rs0:.9,rsMax:1,ms:4,sh:2048,shE:2,steps:18,den:1.3},{rs0:1,rsMax:1.2,ms:4,sh:4096,shE:1,steps:24,den:1.7},{rs0:1.1,rsMax:1.5,ms:4,sh:6144,shE:1,steps:32,den:2.1}];RS=QS[QL].rs0;
+const QS=[{rs0:.55,rsMax:.7,ms:1,sh:0,shE:0,steps:10,den:.9},{rs0:.75,rsMax:.92,ms:4,sh:1024,shE:3,steps:14,den:1},{rs0:.9,rsMax:1,ms:4,sh:2048,shE:2,steps:18,den:1},{rs0:1.4,rsMax:1.7,ms:4,sh:6144,shE:1,steps:48,den:2.7},{rs0:1.55,rsMax:2.1,ms:4,sh:8192,shE:1,steps:64,den:3.4}];RS=QS[QL].rs0;
 let SC=QS[QL].ms,texSh=null;
 
 // ---- grupos de enlace globales ----
@@ -1855,7 +1855,7 @@ function lightMatrix(){const L=SUN;shR.crossVectors(zAx,L).normalize();shU.cross
 function drawStatic(p,list,shadow){for(const s of list){if(shadow&&!s.caster)continue;p.setPipeline(shadow?mkP(['',false,true].join('|')):mkP(['',false,false].join('|')));p.setBindGroup(1,s.mat.bg);p.setVertexBuffer(0,s.geo.buf);p.setVertexBuffer(1,s.ibuf);if(s.ind){p.setIndexBuffer(s.ind.idx,'uint32');p.drawIndexedIndirect(s.ind.args,0)}else p.draw(s.geo.n,1)}}
 function drawTerrainF(p){p.setPipeline(mkP(['',false,false].join('|')));p.setBindGroup(1,matTerr.bg);p.setVertexBuffer(0,tvbF);p.setVertexBuffer(1,identBuf);p.setIndexBuffer(tib,'uint32');p.drawIndexed(250*250*6)}
 function drawTerrain(p,shadow){p.setPipeline(mkP(['',false,shadow].join('|')));p.setBindGroup(1,matTerr.bg);p.setVertexBuffer(0,tvb);p.setVertexBuffer(1,identBuf);p.setIndexBuffer(tib,'uint32');p.drawIndexed(250*250*6)}
-var LODR=[35,60,80,110,140][QL],MIDR=LODR+12,CULLR=90;
+var LODR=[35,60,80,160,200][QL],MIDR=LODR+12,CULLR=90;
 function upl(sp){device.queue.writeBuffer(sp.geoN?sp.sbuf:sp.ibuf,0,sp.inst.buffer,0,sp.cnt*96)}
 function planesOf(m){const o=new Float32Array(24),row=i=>[m[i],m[4+i],m[8+i],m[12+i]],r3=row(3),defs=[[row(0),1],[row(0),-1],[row(1),1],[row(1),-1],[row(2),0],[row(2),-1]];
  defs.forEach(([rk,sg],k)=>{let c;if(sg===0)c=rk;else c=[r3[0]+sg*rk[0],r3[1]+sg*rk[1],r3[2]+sg*rk[2],r3[3]+sg*rk[3]];if(k===5)c=[r3[0]-rk[0],r3[1]-rk[1],r3[2]-rk[2],r3[3]-rk[3]];const l=Math.hypot(c[0],c[1],c[2])||1;o.set([c[0]/l,c[1]/l,c[2]/l,c[3]/l],k*4)});return o}
@@ -1913,7 +1913,7 @@ function frame(t,dep,sunD){
  focusV=Math.exp(Math.log(focusV)+(Math.log(focusT)-Math.log(focusV))*.12);
  if(GT&&GT.cur>=0){const i=GT.cur;GT.cur=-1;GT.busy[i]=true;GT.ring[i].mapAsync(GPUMapMode.READ).then(()=>{const a=new BigUint64Array(GT.ring[i].getMappedRange().slice(0));GT.ring[i].unmap();GT.busy[i]=false;const ms=Number(a[1]-a[0])/1e6;if(ms>0&&ms<250)GT.ms=GT.ms?GT.ms*.85+ms*.15:ms}).catch(()=>{GT.busy[i]=false})}}
 function rs(){buildTargets()}addEventListener('resize',()=>{if(PP.fin)rs()});
-function setQ(q,reset){const oldSC=SC;QL=q;LODR=[35,60,80,110,140][q];MIDR=LODR+12;try{localStorage.hadalQ=q}catch(e){}if(reset!==false)RS=QS[q].rs0;RS=Math.min(RS,QS[q].rsMax);
+function setQ(q,reset){const oldSC=SC;QL=q;LODR=[35,60,80,160,200][q];MIDR=LODR+12;try{localStorage.hadalQ=q}catch(e){}if(reset!==false)RS=QS[q].rs0;RS=Math.min(RS,QS[q].rsMax);
  const go=async()=>{switching=true;try{if(QS[q].ms!==oldSC){SC=QS[q].ms;await buildPipes()}buildShadow();buildTargets();rebuild()}finally{switching=false}
   document.querySelectorAll('#ql button').forEach(b=>b.classList.toggle('on',+b.dataset.q===q))};go()}
 
@@ -2031,7 +2031,7 @@ function loop(now){requestAnimationFrame(loop);const dt=Math.min((now-lastT)/100
  if(!PROF)frame(t,dep,sun);
  fpsS+=(dt*1000-fpsS)*.05;if(perfOn&&fr%10===0)$('perf').textContent=(1000/fpsS).toFixed(0)+' fps · '+fpsS.toFixed(1)+' ms · render '+Math.round(RS*100)+' % ('+TG.W+'×'+TG.H+') · calidad '+['baja','media','alta','ultra','premium'][QL]+' · WebGPU'+(texSh&&dep<110?' · sombras':'');
  gAcc+=dt*1000;gN++;if(now<9000){gAcc=0;gN=0}if(gAcc>1600){const a0=gAcc/gN,gm=GT&&GT.ms,a=gm?(a0>24?Math.max(a0,gm):gm*1.3):a0;let k=1;if(a>19.5)k=.92;else if(a<13.8&&RS<QS[QL].rsMax)k=1.06;if(a>19.5&&RS<=.5)LODR=Math.max(LODR*.9,20);else if(a<13.8&&RS>=QS[QL].rsMax-.01)LODR=Math.min(LODR*1.05,[35,60,80,110,140][QL]);MIDR=LODR+12;
-  if(k!==1&&!switching){RS=clamp(RS*k,.45,QS[QL].rsMax);buildTargets()}
+  if(k!==1&&!switching){RS=clamp(RS*k,QL<3?.3:.45,QS[QL].rsMax);buildTargets()}
   if(QL>=3&&!switching&&!window.__nodown){if(a>19.5&&RS<=.5){if(++lowCnt>=2){lowCnt=0;const pq=QL,nq=QL-1;setQ(nq);lampToast('Tu GPU no sostiene '+['','','','Ultra','Premium'][pq]+': paso a '+['Bajo','Medio','Alto','Ultra'][nq])}}else lowCnt=0}gAcc=gN=0}}
 requestAnimationFrame(loop);
 setTimeout(()=>{$('hint').style.transition='opacity 2s';$('hint').style.opacity=.0},20000);
