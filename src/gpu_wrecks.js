@@ -75,7 +75,38 @@ WR.af447.g=()=>MG([
  ...Array.from({length:22},(_,i)=>P(BXs(.5,.6,.1,.1,1),'#1a1e22',{p:[2.5,3.4,-24+i*1.1]}))]);
 WR.af447.dg=()=>debris(55,80,34,['#8f969c','#7f868c','#767d83','#8a9096'],9500,(r,wx)=>Array.from({length:14},()=>{const lx=(r()-.5)*70,lz=(r()-.5)*50;return P(BXs(.5,.45,1.2,.1,1),'#5a6068',{p:[lx,base(wx)-floorAt(wx+lx,lz),lz],r:[0,r()*6,(r()-.5)*.4]})}));
 
+const hullTaper=(z,L,B,bk)=>{const u=(z+L/2)/L,t=Math.max((u-bk)/(1-bk),0);return B/2*Math.pow(Math.max(1-Math.pow(t,1.8),0),.55)};
+const bisRig=()=>{const out=[],g1='#3a4046',g2='#4a5058',dk='#0c0d0e',nat=z=>hullTaper(z,250,36,.45);
+ // molinetes y cadena en el castillo de proa
+ [[-4,106],[4,106],[0,112]].forEach(([x,z])=>out.push(P(CY(1.1,1,1.3,10),g2,{p:[x,16.7,z]}),P(CY(1.2,1.2,.2,10),g1,{p:[x,17.5,z]})));
+ for(let i=0;i<16;i++)out.push(P(new T.TorusGeometry(.3,.08,5,8),'#2e2a26',{p:[Math.sin(i*.6)*.7,16.4,98+i*1.25],r:[i%2?Math.PI/2:0,0,i%2?0:Math.PI/2],s:[1,1,1.5]}));
+ // bitas siguiendo la borda
+ [-1,1].forEach(s=>[-112,-106,-100,92,98,104,110].forEach(z=>{const x=s*(Math.min(nat(z),18)-1.5);out.push(P(CY(.32,.38,1,8),g2,{p:[x,16.5,z]}),P(CY(.45,.45,.16,8),g1,{p:[x,17.05,z]}))}));
+ // proyectores y plataformas junto a la chimenea
+ [-1,1].forEach(s=>[[-44,33],[-68,33]].forEach(([z,y])=>out.push(P(CY(.9,.9,.5,10),g1,{p:[s*5.5,y,z]}),P(CY(.8,.8,1,10),g2,{p:[s*5.5,y+.7,z],r:[0,0,0]}),P(CY(.62,.62,.06,10),'#8a8f94',{p:[s*5.5,y+1.25,z]}))));
+ // grúa de popa con pluma
+ out.push(P(CY(.6,.8,7,8),g2,{p:[0,20,-112]}),P(seg(V3([0,23,-112]),V3([0,30,-100]),.3,.2,6),g1),P(seg(V3([0,30,-100]),V3([0,18,-98]),.03,.03,4),'#2a2420'));
+ // ventiladores con rejilla
+ [-1,1].forEach(s=>[-30,-24,-2,6].forEach(z=>{out.push(P(BXs(1.8,2.2,1.4,.3,1),g2,{p:[s*12,17.4,z]}));for(let k=-1;k<=1;k++)out.push(P(BXs(.1,1.6,.04,.01,1),dk,{p:[s*12+k*.45,17.4,z+(s>0?.72:.72)]}))}));
+ // sistema de telémetros en el mástil de proa
+ out.push(P(CY(1.6,1.6,.4,12),g1,{p:[0,48,41.5]}),...[-1,1].map(s=>P(CZ(.35,.35,3,8),g2,{p:[s*2.2,48.8,41.5],r:[0,0,Math.PI/2]})));
+ return out};
+const robRig=()=>{const out=[],g1='#3a4046',g2='#4a5058',dk='#0c0d0e';
+ // tubos lanzatorpedos triples
+ out.push(P(CY(.9,.9,.5,10),g2,{p:[0,8.1,-1]}),...[-.7,0,.7].map(x=>P(CZ(.26,.26,4.2,8),g1,{p:[x,9.1,-1]})));
+ // rieles de cargas de profundidad y lanzadores K
+ for(let i=0;i<4;i++)out.push(P(CZ(.22,.22,.9,6),'#3d444a',{p:[-1.2,8.3,-42.6-i*.5],r:[0,0,Math.PI/2]}),P(CZ(.22,.22,.9,6),'#3d444a',{p:[1.2,8.3,-42.6-i*.5],r:[0,0,Math.PI/2]}));
+ [-1,1].forEach(s=>[-35,-33,-31].forEach(z=>out.push(P(CY(.22,.22,.8,6),g1,{p:[s*3.6,8.5,z]}))));
+ // balsas Carley (anillos) a los costados
+ [-1,1].forEach(s=>[-14,-11].forEach(z=>out.push(P(new T.TorusGeometry(.7,.14,5,12),'#5a4a3a',{p:[s*4.2,8.8,z],r:[Math.PI/2,0,0]}))));
+ // bitas y cadena de proa
+ [-1,1].forEach(s=>[34,37,40].forEach(z=>{const x=s*Math.min(hullTaper(z,93,11,.45)-.7,4.6);out.push(P(CY(.22,.26,.7,8),g2,{p:[x,8.35,z]}))}));
+ for(let i=0;i<10;i++)out.push(P(new T.TorusGeometry(.2,.055,5,8),'#2e2a26',{p:[Math.sin(i*.6)*.4,8.15,34+i*.8],r:[i%2?Math.PI/2:0,0,i%2?0:Math.PI/2],s:[1,1,1.5]}));
+ // cofa y antena de radar
+ out.push(P(BXs(2.2,.2,2.2,.05,1),g2,{p:[0,24.5,6.7]}),P(CY(1.1,1.1,.1,12),'#6a7076',{p:[0,25,6.5],r:[Math.PI/2,0,0]}));
+ return out};
 WR.bismarck.g=()=>MG([
+ ...bisRig(),
  P(CY(2.9,1.7,26,12),'#4d545c',{p:[0,16,-56],s:[1.4,1,1]}),P(CY(1.8,1.8,.9,12),'#33383e',{p:[0,42,-56],s:[1.4,1,1]}),P(new T.TorusGeometry(1.75,.15,6,16),'#33383e',{p:[0,42.9,-56],r:[Math.PI/2,0,0],s:[1.4,1,1]}),
  P(seg(V3([0,42,-36]),V3([0,64,-33]),.9,.35,6),'#4a5058'),P(seg(V3([-8,55,-34.5]),V3([8,55,-34.5]),.15,.15,5),'#3a4046'),P(seg(V3([0,18,40]),V3([0,44,42]),.7,.3,6),'#4a5058'),
  ...turret2(92,1),...turret2(66,1),...turret2(-76,-1),...turret2(-102,-1),
@@ -88,6 +119,7 @@ WR.bismarck.g=()=>MG([
 WR.bismarck.dg=()=>debris(31,110,90,['#4b525a','#3d444a','#555c64','#6a4224'],11300);
 
 WR.roberts.g=()=>MG([
+ ...robRig(),
  P(CY(2.3,1.9,7,12),'#4a5058',{p:[0,8,-6],s:[1.3,1,1]}),P(CY(2.3,1.9,7,12),'#4a5058',{p:[0,8,-16],s:[1.3,1,1]}),P(seg(V3([0,17,7]),V3([0,30,6]),.45,.2,6),'#4a5058'),P(seg(V3([-3,26,6.5]),V3([3,26,6.5]),.1,.1,4),'#3a4046'),
  ...[30,-30,-38].flatMap(z=>[P(CY(1.7,1.5,1.3,10),'#50575f',{p:[0,8,z]}),P(BXs(2.2,2.2,3,.6,3),'#545b63',{p:[0,9.2,z]}),P(CZ(.22,.18,5,8),'#3a4046',{p:[0,10.4,z+(z>0?1:-1)*1.2],r:[0,z>0?0:Math.PI,0]})]),
  P(CZ(.55,.5,5,8),'#3d444a',{p:[2.2,9.5,-26]}),P(CZ(.55,.5,5,8),'#3d444a',{p:[-2.2,9.5,-26]}),
