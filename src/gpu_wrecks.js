@@ -78,7 +78,15 @@ WR.roberts.g=()=>MG([
  ...rusticles(30,93,11,8,'#8a5a3a')]);
 WR.roberts.dg=()=>debris(13,50,45,['#4a5058','#3d444a','#555c64','#6a4224'],15150);
 
+const galeonRig=()=>{const out=[],Ls=[19,24,15],cw='#2a2018',cs='#8a7a5c';
+ [-9,0,9].forEach((z,i)=>{const d=new T.Vector3(0,1,0).applyEuler(new T.Euler((i-1)*.45,0,(i-1)*.3)),L=Ls[i],pt=f=>new T.Vector3(0,7,z).addScaledVector(d,L*(f-.5)).toArray();
+  [[.5,8],[.72,6.5],[.9,4.5]].forEach(([f,len],k)=>{const c=pt(f),tilt=(i-1)*.12+(k===1&&i===0?.35:0);
+   out.push(P(seg(V3([c[0]-len/2,c[1]-Math.sin(tilt)*len/2,c[2]]),V3([c[0]+len/2,c[1]+Math.sin(tilt)*len/2-(k===2&&i!==1?.9:0),c[2]]),.22,.16,6),'#3a2a1c'))});
+  if(i!==1){const c=pt(.5);out.push(P(BXs(6.2,3.4,.05,.02,1),cs,{p:[c[0],c[1]-1.8,c[2]],r:[0,0,(i-1)*.1]}));out.push(P(BXs(2.2,2.4,.05,.02,1),cs,{p:[c[0]+2.2,c[1]-3.4,c[2]+.1],r:[0,0,.25]}))}
+  const m=pt(.62);[-1,1].forEach(sx=>[-1.6,1.6].forEach(dz=>out.push(P(seg(V3(m),V3([sx*(hullX(11,7,5)+.05),5,z+dz]),.06,.05,4),cw))))});
+ out.push(P(seg(V3([0,9.5,13]),V3([0,12.8,22]),.3,.17,6),'#3a2a1c'));return out};
 WR.galeon.g=()=>MG([
+ ...galeonRig(),
  ...[-9,0,9].map((z,i)=>P(CY(.5,.3,[19,24,15][i],6),'#3a2a1c',{p:[0,7,z],r:[(i-1)*.45,0,(i-1)*.3]})),
  ...[-9,0,9].map((z,i)=>P(CY(.12,.12,7,5),'#3a2a1c',{p:[(i-1)*2,12+i*2,z],r:[0,0,Math.PI/2]})),
  ...rowZ(-12,12,2.1,z=>[-1,1].map(s=>P(BXs(.9,.8,.2,.1,1),'#14100c',{p:[s*(hullX(11,7,3.4)+.02),3.4,z]}))),
