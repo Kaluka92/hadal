@@ -344,7 +344,8 @@ const NA=448u;const NR=256u;const RMAX=3500.;
  let rp=(textureSample(tCau,sL,i.p0/2.9+vec2f(t*.03,0.)).ba+textureSample(tCau,sL,i.p0.yx/8.3+.3).ba*.7)*ss(260.,30.,d);
  N=normalize(N+vec3f(rp.x,0.,rp.y)*.3);
  let nz=textureSample(tDet,sL,i.p0/11.+vec2f(t*.01,0.)).g;let nz2=textureSample(tDet,sL,i.p0/3.3).g;
- let fm=sat1(ss(.7,.05,w.j)*(.6+1.1*nz)+ss(.3,.85,w.h/9.)*ss(.3,.75,nz)*1.1)*(.75+.25*nz2);
+ let wd=vec2f(.955,.296);let stk=textureSample(tDet,sL,vec2f(dot(i.p0,wd)/70.+t*.004,dot(i.p0,vec2f(-wd.y,wd.x))/6.5)).g;
+ let fm=sat1(ss(.7,.05,w.j)*(.6+1.1*nz)+ss(.3,.85,w.h/9.)*ss(.3,.75,nz)*1.1+ss(.62,.9,stk)*ss(-4.,5.,w.h)*.65)*(.75+.25*nz2);
  let top=(u32(g.ex.w)&1048576u)!=0u;
  if(top){
   let ndv=sat1(dot(-V,N));var R=reflect(V,N);R=normalize(vec3f(R.x,max(R.y,.03),R.z));
@@ -457,6 +458,7 @@ fn lampVol(ro:vec3f,rd:vec3f,tmax:f32,nSt:i32,jt:f32)->vec3f{
   acc+=vec3f(1.,.93,.82)*li*dn*dt;}
  return acc*.03*g.fl.y*(1.-.9*clamp(g.sun.w*1.6,0.,1.));}
 @fragment fn fs(@builtin(position) fc:vec4f)->@location(0) vec4f{
+ if((u32(g.ex.w)&1048576u)!=0u){return vec4f(0.,0.,0.,1.);}
  let uv=fc.xy*2.*g.res.zw;let nd=vec2f(uv.x*2.-1.,1.-uv.y*2.);
  let rv=g.ff.xyz+g.rr.xyz*(nd.x*g.pp.x)+g.uu.xyz*(nd.y*g.pp.y);let rl=length(rv);let rd=rv/rl;
  let dd=textureLoad(tZ,vec2i(fc.xy*2.),0).x;let vz=g.pp.w*g.pp.z/(g.pp.w-dd*(g.pp.w-g.pp.z));
@@ -556,6 +558,13 @@ fn tmap(x:vec3f)->vec3f{return clamp((x*(2.51*x+.03))/(x*(2.43*x+.59)+.14),vec3f
   let fade=g.so.y;
   let e=(front*2.2+tail*(.18+.5*ln))*fade;
   c=c+vec3f(.10,1.,.45)*e*.9;
+ }
+ if((u32(g.ex.w)&1048576u)!=0u){
+  let asp=g.res.x/g.res.y;let ru=vec2f(uv.x*asp,uv.y);var rn=0.;
+  for(var L=0;L<3;L++){let fl=f32(L);let dens=60.+fl*55.;let q=vec2f(ru.x+ru.y*.18,ru.y*(1.+fl*.25));let col=floor(q.x*dens);let h=fract(sin(col*12.9898+fl*78.233)*43758.5453);
+   let xx=abs(fract(q.x*dens)-.5);let yy=fract(q.y*(1.1+fl*.3)+g.cam.w*(1.8+fl*.9)*(.6+.4*h)+h*9.);
+   rn+=ss(.12,.0,xx)*ss(.16-fl*.03,0.,yy)*step(.55-fl*.06,h)*(.5-fl*.1);}
+  c=c+vec3f(.55,.62,.7)*rn*.28*g.ex.z;
  }
  c=tmap(c);
  let l0=dot(c,vec3f(.2126,.7152,.0722));let l=mix(l0,l0*l0*(3.-2.*l0),.5);c=c*(l/max(l0,1e-4));c=mix(vec3f(l),c,.95);
@@ -1999,7 +2008,8 @@ var taaIdx8=0,taaJ=[0,0],taaPrev=null,taaPrevCam=[0,0,0],taaH=0,taaReset=true;fu
 const taaU=mkBuf(96,UB.UNIFORM|UB.COPY_DST);
 var SHK=0;var SO=[-1,0,0,0];const Gf=new Float32Array(92),GfS=new Float32Array(92),SUN=new T.Vector3(.25,.92,.17).normalize();let lightVP=new Float32Array(16),shOn=0,shFrame=0;
 const camV=new T.Vector3(),camR=new T.Vector3(),camU=new T.Vector3();
-function camBasis(){const sy=Math.sin(yaw),cy=Math.cos(yaw),sp=Math.sin(pitch),cp=Math.cos(pitch);camV.set(-sy*cp,sp,-cy*cp);camR.set(cy,0,-sy);camU.set(sp*sy,cp,sp*cy)}
+var ROLL=0,PBOB=0;
+function camBasis(){const pe=pitch+PBOB,sy=Math.sin(yaw),cy=Math.cos(yaw),sp=Math.sin(pe),cp=Math.cos(pe);camV.set(-sy*cp,sp,-cy*cp);camR.set(cy,0,-sy);camU.set(sp*sy,cp,sp*cy);if(ROLL){const c=Math.cos(ROLL),s2=Math.sin(ROLL),rx=camR.x*c+camU.x*s2,ry=camR.y*c+camU.y*s2,rz=camR.z*c+camU.z*s2;camU.set(camU.x*c-camR.x*s2,camU.y*c-camR.y*s2,camU.z*c-camR.z*s2);camR.set(rx,ry,rz)}}
 function fillG(a,vp,t,dep,sunD){a.set(vp,0);a.set(lightVP,16);const W=TG.W,H=TG.H,tY=Math.tan(35*Math.PI/180),tX=tY*(canvas.width/canvas.height);
  a.set([cam.position.x,cam.position.y,cam.position.z,t, camV.x,camV.y,camV.z,0, .05,.022,.018,0, .060,.026,.018,0, SUN.x,SUN.y,SUN.z,sunD, lampAmb?.9:0,1,shOn,texSh?texSh.width:1,
   W,H,1/W,1/H, tX,tY,.2,600, camR.x,camR.y,camR.z,0, camU.x,camU.y,camU.z,0, camV.x,camV.y,camV.z,0, QS[QL].steps,.05,exposure,(DBGM|(QL>=3?4096:0)|(QL>=4?8192:0)|(window.__above?1048576:0)), canvas.width,canvas.height,1/canvas.width,1/canvas.height, SO[0],SO[1],SO[2]||0,lampMode===2?1:0],32);a[88]=focusV;a[89]=Math.max(2,3.5*canvas.height/720)}
@@ -2197,7 +2207,9 @@ function loop(now){requestAnimationFrame(loop);const dt=Math.min((now-lastT)/100
  if(ay>0&&p.y>swH-1.6)window.__afloat=true;else if(ay<0)window.__afloat=false;
  if(window.__afloat){p.y+=(swH+1.7-p.y)*Math.min(1,dt*7);vel.y*=.3}
  else if(p.y>swH-1){p.y-=(p.y-(swH-1))*Math.min(1,dt*9);if(vel.y>0)vel.y*=.5}
- p.y=clamp(p.y,-(dfl-2.5),swH+6);p.x=Math.max(p.x,60);{const nowAb=p.y>swH+.2;if(nowAb!==!!window.__above&&t>2)lensFX(nowAb);window.__above=nowAb}
+ p.y=clamp(p.y,-(dfl-2.5),swH+6);p.x=Math.max(p.x,60);{const fx=-Math.sin(yaw),fz=-Math.cos(yaw),hx=(oceanH(p.x+6,p.z,t)-oceanH(p.x-6,p.z,t))/12,hz=(oceanH(p.x,p.z+6,t)-oceanH(p.x,p.z-6,t))/12,sf=hx*fx+hz*fz,sr=hx*fz*-1+hz*fx;
+  const wantP=window.__afloat?Math.atan(sf)*.55:0,wantR=window.__afloat?Math.atan(sr)*.5:0;PBOB+=(wantP-PBOB)*Math.min(1,dt*3);ROLL+=(wantR-ROLL)*Math.min(1,dt*3)}
+ {const nowAb=p.y>swH+.2;if(nowAb!==!!window.__above&&t>2)lensFX(nowAb);window.__above=nowAb}
  {const ct=p.y>y0+.0005,into=Math.max(-vel.y,0)+Math.hypot(vel.x,vel.z)*.08,first=ct&&!window.__wasC;window.__wasC=ct;if(first&&into>4&&t>(window.__hitT||0)+.7){window.__hitT=t;SHK=Math.min(1,.25+into/14);if(p.y>y0)vel.y=Math.max(vel.y,0)*.2}
   SHK=Math.max(0,SHK-dt*1.8);SO[2]=SHK}
  if(Math.abs(Math.floor(p.x/CS)-last.x)>=1||Math.abs(Math.floor(p.z/CS)-last.z)>=1||Math.abs(Math.floor(-p.y/CS)-last.y)>=1)rebuild();
@@ -2205,7 +2217,7 @@ function loop(now){requestAnimationFrame(loop);const dt=Math.min((now-lastT)/100
  const dep=-p.y,sun=Math.exp(-Math.max(dep,0)*.02);
  if(dr){dr.frequency.value=70-Math.min(dep,8000)/220;fl.frequency.value=260-Math.min(dep,8000)/40}
  if(fr%5===0)detect(t);
- if(fr%6===0){$('dp').textContent=dep>1?Math.round(dep).toLocaleString('es')+' m':'Superficie';$('zn').textContent=dep>1?ZN(dep):(window.__above?'Mar gruesa · olas de hasta ~20 m':'Bajo las olas');
+ if(fr%6===0){$('dp').textContent=window.__above||dep<=1?'Superficie':Math.round(dep).toLocaleString('es')+' m';$('zn').textContent=window.__above?'Mar gruesa · olas de hasta ~20 m':dep<=1?'Bajo las olas':ZN(dep);
   const temp=2+16*Math.exp(-dep/350),pr=1+dep/10.06;$('st').textContent=pr.toFixed(0)+' bar · '+temp.toFixed(1)+' °C · luz solar '+(sun>.001?(sun*100).toFixed(sun<.1?1:0)+' %':'0 %')+' · fondo a '+Math.round(dfl-dep)+' m'}
  {const ex=.5+.42*(1-Math.pow(sun,.35));exposure+=(ex-exposure)*Math.min(1,dt*2)}
  {const hh=dfl-dep,th=Math.hypot(tv.x,tv.z)+Math.max(-tv.y,0)*1.3,spd=Math.max(Math.hypot(vel.x,vel.z)+Math.max(-vel.y,0),th*.5),dn=ay<0?1:0;

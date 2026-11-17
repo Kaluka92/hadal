@@ -276,7 +276,8 @@ const NA=448u;const NR=256u;const RMAX=3500.;
  let rp=(textureSample(tCau,sL,i.p0/2.9+vec2f(t*.03,0.)).ba+textureSample(tCau,sL,i.p0.yx/8.3+.3).ba*.7)*ss(260.,30.,d);
  N=normalize(N+vec3f(rp.x,0.,rp.y)*.3);
  let nz=textureSample(tDet,sL,i.p0/11.+vec2f(t*.01,0.)).g;let nz2=textureSample(tDet,sL,i.p0/3.3).g;
- let fm=sat1(ss(.7,.05,w.j)*(.6+1.1*nz)+ss(.3,.85,w.h/9.)*ss(.3,.75,nz)*1.1)*(.75+.25*nz2);
+ let wd=vec2f(.955,.296);let stk=textureSample(tDet,sL,vec2f(dot(i.p0,wd)/70.+t*.004,dot(i.p0,vec2f(-wd.y,wd.x))/6.5)).g;
+ let fm=sat1(ss(.7,.05,w.j)*(.6+1.1*nz)+ss(.3,.85,w.h/9.)*ss(.3,.75,nz)*1.1+ss(.62,.9,stk)*ss(-4.,5.,w.h)*.65)*(.75+.25*nz2);
  let top=(u32(g.ex.w)&1048576u)!=0u;
  if(top){
   let ndv=sat1(dot(-V,N));var R=reflect(V,N);R=normalize(vec3f(R.x,max(R.y,.03),R.z));
@@ -389,6 +390,7 @@ fn lampVol(ro:vec3f,rd:vec3f,tmax:f32,nSt:i32,jt:f32)->vec3f{
   acc+=vec3f(1.,.93,.82)*li*dn*dt;}
  return acc*.03*g.fl.y*(1.-.9*clamp(g.sun.w*1.6,0.,1.));}
 @fragment fn fs(@builtin(position) fc:vec4f)->@location(0) vec4f{
+ if((u32(g.ex.w)&1048576u)!=0u){return vec4f(0.,0.,0.,1.);}
  let uv=fc.xy*2.*g.res.zw;let nd=vec2f(uv.x*2.-1.,1.-uv.y*2.);
  let rv=g.ff.xyz+g.rr.xyz*(nd.x*g.pp.x)+g.uu.xyz*(nd.y*g.pp.y);let rl=length(rv);let rd=rv/rl;
  let dd=textureLoad(tZ,vec2i(fc.xy*2.),0).x;let vz=g.pp.w*g.pp.z/(g.pp.w-dd*(g.pp.w-g.pp.z));
@@ -488,6 +490,13 @@ fn tmap(x:vec3f)->vec3f{return clamp((x*(2.51*x+.03))/(x*(2.43*x+.59)+.14),vec3f
   let fade=g.so.y;
   let e=(front*2.2+tail*(.18+.5*ln))*fade;
   c=c+vec3f(.10,1.,.45)*e*.9;
+ }
+ if((u32(g.ex.w)&1048576u)!=0u){
+  let asp=g.res.x/g.res.y;let ru=vec2f(uv.x*asp,uv.y);var rn=0.;
+  for(var L=0;L<3;L++){let fl=f32(L);let dens=60.+fl*55.;let q=vec2f(ru.x+ru.y*.18,ru.y*(1.+fl*.25));let col=floor(q.x*dens);let h=fract(sin(col*12.9898+fl*78.233)*43758.5453);
+   let xx=abs(fract(q.x*dens)-.5);let yy=fract(q.y*(1.1+fl*.3)+g.cam.w*(1.8+fl*.9)*(.6+.4*h)+h*9.);
+   rn+=ss(.12,.0,xx)*ss(.16-fl*.03,0.,yy)*step(.55-fl*.06,h)*(.5-fl*.1);}
+  c=c+vec3f(.55,.62,.7)*rn*.28*g.ex.z;
  }
  c=tmap(c);
  let l0=dot(c,vec3f(.2126,.7152,.0722));let l=mix(l0,l0*l0*(3.-2.*l0),.5);c=c*(l/max(l0,1e-4));c=mix(vec3f(l),c,.95);

@@ -442,7 +442,8 @@ var taaIdx8=0,taaJ=[0,0],taaPrev=null,taaPrevCam=[0,0,0],taaH=0,taaReset=true;fu
 const taaU=mkBuf(96,UB.UNIFORM|UB.COPY_DST);
 var SHK=0;var SO=[-1,0,0,0];const Gf=new Float32Array(92),GfS=new Float32Array(92),SUN=new T.Vector3(.25,.92,.17).normalize();let lightVP=new Float32Array(16),shOn=0,shFrame=0;
 const camV=new T.Vector3(),camR=new T.Vector3(),camU=new T.Vector3();
-function camBasis(){const sy=Math.sin(yaw),cy=Math.cos(yaw),sp=Math.sin(pitch),cp=Math.cos(pitch);camV.set(-sy*cp,sp,-cy*cp);camR.set(cy,0,-sy);camU.set(sp*sy,cp,sp*cy)}
+var ROLL=0,PBOB=0;
+function camBasis(){const pe=pitch+PBOB,sy=Math.sin(yaw),cy=Math.cos(yaw),sp=Math.sin(pe),cp=Math.cos(pe);camV.set(-sy*cp,sp,-cy*cp);camR.set(cy,0,-sy);camU.set(sp*sy,cp,sp*cy);if(ROLL){const c=Math.cos(ROLL),s2=Math.sin(ROLL),rx=camR.x*c+camU.x*s2,ry=camR.y*c+camU.y*s2,rz=camR.z*c+camU.z*s2;camU.set(camU.x*c-camR.x*s2,camU.y*c-camR.y*s2,camU.z*c-camR.z*s2);camR.set(rx,ry,rz)}}
 function fillG(a,vp,t,dep,sunD){a.set(vp,0);a.set(lightVP,16);const W=TG.W,H=TG.H,tY=Math.tan(35*Math.PI/180),tX=tY*(canvas.width/canvas.height);
  a.set([cam.position.x,cam.position.y,cam.position.z,t, camV.x,camV.y,camV.z,0, .05,.022,.018,0, .060,.026,.018,0, SUN.x,SUN.y,SUN.z,sunD, lampAmb?.9:0,1,shOn,texSh?texSh.width:1,
   W,H,1/W,1/H, tX,tY,.2,600, camR.x,camR.y,camR.z,0, camU.x,camU.y,camU.z,0, camV.x,camV.y,camV.z,0, QS[QL].steps,.05,exposure,(DBGM|(QL>=3?4096:0)|(QL>=4?8192:0)|(window.__above?1048576:0)), canvas.width,canvas.height,1/canvas.width,1/canvas.height, SO[0],SO[1],SO[2]||0,lampMode===2?1:0],32);a[88]=focusV;a[89]=Math.max(2,3.5*canvas.height/720)}

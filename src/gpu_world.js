@@ -87,7 +87,9 @@ function loop(now){requestAnimationFrame(loop);const dt=Math.min((now-lastT)/100
  if(ay>0&&p.y>swH-1.6)window.__afloat=true;else if(ay<0)window.__afloat=false;
  if(window.__afloat){p.y+=(swH+1.7-p.y)*Math.min(1,dt*7);vel.y*=.3}
  else if(p.y>swH-1){p.y-=(p.y-(swH-1))*Math.min(1,dt*9);if(vel.y>0)vel.y*=.5}
- p.y=clamp(p.y,-(dfl-2.5),swH+6);p.x=Math.max(p.x,60);{const nowAb=p.y>swH+.2;if(nowAb!==!!window.__above&&t>2)lensFX(nowAb);window.__above=nowAb}
+ p.y=clamp(p.y,-(dfl-2.5),swH+6);p.x=Math.max(p.x,60);{const fx=-Math.sin(yaw),fz=-Math.cos(yaw),hx=(oceanH(p.x+6,p.z,t)-oceanH(p.x-6,p.z,t))/12,hz=(oceanH(p.x,p.z+6,t)-oceanH(p.x,p.z-6,t))/12,sf=hx*fx+hz*fz,sr=hx*fz*-1+hz*fx;
+  const wantP=window.__afloat?Math.atan(sf)*.55:0,wantR=window.__afloat?Math.atan(sr)*.5:0;PBOB+=(wantP-PBOB)*Math.min(1,dt*3);ROLL+=(wantR-ROLL)*Math.min(1,dt*3)}
+ {const nowAb=p.y>swH+.2;if(nowAb!==!!window.__above&&t>2)lensFX(nowAb);window.__above=nowAb}
  {const ct=p.y>y0+.0005,into=Math.max(-vel.y,0)+Math.hypot(vel.x,vel.z)*.08,first=ct&&!window.__wasC;window.__wasC=ct;if(first&&into>4&&t>(window.__hitT||0)+.7){window.__hitT=t;SHK=Math.min(1,.25+into/14);if(p.y>y0)vel.y=Math.max(vel.y,0)*.2}
   SHK=Math.max(0,SHK-dt*1.8);SO[2]=SHK}
  if(Math.abs(Math.floor(p.x/CS)-last.x)>=1||Math.abs(Math.floor(p.z/CS)-last.z)>=1||Math.abs(Math.floor(-p.y/CS)-last.y)>=1)rebuild();
@@ -95,7 +97,7 @@ function loop(now){requestAnimationFrame(loop);const dt=Math.min((now-lastT)/100
  const dep=-p.y,sun=Math.exp(-Math.max(dep,0)*.02);
  if(dr){dr.frequency.value=70-Math.min(dep,8000)/220;fl.frequency.value=260-Math.min(dep,8000)/40}
  if(fr%5===0)detect(t);
- if(fr%6===0){$('dp').textContent=dep>1?Math.round(dep).toLocaleString('es')+' m':'Superficie';$('zn').textContent=dep>1?ZN(dep):(window.__above?'Mar gruesa · olas de hasta ~20 m':'Bajo las olas');
+ if(fr%6===0){$('dp').textContent=window.__above||dep<=1?'Superficie':Math.round(dep).toLocaleString('es')+' m';$('zn').textContent=window.__above?'Mar gruesa · olas de hasta ~20 m':dep<=1?'Bajo las olas':ZN(dep);
   const temp=2+16*Math.exp(-dep/350),pr=1+dep/10.06;$('st').textContent=pr.toFixed(0)+' bar · '+temp.toFixed(1)+' °C · luz solar '+(sun>.001?(sun*100).toFixed(sun<.1?1:0)+' %':'0 %')+' · fondo a '+Math.round(dfl-dep)+' m'}
  {const ex=.5+.42*(1-Math.pow(sun,.35));exposure+=(ex-exposure)*Math.min(1,dt*2)}
  {const hh=dfl-dep,th=Math.hypot(tv.x,tv.z)+Math.max(-tv.y,0)*1.3,spd=Math.max(Math.hypot(vel.x,vel.z)+Math.max(-vel.y,0),th*.5),dn=ay<0?1:0;
