@@ -4,7 +4,7 @@
 
 Descenso 3D navegable de la superficie a ~8.100 m en **un solo archivo HTML** con WebGPU. Sin modelos, texturas ni audio descargados: la geometría, los materiales, la fauna y los cascos de naufragios se generan por código y en la GPU.
 
-![Recorrido: kelp, coral, galeón, Titanic y Bismarck](docs/demo.gif)
+![Recorrido: tormenta en la superficie, kelp, Titanic y el Leviatán en la fosa](docs/demo.gif)
 
 > Estado: prototipo. Probado en Chrome de escritorio con una GPU Apple integrada. **No probado** en Safari, Firefox, celular ni GPU dedicadas.
 
