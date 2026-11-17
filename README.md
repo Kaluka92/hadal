@@ -28,8 +28,8 @@ Cinco niveles (menú de inicio o tecla G): **Bajo, Medio, Alto, Ultra, Premium**
 | Bajo | — | ×0,8 | 35 m | 70 % | sin MSAA |
 | Medio | 1024 | ×1 | 60 m | 92 % | MSAA ×4 |
 | Alto | 2048 | ×1 | 80 m | 100 % | |
-| Ultra | 4096, 9 muestras | ×1,35 | 110 m | 120 % | oclusión ambiental (8 muestras) |
-| Premium | 6144, 16 muestras | ×1,7 | 140 m | 150 % (tope 4096 px) | oclusión ambiental (14 muestras) |
+| Ultra | 4096, 9 muestras | ×1,35 | 110 m | 120 % | TAA, oclusión ambiental (8 muestras) |
+| Premium | 6144, 16 muestras | ×1,7 | 140 m | 150 % (tope 4096 px) | TAA, oclusión ambiental (14 muestras) |
 
 La resolución interna se ajusta sola. Si Ultra o Premium no sostienen unos ~50 cuadros por segundo, el programa baja un nivel y lo avisa. Ultra y Premium están pensados para GPU dedicadas con 10 GB o más, y **no se probaron en una**.
 
@@ -42,6 +42,7 @@ La resolución interna se ajusta sola. Si Ultra o Premium no sostienen unos ~50 
 - **Detalle triplanar con gradientes explícitos y atenuación por profundidad**, y materiales procedurales distintos por tipo de superficie (roca, sedimento, chapa remachada, madera con tablones y agujeros de broma).
 - **Bioluminiscencia por compute**: 48.000 partículas excitadas por la estela del submarino.
 - **Gobernador de rendimiento** con consultas de marca de tiempo: ajusta resolución y radio de detalle, y baja de nivel de calidad si hace falta.
+- **Antialiasing temporal (TAA) en Ultra y Premium.** Jitter de subpíxel (Halton 2,3 de 8 muestras) en la proyección, reproyección del historial con la profundidad y la matriz previa, y recorte por varianza de la vecindad 3×3 para limitar el ghosting en la vegetación que se mueve; el resultado se copia al buffer HDR antes del bloom y del pase final. Interruptor de depuración: bit 16384.
 - **Efectos de impacto**: sacudida de cámara y aberración cromática al tocar el fondo a velocidad.
 - **Diario de campo y recorrido guiado**: registra lo que ves, con profundidad y fuente, y se guarda en el navegador.
 - **Datos con procedencia**: cada ficha marca ✔ (contrastada con fuentes) o ⚠ (sin confirmar). Es una síntesis didáctica, no una referencia científica.

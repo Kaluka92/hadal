@@ -44,6 +44,7 @@ const BGL0=device.createBindGroupLayout({entries:[{binding:0,visibility:VF,buffe
 const BGL1M=device.createBindGroupLayout({entries:[{binding:0,visibility:VF,buffer:{type:'uniform'}}]});
 const tx1=(st='float',ms=false)=>device.createBindGroupLayout({entries:[{binding:0,visibility:US.FRAGMENT,texture:{sampleType:st,multisampled:ms}}]});
 const BGL_T=tx1(),BGL_Z=tx1('unfilterable-float'),BGL_D1=tx1('depth'),BGL_DM=tx1('depth',true);
+const BGL_TAA=device.createBindGroupLayout({entries:[{binding:0,visibility:US.FRAGMENT,buffer:{type:'uniform'}},{binding:1,visibility:US.FRAGMENT,texture:{sampleType:'float'}},{binding:2,visibility:US.FRAGMENT,texture:{sampleType:'float'}},{binding:3,visibility:US.FRAGMENT,texture:{sampleType:'unfilterable-float'}}]});
 const BGL_FIN=device.createBindGroupLayout({entries:[{binding:0,visibility:US.FRAGMENT,texture:{sampleType:'float'}},{binding:1,visibility:US.FRAGMENT,texture:{sampleType:'float'}},{binding:2,visibility:US.FRAGMENT,texture:{sampleType:'float'}},{binding:3,visibility:US.FRAGMENT,texture:{sampleType:'unfilterable-float'}},{binding:4,visibility:US.FRAGMENT,texture:{sampleType:'float'}},{binding:5,visibility:US.FRAGMENT,texture:{sampleType:'float'}}]});
 const PLO=(...l)=>device.createPipelineLayout({bindGroupLayouts:l});
 const PL_MAT=PLO(BGL0,BGL1M),PL_0=PLO(BGL0);
@@ -397,6 +398,7 @@ async function buildPipes(){
   Promise.all([...mp.entries()].map(async([k,p])=>[k,await p]))]);
  PP={surf,snow,cone,cau,det,blit,dep,rays,kar,down,up,fin,mat:new Map(pm)};
  PP.bgf=await device.createRenderPipelineAsync({layout:PL_0,vertex:{module:smod(BGF,'fondo-agua'),entryPoint:'vs'},fragment:{module:smod(BGF,'fondo-agua'),entryPoint:'fs',targets:[{format:HDR}]},primitive:{topology:'triangle-list'},depthStencil:{format:DEPTH,depthWriteEnabled:false,depthCompare:'always'},multisample:{count:SC}});
+ PP.taa=await fsPipe(P_TAA,'taa',[BGL0,BGL_TAA],HDR);
  PP.plk=await device.createRenderPipelineAsync({layout:PLO(BGL0,pkRBGL),vertex:{module:smod(PLKR,'plancton-dibujo'),entryPoint:'vs'},fragment:{module:smod(PLKR,'plancton-dibujo'),entryPoint:'fs',targets:[{format:HDR,blend:BLEND_ADD}]},primitive:{topology:'triangle-strip'},depthStencil:{format:DEPTH,depthWriteEnabled:false,depthCompare:'less'},multisample:{count:SC}});
  const pm2=smod(PUFF,'sedimento');PP.puff=await device.createRenderPipelineAsync({layout:PL_0,vertex:{module:pm2,entryPoint:'vs',buffers:[{arrayStride:16,stepMode:'instance',attributes:[{shaderLocation:0,offset:0,format:'float32x4'}]}]},fragment:{module:pm2,entryPoint:'fs',targets:[{format:HDR,blend:BLEND_A}]},primitive:{topology:'triangle-strip'},depthStencil:{format:DEPTH,depthWriteEnabled:false,depthCompare:'less'},multisample:{count:SC}});}
 const puffs=new Float32Array(1024),puffBuf=mkBuf(4096,UB.VERTEX|UB.COPY_DST);for(let i=0;i<256;i++)puffs[i*4+3]=-1e4;let puffI=0,puffAcc=0;
@@ -408,12 +410,13 @@ function buildTargets(){for(const k in TG)for(const t of [].concat(TG[k]))t&&t.d
  const pr=Math.min(devicePixelRatio,2);canvas.width=Math.max(8,Math.floor(innerWidth*pr));canvas.height=Math.max(8,Math.floor(innerHeight*pr));
  canvas.style.cssText='display:block;width:100vw;height:100vh;touch-action:none';
  const W=Math.max(8,Math.min(4096,Math.floor(canvas.width*RS))),H=Math.max(8,Math.min(4096,Math.floor(canvas.height*RS)));TG.W=W;TG.H=H;
- TG.hdr=mkTex(W,H,HDR,UT.RENDER_ATTACHMENT|UT.TEXTURE_BINDING);TG.ms=SC>1?mkTex(W,H,HDR,UT.RENDER_ATTACHMENT,{sampleCount:SC}):null;
+ TG.hdr=mkTex(W,H,HDR,UT.RENDER_ATTACHMENT|UT.TEXTURE_BINDING|UT.COPY_DST);TG.taa=QL>=3?[0,1].map(()=>mkTex(W,H,HDR,UT.RENDER_ATTACHMENT|UT.TEXTURE_BINDING|UT.COPY_SRC)):null;taaReset=true;TG.ms=SC>1?mkTex(W,H,HDR,UT.RENDER_ATTACHMENT,{sampleCount:SC}):null;
  TG.depth=mkTex(W,H,DEPTH,UT.RENDER_ATTACHMENT|UT.TEXTURE_BINDING,{sampleCount:SC});TG.z=mkTex(W,H,'r32float',UT.RENDER_ATTACHMENT|UT.TEXTURE_BINDING);
  TG.rays=mkTex(W>>1,H>>1,HDR,UT.RENDER_ATTACHMENT|UT.TEXTURE_BINDING);TG.bl=[];let w=W,h=H;for(let i=0;i<3;i++){w=Math.max(2,w>>1);h=Math.max(2,h>>1);TG.bl.push(mkTex(w,h,HDR,UT.RENDER_ATTACHMENT|UT.TEXTURE_BINDING))}
- TG.v={hdr:TG.hdr.createView(),ms:TG.ms?TG.ms.createView():null,depth:TG.depth.createView(),z:TG.z.createView(),rays:TG.rays.createView(),bl:TG.bl.map(t=>t.createView())};
+ TG.v={taa:TG.taa?TG.taa.map(t=>t.createView()):null,hdr:TG.hdr.createView(),ms:TG.ms?TG.ms.createView():null,depth:TG.depth.createView(),z:TG.z.createView(),rays:TG.rays.createView(),bl:TG.bl.map(t=>t.createView())};
  const b1=(l,v)=>device.createBindGroup({layout:l,entries:[{binding:0,resource:v}]});
  TG.bg={dep:b1(SC>1?BGL_DM:BGL_D1,TG.v.depth),rays:b1(BGL_Z,TG.v.z),kar:b1(BGL_T,TG.v.hdr),down:TG.v.bl.map((v,i)=>i?b1(BGL_T,TG.v.bl[i-1]):null),up:[],
+  taa:TG.taa?[0,1].map(i=>device.createBindGroup({layout:BGL_TAA,entries:[{binding:0,resource:{buffer:taaU}},{binding:1,resource:TG.v.hdr},{binding:2,resource:TG.v.taa[i]},{binding:3,resource:TG.v.z}]})):null,
   fin:device.createBindGroup({layout:BGL_FIN,entries:[{binding:0,resource:TG.v.hdr},{binding:1,resource:TG.v.rays},{binding:2,resource:TG.v.bl[0]},{binding:3,resource:TG.v.z},{binding:4,resource:TG.v.bl[1]},{binding:5,resource:TG.v.bl[2]}]})}}
 
 // ---- inicialización de texturas de agua (se hace una sola vez) ----
@@ -428,6 +431,8 @@ var SKIP=null;
 function fsp(enc,pipe,view,bgs,load,nm){if(SKIP&&SKIP.has(nm))return;const p=enc.beginRenderPass({colorAttachments:[{view,loadOp:load?'load':'clear',clearValue:{r:0,g:0,b:0,a:1},storeOp:'store'}],timestampWrites:(nm==='bloom-fin'&&GT&&!PROF)?{querySet:GT.qs,endOfPassWriteIndex:1}:tw(nm||'pantalla')});p.setPipeline(pipe);bgs.forEach((b,i)=>p.setBindGroup(i,b));p.draw(3);p.end()}
 
 // ---- uniformes globales ----
+var taaIdx8=0,taaJ=[0,0],taaPrev=null,taaPrevCam=[0,0,0],taaH=0,taaReset=true;function hal(i,b){let f=1,r=0;while(i>0){f/=b;r+=f*(i%b);i=Math.floor(i/b)}return r}
+const taaU=mkBuf(96,UB.UNIFORM|UB.COPY_DST);
 var SHK=0;var SO=[-1,0,0,0];const Gf=new Float32Array(88),GfS=new Float32Array(88),SUN=new T.Vector3(.25,.92,.17).normalize();let lightVP=new Float32Array(16),shOn=0,shFrame=0;
 const camV=new T.Vector3(),camR=new T.Vector3(),camU=new T.Vector3();
 function camBasis(){const sy=Math.sin(yaw),cy=Math.cos(yaw),sp=Math.sin(pitch),cp=Math.cos(pitch);camV.set(-sy*cp,sp,-cy*cp);camR.set(cy,0,-sy);camU.set(sp*sy,cp,sp*cy)}
@@ -465,7 +470,7 @@ function drawSpecies(p,alpha,shadow){for(const sp of SPS){if(!sp.geo||!sp.cnt||(
 var switching=false;
 function frame(t,dep,sunD){
  if(switching)return;
- camBasis();const sk=SHK*SHK,sx=(Math.random()-.5)*sk*.22,sy=(Math.random()-.5)*sk*.16,view=M4.view([cam.position.x+camR.x*sx+camU.x*sy,cam.position.y+camR.y*sx+camU.y*sy,cam.position.z+camR.z*sx+camU.z*sy],[camR.x,camR.y,camR.z],[camU.x,camU.y,camU.z],[-camV.x,-camV.y,-camV.z]);const vp=M4.mul(PROJ(),view);
+ camBasis();const sk=SHK*SHK,sx=(Math.random()-.5)*sk*.22,sy=(Math.random()-.5)*sk*.16,view=M4.view([cam.position.x+camR.x*sx+camU.x*sy,cam.position.y+camR.y*sx+camU.y*sy,cam.position.z+camR.z*sx+camU.z*sy],[camR.x,camR.y,camR.z],[camU.x,camU.y,camU.z],[-camV.x,-camV.y,-camV.z]);const vpU=M4.mul(PROJ(),view),taaOn=QL>=3&&(DBGM&16384)===0&&!!TG.taa&&!!PP.taa;let vp=vpU;if(taaOn){const k=taaIdx8++&7,hx=hal(k+1,2)-.5,hy=hal(k+1,3)-.5;taaJ=[hx*2/TG.W,hy*2/TG.H];vp=M4.mul(new Float32Array([1,0,0,0,0,1,0,0,0,0,1,0,taaJ[0],taaJ[1],0,1]),vpU)}else taaJ=[0,0];
  const wantSh=!!texSh&&dep<110;const doSh=wantSh&&(shFrame++%Math.max(1,QS[QL].shE))===0;if(doSh)lightMatrix();shOn=wantSh?1:0;
  fillG(Gf,vp,t,dep,sunD);device.queue.writeBuffer(gBuf,0,Gf);
  const enc=device.createCommandEncoder();
@@ -486,6 +491,10 @@ function frame(t,dep,sunD){
  p.setPipeline(PP.plk);p.setBindGroup(1,pkRBG);p.draw(4,PKN);
  if(!(SKIP&&SKIP.has('conos'))){p.setPipeline(PP.cone);p.setVertexBuffer(0,coneV.buf);p.draw(coneV.n,2)}p.end();
  fsp(enc,PP.dep,TG.v.z,[bg0,TG.bg.dep],false,'profundidad');
+ if(taaOn){const valid=taaPrev&&Math.hypot(cam.position.x-taaPrevCam[0],cam.position.y-taaPrevCam[1],cam.position.z-taaPrevCam[2])<8&&SHK<.05&&!taaReset;
+  const u=new Float32Array(24);if(taaPrev)u.set(taaPrev,0);u[16]=taaJ[0];u[17]=taaJ[1];u[20]=valid?1:0;device.queue.writeBuffer(taaU,0,u);
+  const o=1-taaH;fsp(enc,PP.taa,TG.v.taa[o],[bg0,TG.bg.taa[taaH]],false,'taa');enc.copyTextureToTexture({texture:TG.taa[o]},{texture:TG.hdr},[TG.W,TG.H]);taaH=o;taaReset=false}
+ taaPrev=vpU;taaPrevCam=[cam.position.x,cam.position.y,cam.position.z];
  fsp(enc,PP.rays,TG.v.rays,[bg0,TG.bg.rays],false,'rayos');
  fsp(enc,PP.kar,TG.v.bl[0],[bg0,TG.bg.kar],false,'bloom-umbral');
  for(let i=1;i<3;i++)fsp(enc,PP.down,TG.v.bl[i],[bg0,TG.bg.down[i]],false,i===2?'bloom-fin':'bloom-bajada');

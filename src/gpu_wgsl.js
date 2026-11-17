@@ -373,6 +373,30 @@ const BGF=WC+`@vertex fn vs(@builtin(vertex_index) i:u32)->@builtin(position) ve
  if((u32(g.ex.w)&128u)!=0u){return vec4f(0.,0.,0.,1.);}
  return vec4f(fogIn(g.cam.xyz,rd,240.),1.);}
 `;
+const P_TAA=WC+VQ+`struct TU{pvp:mat4x4f,j:vec4f,r:vec4f};
+@group(1) @binding(0) var<uniform> tu:TU;
+@group(1) @binding(1) var tC:texture_2d<f32>;
+@group(1) @binding(2) var tH:texture_2d<f32>;
+@group(1) @binding(3) var tZ:texture_2d<f32>;
+@fragment fn fs(@builtin(position) fc:vec4f)->@location(0) vec4f{
+ let ip=vec2i(fc.xy);let dim=vec2f(textureDimensions(tC));let uv=fc.xy/dim;
+ let cur=textureLoad(tC,ip,0).rgb;
+ if(tu.r.x<.5){return vec4f(cur,1.);}
+ var mn=cur;var mx=cur;var m1=vec3f(0.);var m2=vec3f(0.);
+ for(var y=-1;y<=1;y++){for(var x=-1;x<=1;x++){let q=clamp(ip+vec2i(x,y),vec2i(0),vec2i(dim)-vec2i(1));let s=textureLoad(tC,q,0).rgb;mn=min(mn,s);mx=max(mx,s);m1+=s;m2+=s*s;}}
+ let mu=m1/9.;let sg=sqrt(max(m2/9.-mu*mu,vec3f(0.)));mn=max(mn,mu-1.1*sg);mx=min(mx,mu+1.1*sg);mn=min(mn,cur);mx=max(mx,cur);
+ let zd=textureLoad(tZ,ip,0).x;
+ let nd=vec2f(uv.x*2.-1.,1.-uv.y*2.)-tu.j.xy;
+ let rv=g.ff.xyz+g.rr.xyz*(nd.x*g.pp.x)+g.uu.xyz*(nd.y*g.pp.y);
+ var vz=g.pp.w*g.pp.z/(g.pp.w-zd*(g.pp.w-g.pp.z));if(zd>.99999){vz=400.;}
+ let pc=tu.pvp*vec4f(g.cam.xyz+rv*vz,1.);
+ if(pc.w<=.001){return vec4f(cur,1.);}
+ let pn=pc.xy/pc.w;let puv=vec2f(pn.x*.5+.5,.5-pn.y*.5);
+ if(any(puv<vec2f(0.))||any(puv>vec2f(1.))){return vec4f(cur,1.);}
+ let h=clamp(textureSampleLevel(tH,sK,puv,0.).rgb,mn,mx);
+ let a=mix(.25,.75,clamp(length((puv-uv)*dim)/2.,0.,1.));
+ return vec4f(mix(h,cur,a),1.);}
+`;
 const PUFF=WC+`struct PO{@builtin(position)cp:vec4f,@location(0)uv:vec2f,@location(1)col:vec4f,@location(2)s:f32};
 fn hh(p:vec2f)->f32{return fract(sin(dot(p,vec2f(127.1,311.7)))*43758.5453);}
 fn nz(p:vec2f)->f32{let i=floor(p);let f=fract(p);let w=f*f*(3.-2.*f);return mix(mix(hh(i),hh(i+vec2f(1,0)),w.x),mix(hh(i+vec2f(0,1)),hh(i+vec2f(1,1)),w.x),w.y);}
