@@ -360,7 +360,9 @@ const NA=448u;const NR=256u;const RMAX=3500.;
   var c=mix(body+sss,sky,fr)+glit*fr*4.;
   let hz=skyCol(normalize(vec3f(V.x,.02,V.z)),t);
   c=mix(c,vec3f(.78,.84,.88)*(.5+.25*sky.y*3.)*(.7+.3*nz),fm*.85);
-  c=mix(c,hz,1.-exp(-d/2600.));
+  let spr=ss(3.,9.5,w.h)*(.35+.65*ss(.45,.85,stk))*ss(.3,.8,nz2)*(.5+.5*nz)*ss(12.,90.,d);
+  c=mix(c,vec3f(.72,.78,.82)*(.42+.2*sky.y*3.),sat1(spr)*.4);
+  c=mix(c,hz,1.-exp(-d/1900.));
   return vec4f(c,1.);}
  // vista desde abajo: ventana de Snell con la forma real de las olas
  let s=vec2f(N.x,N.z)/(.8*max(N.y,.25))+(textureSampleLevel(tCau,sL,i.wp.xz/13.,0.).ba+textureSampleLevel(tCau,sL,i.wp.zx/4.7+.2,0.).ba*.7)*ss(150.,25.,d)*.5;
