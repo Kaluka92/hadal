@@ -321,7 +321,8 @@ fn ocean(p0:vec2f,t:f32,lod:f32)->OW{
 const SKYF=`fn h21(p:vec2f)->f32{var q=fract(p*vec2f(123.34,456.21));q+=dot(q,q+45.32);return fract(q.x*q.y);}
 fn vn(p:vec2f)->f32{let i=floor(p);let f=fract(p);let u=f*f*(3.-2.*f);return mix(mix(h21(i),h21(i+vec2f(1.,0.)),u.x),mix(h21(i+vec2f(0.,1.)),h21(i+vec2f(1.,1.)),u.x),u.y);}
 fn fbm2(p0:vec2f)->f32{var p=p0;var a=.5;var s=0.;for(var i=0;i<5;i++){s+=a*vn(p);p=p*2.03+vec2f(17.1,9.2);a*=.5;}return s;}
-fn lightning(t:f32)->f32{let n=floor(t*.13);let u=fract(t*.13);let gate=step(.45,h21(vec2f(n,3.7)));return gate*(ss(0.,.004,u)*(1.-ss(.012,.05,u))+.7*ss(.07,.075,u)*(1.-ss(.09,.14,u)));}
+fn hi(n:u32)->f32{var x=n*747796405u+2891336453u;x=((x>>((x>>28u)+4u))^x)*277803737u;x=(x>>22u)^x;return f32(x)/4294967295.;}
+fn lightning(t:f32)->f32{let n=floor(t*.13);let u=fract(t*.13);let gate=step(.45,hi(u32(n)));return gate*(ss(0.,.004,u)*(1.-ss(.012,.05,u))+.7*ss(.07,.075,u)*(1.-ss(.09,.14,u)));}
 fn skyCol(rd:vec3f,t:f32)->vec3f{
  let y=max(rd.y,0.);var c=mix(vec3f(.62,.68,.72),vec3f(.13,.17,.22),pow(y,.4));
  let cp=rd.xz/(y+.16)*.55+vec2f(t*.02,t*.011);let cl=fbm2(cp)+.35*fbm2(cp*2.7+3.1);let dens=ss(.45,.95,cl);
@@ -2179,26 +2180,37 @@ function audio(){if(AC)return;try{AC=new AudioContext();gm=AC.createGain();gm.ga
  o1.connect(fi);o2.connect(fi);fi.connect(g);g.connect(gm);o1.start();o2.start();dr=o1;fl=fi;
  const dl=AC.createDelay(1);dl.delayTime.value=.42;const fb=AC.createGain();fb.gain.value=.38;dl.connect(fb);fb.connect(dl);dl.connect(gm);
  const buf=AC.createBuffer(1,AC.sampleRate*.05,AC.sampleRate),d=buf.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=(Math.random()*2-1)*(1-i/d.length);
- const ping=()=>{if(!AC)return;const o=AC.createOscillator(),g2=AC.createGain();o.frequency.value=1700;g2.gain.setValueAtTime(.0001,AC.currentTime);g2.gain.exponentialRampToValueAtTime(.12,AC.currentTime+.02);g2.gain.exponentialRampToValueAtTime(.0001,AC.currentTime+1.2);o.connect(g2);g2.connect(gm);g2.connect(dl);o.start();o.stop(AC.currentTime+1.3)};
+ const ping=()=>{if(!AC||-cam.position.y<40)return;const o=AC.createOscillator(),g2=AC.createGain();o.frequency.value=1700;g2.gain.setValueAtTime(.0001,AC.currentTime);g2.gain.exponentialRampToValueAtTime(.12,AC.currentTime+.02);g2.gain.exponentialRampToValueAtTime(.0001,AC.currentTime+1.2);o.connect(g2);g2.connect(gm);g2.connect(dl);o.start();o.stop(AC.currentTime+1.3)};
  const click=()=>{const dep=-cam.position.y;if(AC&&dep>200&&dep<2200&&Math.random()<.7){const s=AC.createBufferSource(),hp=AC.createBiquadFilter(),g3=AC.createGain();s.buffer=buf;hp.type='bandpass';hp.frequency.value=3200;g3.gain.value=.25;s.connect(hp);hp.connect(g3);g3.connect(gm);g3.connect(dl);s.start()}};
  setInterval(ping,7000);setInterval(()=>{for(let i=0;i<4;i++)setTimeout(click,i*140)},3200)}catch(e){console.warn('audio',e)}}
-// ---- ambiente sonoro: tormenta, olas sobre el submarino, presión profunda y truenos (todo procedural, WebAudio) ----
+// ---- ambiente sonoro: tormenta (viento con ráfagas, olas que rompen, lluvia, silbido), presión profunda y truenos con chasquido + retumbo ----
 let SA=null;
+function hiN(n){let x=(Math.imul(n>>>0,747796405)+2891336453)>>>0;x=Math.imul(((x>>>((x>>>28)+4))^x)>>>0,277803737)>>>0;x=((x>>>22)^x)>>>0;return x/4294967295}
 function audio2(){if(!AC||SA)return;
- const sr=AC.sampleRate,nb=AC.createBuffer(1,sr*3,sr),d=nb.getChannelData(0);let b=0;for(let i=0;i<d.length;i++){b=(b+(Math.random()*2-1)*.04)/1.02;d[i]=b*9}
- const src=(f,type,q=.7)=>{const s=AC.createBufferSource();s.buffer=nb;s.loop=true;s.playbackRate.value=f;const fi=AC.createBiquadFilter();fi.type=type;fi.Q.value=q;s.connect(fi);s.start();return fi};
- const mk=(fi,fr)=>{fi.frequency.value=fr;const g=AC.createGain();g.gain.value=0;fi.connect(g);g.connect(gm);return g};
- const wind=mk(src(1,'bandpass',.5),420),swell=mk(src(.35,'lowpass'),160),rain=mk(src(2.4,'highpass'),3800),deep=mk(src(.25,'lowpass'),70),lfo=AC.createOscillator(),lg=AC.createGain();
- lfo.frequency.value=.11;lg.gain.value=.18;lfo.connect(lg);lg.connect(swell.gain);lfo.start();
- SA={wind,swell,rain,deep,nb,last:0,th:0}}
-function thunder(vol,delay){if(!AC||!SA||!(vol>.001))return;const s=AC.createBufferSource();s.buffer=SA.nb;s.playbackRate.value=.3;const fi=AC.createBiquadFilter();fi.type='lowpass';fi.frequency.value=140;const g=AC.createGain(),t0=AC.currentTime+delay;
- g.gain.setValueAtTime(.0001,t0);g.gain.exponentialRampToValueAtTime(Math.max(vol,.0002),t0+.25);g.gain.exponentialRampToValueAtTime(.0001,t0+3.6);s.connect(fi);fi.connect(g);g.connect(gm);s.start(t0);s.stop(t0+3.8)}
+ const sr=AC.sampleRate,N=sr*3,wb=AC.createBuffer(1,N,sr),nb=AC.createBuffer(1,N,sr),dw=wb.getChannelData(0),dn=nb.getChannelData(0);let b=0,pk=1e-6;
+ for(let i=0;i<N;i++){dw[i]=Math.random()*2-1;b=(b+(Math.random()*2-1)*.04)/1.02;dn[i]=b;pk=Math.max(pk,Math.abs(b))}
+ for(let i=0;i<N;i++)dn[i]/=pk;
+ const mf=AC.createBiquadFilter();mf.type='lowpass';mf.frequency.value=14000;mf.Q.value=.4;mf.connect(gm);
+ const loop=(buf,rate)=>{const s=AC.createBufferSource();s.buffer=buf;s.loop=true;s.playbackRate.value=rate;s.start(0,Math.random()*2);return s};
+ const bus=(buf,rate,type,fr,q)=>{const s=loop(buf,rate),fi=AC.createBiquadFilter();fi.type=type;fi.frequency.value=fr;fi.Q.value=q;const g=AC.createGain();g.gain.value=0;s.connect(fi);fi.connect(g);g.connect(mf);return{fi,g}};
+ const lfo=(fr,depth,param)=>{const o=AC.createOscillator(),g=AC.createGain();o.frequency.value=fr;g.gain.value=depth;o.connect(g);g.connect(param);o.start();return o};
+ const wind=bus(wb,1,'bandpass',620,1.3),whis=bus(wb,1,'bandpass',900,14),sea=bus(nb,.6,'lowpass',320,.7),rain=bus(wb,1,'bandpass',4300,.5),rain2=bus(wb,1.3,'bandpass',1500,.8),deep=bus(nb,.25,'lowpass',70,.7);
+ lfo(.13,280,wind.fi.frequency);lfo(.07,.1,wind.g.gain);lfo(.05,320,whis.fi.frequency);lfo(.19,.012,whis.g.gain);lfo(.1,.12,sea.g.gain);lfo(7.3,.02,rain.g.gain);lfo(11.1,.025,rain2.g.gain);
+ SA={wind:wind.g,whis:whis.g,sea:sea.g,rain:rain.g,rain2:rain2.g,deep:deep.g,mf,nb,wb,th:0,wave:0}}
+function env(g,t0,pts){g.gain.setValueAtTime(.0001,t0);for(const[dt,v]of pts)g.gain.exponentialRampToValueAtTime(Math.max(v,.0001),t0+dt)}
+function crash(k){if(!AC||!SA||!(k>.01))return;const t0=AC.currentTime,s=AC.createBufferSource();s.buffer=SA.wb;const fi=AC.createBiquadFilter(),g=AC.createGain();fi.type='bandpass';fi.Q.value=.7;fi.frequency.setValueAtTime(2600,t0);fi.frequency.exponentialRampToValueAtTime(380,t0+3.4);env(g,t0,[[1.0,.2*k],[1.8,.12*k],[4,.0001]]);s.connect(fi);fi.connect(g);g.connect(SA.mf);s.start(t0,Math.random()*2);s.stop(t0+4.2);
+ const s2=AC.createBufferSource();s2.buffer=SA.nb;const f2=AC.createBiquadFilter(),g2=AC.createGain();f2.type='lowpass';f2.frequency.value=190;env(g2,t0,[[.9,.5*k],[2.2,.25*k],[4.2,.0001]]);s2.connect(f2);f2.connect(g2);g2.connect(SA.mf);s2.start(t0,Math.random()*2);s2.stop(t0+4.4)}
+function thunder(vol,delay){if(!AC||!SA||!(vol>.001))return;const t0=AC.currentTime+delay,mk=(buf,rate,type,fr,q)=>{const s=AC.createBufferSource();s.buffer=buf;s.playbackRate.value=rate;const fi=AC.createBiquadFilter();fi.type=type;fi.frequency.value=fr;fi.Q.value=q;const g=AC.createGain();s.connect(fi);fi.connect(g);g.connect(SA.mf);return{s,g}};
+ const c=mk(SA.wb,1,'highpass',1100,.6);env(c.g,t0,[[.012,vol*.7],[.25,vol*.12],[.6,.0001]]);c.s.start(t0,Math.random()*2);c.s.stop(t0+.7);
+ const m=mk(SA.nb,.9,'bandpass',260,.55);env(m.g,t0,[[.14,vol*1.4],[.8,vol*.55],[1.4,vol*1.1],[2.3,vol*.4],[3.4,vol*.65],[6,.0001]]);m.s.start(t0,Math.random()*2);m.s.stop(t0+6.2);
+ const r=mk(SA.nb,1.6,'bandpass',620,.9);env(r.g,t0,[[.1,vol*.5],[.9,vol*.18],[2,.0001]]);r.s.start(t0,Math.random()*2);r.s.stop(t0+2.2)}
 function audioTick(t,dep,above){if(!AC)return;if(!SA)audio2();if(!SA)return;
- const near=above?1:Math.max(0,1-dep/22),rate=.06;const set=(g,v)=>{g.gain.value+=(v-g.gain.value)*rate};
- set(SA.wind,above?.5:near*.08);set(SA.swell,above?.55:near*.5);set(SA.rain,above?.28:near*.05);set(SA.deep,Math.min(.5,dep/9000*.5)+(dep>3000?.06:0));
+ const near=above?1:Math.max(0,1-dep/22),rate=.05,set=(g,v)=>{g.gain.value+=(v-g.gain.value)*rate};
+ set(SA.wind,above?.2:near*.04);set(SA.whis,above?.04:0);set(SA.sea,above?.3:near*.3);set(SA.rain,above?.05:near*.01);set(SA.rain2,above?.07:near*.02);set(SA.deep,Math.min(.5,dep/9000*.5)+(dep>3000?.06:0));
+ SA.mf.frequency.setTargetAtTime(above?14000:380+near*12000,AC.currentTime,.35);
+ if(t>SA.wave&&(above||near>.05)){SA.wave=t+4.5+Math.random()*5;crash(above?1:near*.6)}
  const n=Math.floor(t*.13),u=t*.13-n;
- let X=((n*123.34)%1+1)%1,Y=((3.7*456.21)%1+1)%1;const dd=X*X+Y*Y+45.32*(X+Y);X+=dd;Y+=dd;const gate=(((X*Y)%1)+1)%1>.45;
- if(gate&&u>0&&u<.004&&SA.th!==n){SA.th=n;thunder(above?.9:near*.5,.5+Math.random()*2.2)}}
+ if(u<.03&&SA.th!==n&&hiN(n)>=.45){SA.th=n;thunder(above?1:Math.max(near*.6,Math.max(0,1-dep/200)*.25),.4+Math.random()*2.4)}}
 function mute(){muted=!muted;if(gm)gm.gain.value=muted?0:.5}
 
 

@@ -253,7 +253,8 @@ fn ocean(p0:vec2f,t:f32,lod:f32)->OW{
 const SKYF=`fn h21(p:vec2f)->f32{var q=fract(p*vec2f(123.34,456.21));q+=dot(q,q+45.32);return fract(q.x*q.y);}
 fn vn(p:vec2f)->f32{let i=floor(p);let f=fract(p);let u=f*f*(3.-2.*f);return mix(mix(h21(i),h21(i+vec2f(1.,0.)),u.x),mix(h21(i+vec2f(0.,1.)),h21(i+vec2f(1.,1.)),u.x),u.y);}
 fn fbm2(p0:vec2f)->f32{var p=p0;var a=.5;var s=0.;for(var i=0;i<5;i++){s+=a*vn(p);p=p*2.03+vec2f(17.1,9.2);a*=.5;}return s;}
-fn lightning(t:f32)->f32{let n=floor(t*.13);let u=fract(t*.13);let gate=step(.45,h21(vec2f(n,3.7)));return gate*(ss(0.,.004,u)*(1.-ss(.012,.05,u))+.7*ss(.07,.075,u)*(1.-ss(.09,.14,u)));}
+fn hi(n:u32)->f32{var x=n*747796405u+2891336453u;x=((x>>((x>>28u)+4u))^x)*277803737u;x=(x>>22u)^x;return f32(x)/4294967295.;}
+fn lightning(t:f32)->f32{let n=floor(t*.13);let u=fract(t*.13);let gate=step(.45,hi(u32(n)));return gate*(ss(0.,.004,u)*(1.-ss(.012,.05,u))+.7*ss(.07,.075,u)*(1.-ss(.09,.14,u)));}
 fn skyCol(rd:vec3f,t:f32)->vec3f{
  let y=max(rd.y,0.);var c=mix(vec3f(.62,.68,.72),vec3f(.13,.17,.22),pow(y,.4));
  let cp=rd.xz/(y+.16)*.55+vec2f(t*.02,t*.011);let cl=fbm2(cp)+.35*fbm2(cp*2.7+3.1);let dens=ss(.45,.95,cl);
