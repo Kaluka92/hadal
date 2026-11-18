@@ -111,6 +111,7 @@ fn h2(p:vec2f)->f32{return fract(sin(dot(p,vec2f(127.1,311.7)))*43758.5453);}
    let pit=ss(.24,.1,length(fract(vec2f(i.wp.z*3.7,py*1.7))-.5))*step(.84,pr);wd=wd*(1.-.65*pit);
    wd=mix(wd,vec3f(.28,.29,.26)*(.55+.5*B.h),ss(.5,.78,B.c)*.28*(.35+.65*ss(.1,.8,n0.y)));
    wd=mix(wd,vec3f(.06,.12,.07),ss(.62,.82,big)*.15*ss(.1,.8,n0.y));
+   wd=wd*.78;wd=mix(wd,vec3f(.30,.29,.26)*(.65+.5*B.h),ss(.45,.9,n0.y)*.6*ss(120.,10.,d));wd=mix(wd,vec3f(.05,.13,.08),ss(.55,.8,big)*.22*(1.-ss(.45,.9,n0.y)));
    alb=wd;gloss=.1;
    let dpf=ss(0.,.14,pf)-ss(.86,1.,pf);N=normalize(N+vec3f(0.,dpf*.4*fdw,0.)+vec3f(0.,0.,(grain-.5)*.25*fdw));
   }else{

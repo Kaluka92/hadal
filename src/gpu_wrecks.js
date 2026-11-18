@@ -194,7 +194,29 @@ WR.galeon.g=()=>MG([
  ...rowZ(-12,12,2.1,z=>[-1,1].map(s=>P(BXs(.9,.8,.2,.1,1),'#14100c',{p:[s*(hullX(11,7,3.4)+.02),3.4,z]}))),
  ...Array.from({length:10},(_,i)=>P(CZ(.24,.2,1.7,6),'#2a2a28',{p:[(i%2?1:-1)*6.1,5,-10+Math.floor(i/2)*3.2],r:[0,(i%2?1:-1)*1.3,0]})),
  ...rowZ(-8,6,1.5,z=>P(new T.TorusGeometry(5,.13,6,14,Math.PI),'#3a2a1c',{p:[14,.2,z]}))]);
+// --- Galeón San José: carga y artillería (cañones de bronce con pátina, botijas, porcelana, lingotes, monedas) apoyadas sobre el fondo real ---
+const galeonCargo=()=>{const r=mb(133),wx=3300,out=[],fl=(lx,lz)=>base(wx)-floorAt(wx+lx,lz);
+ const BR=['#1f5a48','#2a6a52','#3a6a44','#4a5a34','#2a4a3e','#5a5a30'],GD='#a88a30';
+ const cannon=(x,y,z,yaw,len)=>{const dx=Math.sin(yaw),dz=Math.cos(yaw),px=Math.cos(yaw),pz=-Math.sin(yaw),c=BR[Math.floor(r()*BR.length)],c2=BR[Math.floor(r()*BR.length)];
+  out.push(P(CZ(.19,.12,len,8),c,{p:[x,y,z],r:[0,yaw,0]}),P(S_(.095,6,4),c,{p:[x-dx*.08,y,z-dz*.08]}));
+  [.12,.5*len,len-.1].forEach((t,i)=>out.push(P(new T.TorusGeometry(.2-.07*(t/len)+.012,.028,5,10),c2,{p:[x+dx*t,y,z+dz*t],r:[0,yaw,0]})));
+  const m=[x+dx*len*.45,y,z+dz*len*.45];out.push(P(seg(V3([m[0]-px*.27,m[1],m[2]-pz*.27]),V3([m[0]+px*.27,m[1],m[2]+pz*.27]),.04,.04,5),c2));
+  out.push(P(seg(V3([x+dx*len*.38,y+.2,z+dz*len*.38]),V3([x+dx*len*.52,y+.27,z+dz*len*.52]),.022,.022,4),GD))};
+ // montón de cañones junto al casco (a estribor)
+ for(let i=0;i<22;i++){const lx=11+r()*6,lz=-7+r()*14,k=Math.floor(r()*3);cannon(lx,fl(lx,lz)+.22+k*.32,lz,r()*Math.PI,2.2+r()*1.2)}
+ // cañones sueltos alrededor
+ for(let i=0;i<14;i++){const a=r()*6.28,d=14+r()*16,lx=Math.cos(a)*d,lz=Math.sin(a)*d*.8;cannon(lx,fl(lx,lz)+.2,lz,r()*Math.PI,2+r()*1.4)}
+ // botijas peruleras (de pie, caídas)
+ const jp=[[0,0],[.12,0],[.2,.2],[.24,.5],[.2,.85],[.1,1],[.11,1.08],[0,1.08]].map(q=>new T.Vector2(q[0],q[1]));
+ for(let i=0;i<46;i++){const a=r()*6.28,d=6+r()*22,lx=Math.cos(a)*d,lz=Math.sin(a)*d*.8,c=['#8a6a48','#7a5a3a','#6a4c32','#9a7a54'][Math.floor(r()*4)],s=.42+r()*.12,lay=r()<.6;
+  out.push(P(new T.LatheGeometry(jp,9),c,{p:[lx,fl(lx,lz)+(lay?.13:.0),lz],s:[s,s,s],r:lay?[0,r()*6.28,Math.PI/2+(r()-.5)*.4]:[(r()-.5)*.3,0,(r()-.5)*.3]}))}
+ // porcelana, lingotes y monedas
+ for(let i=0;i<90;i++){const a=r()*6.28,d=3+r()*18,lx=Math.cos(a)*d,lz=Math.sin(a)*d*.8;out.push(P(BXs(.1+r()*.16,.012,.08+r()*.14,.004,1),r()<.5?'#d7dde0':'#6a86b0',{p:[lx,fl(lx,lz)+.01,lz],r:[0,r()*6.28,(r()-.5)*.3]}))}
+ for(let i=0;i<16;i++){const lx=9+r()*8,lz=-5+r()*10;out.push(P(BXs(.34,.07,.12,.02,1),'#8a9096',{p:[lx,fl(lx,lz)+.03,lz],r:[0,r()*3.14,0]}))}
+ for(let i=0;i<200;i++){const a=r()*6.28,d=2+r()*12,lx=9+Math.cos(a)*d*.6,lz=Math.sin(a)*d*.6;out.push(P(CY(.032,.032,.007,6),r()<.7?GD:'#a9b0b4',{p:[lx,fl(lx,lz)+.012,lz],r:[(r()-.5)*.4,0,(r()-.5)*.4]}))}
+ return out};
 WR.galeon.dg=()=>debris(5,50,28,['#3a2a1c','#2a2a28','#4a3524','#6a5038'],3300,(r,wx)=>Array.from({length:7},()=>{const lx=(r()-.5)*40,lz=(r()-.5)*30;return P(CZ(.28,.22,2.6,7),'#25252a',{p:[lx,base(wx)-floorAt(wx+lx,lz)+.2,lz],r:[0,r()*6,0]})}).concat([P(seg(V3([20,.4,5]),V3([20,.4,9.5]),.16,.16,5),'#2a2a28'),P(seg(V3([18.5,.4,9.5]),V3([21.5,.4,9.5]),.14,.14,5),'#2a2a28')]));
+WR.galeon.cg=()=>MG(galeonCargo());
 
 // ================= VIDA SOBRE EL TITANIC (Cleland et al., Deep-Sea Research I 223 (2025) 104544; video de la expedición de 2022) =================
 const SRC_T='Cleland et al., Deep-Sea Research I 223 (2025) 104544, doi:10.1016/j.dsr.2025.104544 (acceso abierto)';

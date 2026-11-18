@@ -179,6 +179,7 @@ fn h2(p:vec2f)->f32{return fract(sin(dot(p,vec2f(127.1,311.7)))*43758.5453);}
    let pit=ss(.24,.1,length(fract(vec2f(i.wp.z*3.7,py*1.7))-.5))*step(.84,pr);wd=wd*(1.-.65*pit);
    wd=mix(wd,vec3f(.28,.29,.26)*(.55+.5*B.h),ss(.5,.78,B.c)*.28*(.35+.65*ss(.1,.8,n0.y)));
    wd=mix(wd,vec3f(.06,.12,.07),ss(.62,.82,big)*.15*ss(.1,.8,n0.y));
+   wd=wd*.78;wd=mix(wd,vec3f(.30,.29,.26)*(.65+.5*B.h),ss(.45,.9,n0.y)*.6*ss(120.,10.,d));wd=mix(wd,vec3f(.05,.13,.08),ss(.55,.8,big)*.22*(1.-ss(.45,.9,n0.y)));
    alb=wd;gloss=.1;
    let dpf=ss(0.,.14,pf)-ss(.86,1.,pf);N=normalize(N+vec3f(0.,dpf*.4*fdw,0.)+vec3f(0.,0.,(grain-.5)*.25*fdw));
   }else{
@@ -1127,7 +1128,29 @@ WR.galeon.g=()=>MG([
  ...rowZ(-12,12,2.1,z=>[-1,1].map(s=>P(BXs(.9,.8,.2,.1,1),'#14100c',{p:[s*(hullX(11,7,3.4)+.02),3.4,z]}))),
  ...Array.from({length:10},(_,i)=>P(CZ(.24,.2,1.7,6),'#2a2a28',{p:[(i%2?1:-1)*6.1,5,-10+Math.floor(i/2)*3.2],r:[0,(i%2?1:-1)*1.3,0]})),
  ...rowZ(-8,6,1.5,z=>P(new T.TorusGeometry(5,.13,6,14,Math.PI),'#3a2a1c',{p:[14,.2,z]}))]);
+// --- Galeón San José: carga y artillería (cañones de bronce con pátina, botijas, porcelana, lingotes, monedas) apoyadas sobre el fondo real ---
+const galeonCargo=()=>{const r=mb(133),wx=3300,out=[],fl=(lx,lz)=>base(wx)-floorAt(wx+lx,lz);
+ const BR=['#1f5a48','#2a6a52','#3a6a44','#4a5a34','#2a4a3e','#5a5a30'],GD='#a88a30';
+ const cannon=(x,y,z,yaw,len)=>{const dx=Math.sin(yaw),dz=Math.cos(yaw),px=Math.cos(yaw),pz=-Math.sin(yaw),c=BR[Math.floor(r()*BR.length)],c2=BR[Math.floor(r()*BR.length)];
+  out.push(P(CZ(.19,.12,len,8),c,{p:[x,y,z],r:[0,yaw,0]}),P(S_(.095,6,4),c,{p:[x-dx*.08,y,z-dz*.08]}));
+  [.12,.5*len,len-.1].forEach((t,i)=>out.push(P(new T.TorusGeometry(.2-.07*(t/len)+.012,.028,5,10),c2,{p:[x+dx*t,y,z+dz*t],r:[0,yaw,0]})));
+  const m=[x+dx*len*.45,y,z+dz*len*.45];out.push(P(seg(V3([m[0]-px*.27,m[1],m[2]-pz*.27]),V3([m[0]+px*.27,m[1],m[2]+pz*.27]),.04,.04,5),c2));
+  out.push(P(seg(V3([x+dx*len*.38,y+.2,z+dz*len*.38]),V3([x+dx*len*.52,y+.27,z+dz*len*.52]),.022,.022,4),GD))};
+ // montón de cañones junto al casco (a estribor)
+ for(let i=0;i<22;i++){const lx=11+r()*6,lz=-7+r()*14,k=Math.floor(r()*3);cannon(lx,fl(lx,lz)+.22+k*.32,lz,r()*Math.PI,2.2+r()*1.2)}
+ // cañones sueltos alrededor
+ for(let i=0;i<14;i++){const a=r()*6.28,d=14+r()*16,lx=Math.cos(a)*d,lz=Math.sin(a)*d*.8;cannon(lx,fl(lx,lz)+.2,lz,r()*Math.PI,2+r()*1.4)}
+ // botijas peruleras (de pie, caídas)
+ const jp=[[0,0],[.12,0],[.2,.2],[.24,.5],[.2,.85],[.1,1],[.11,1.08],[0,1.08]].map(q=>new T.Vector2(q[0],q[1]));
+ for(let i=0;i<46;i++){const a=r()*6.28,d=6+r()*22,lx=Math.cos(a)*d,lz=Math.sin(a)*d*.8,c=['#8a6a48','#7a5a3a','#6a4c32','#9a7a54'][Math.floor(r()*4)],s=.42+r()*.12,lay=r()<.6;
+  out.push(P(new T.LatheGeometry(jp,9),c,{p:[lx,fl(lx,lz)+(lay?.13:.0),lz],s:[s,s,s],r:lay?[0,r()*6.28,Math.PI/2+(r()-.5)*.4]:[(r()-.5)*.3,0,(r()-.5)*.3]}))}
+ // porcelana, lingotes y monedas
+ for(let i=0;i<90;i++){const a=r()*6.28,d=3+r()*18,lx=Math.cos(a)*d,lz=Math.sin(a)*d*.8;out.push(P(BXs(.1+r()*.16,.012,.08+r()*.14,.004,1),r()<.5?'#d7dde0':'#6a86b0',{p:[lx,fl(lx,lz)+.01,lz],r:[0,r()*6.28,(r()-.5)*.3]}))}
+ for(let i=0;i<16;i++){const lx=9+r()*8,lz=-5+r()*10;out.push(P(BXs(.34,.07,.12,.02,1),'#8a9096',{p:[lx,fl(lx,lz)+.03,lz],r:[0,r()*3.14,0]}))}
+ for(let i=0;i<200;i++){const a=r()*6.28,d=2+r()*12,lx=9+Math.cos(a)*d*.6,lz=Math.sin(a)*d*.6;out.push(P(CY(.032,.032,.007,6),r()<.7?GD:'#a9b0b4',{p:[lx,fl(lx,lz)+.012,lz],r:[(r()-.5)*.4,0,(r()-.5)*.4]}))}
+ return out};
 WR.galeon.dg=()=>debris(5,50,28,['#3a2a1c','#2a2a28','#4a3524','#6a5038'],3300,(r,wx)=>Array.from({length:7},()=>{const lx=(r()-.5)*40,lz=(r()-.5)*30;return P(CZ(.28,.22,2.6,7),'#25252a',{p:[lx,base(wx)-floorAt(wx+lx,lz)+.2,lz],r:[0,r()*6,0]})}).concat([P(seg(V3([20,.4,5]),V3([20,.4,9.5]),.16,.16,5),'#2a2a28'),P(seg(V3([18.5,.4,9.5]),V3([21.5,.4,9.5]),.14,.14,5),'#2a2a28')]));
+WR.galeon.cg=()=>MG(galeonCargo());
 
 // ================= VIDA SOBRE EL TITANIC (Cleland et al., Deep-Sea Research I 223 (2025) 104544; video de la expedición de 2022) =================
 const SRC_T='Cleland et al., Deep-Sea Research I 223 (2025) 104544, doi:10.1016/j.dsr.2025.104544 (acceso abierto)';
@@ -1807,7 +1830,7 @@ function plkStep(enc){const c=enc.beginComputePass();c.setPipeline(pkP);c.setBin
 const STAT=[];
 function addStatic(geo,instance,matU,caster){STAT.push({geo,ibuf:instance,mat:matU,caster:!!caster,anim:''})}
 const matTerr=mkMatU(0,0,0,1,{mt:3,bump:1.15,spec:.05}),matWreck=mkMatU(0,0,0,1,{mt:2,bump:1.0,rust:.75,spec:.14}),matAir=mkMatU(0,0,0,1,{mt:4,bump:.45,rust:.1,spec:.35}),matSteel=mkMatU(0,0,0,1,{mt:2,bump:1.0,rust:.65,spec:.2}),matWood=mkMatU(0,0,0,1,{mt:5,bump:1.0,spec:.06}),matRock=mkMatU(0,0,0,1,{mt:1,bump:1.3,spec:.05}),matArch=mkMatU(0,0,0,1,{mt:1,bump:1.4,spec:.04});
-for(const k in WR){const w=WR[k];w.id=k;w.z=0;w.y=-base(w.x);try{const mx=new Float32Array([1,0,0,0, 0,1,0,0, 0,0,1,0, w.x,w.y,w.z,1]);const wm=k==='af447'?matAir:(k==='bismarck'||k==='roberts')?matSteel:k==='galeon'?matWood:matWreck,ib=instBuf(mx);addStatic(gpuGeo(w.g()),ib,wm,false);STAT[STAT.length-1].wk=k;if(w.dg)try{addStatic(gpuGeo(w.dg()),ib,wm,false);STAT[STAT.length-1].wk=k}catch(e){console.warn('escombros',k,e)}}catch(e){console.warn('naufragio',k,e)}}
+for(const k in WR){const w=WR[k];w.id=k;w.z=0;w.y=-base(w.x);try{const mx=new Float32Array([1,0,0,0, 0,1,0,0, 0,0,1,0, w.x,w.y,w.z,1]);const wm=k==='af447'?matAir:(k==='bismarck'||k==='roberts')?matSteel:k==='galeon'?matWood:matWreck,ib=instBuf(mx);addStatic(gpuGeo(w.g()),ib,wm,false);STAT[STAT.length-1].wk=k;if(w.dg)try{addStatic(gpuGeo(w.dg()),ib,wm,false);STAT[STAT.length-1].wk=k}catch(e){console.warn('escombros',k,e)}if(w.cg)try{addStatic(gpuGeo(w.cg()),ib,matAir,false);STAT[STAT.length-1].wk=k}catch(e){console.warn('carga',k,e)}}catch(e){console.warn('naufragio',k,e)}}
 try{const gs=[];for(const c of CH){const y=-floorAt(c[0],c[1])-.5;gs.push(P(CY(2.6,1,c[2]*.6,7),'#2b2522',{p:[c[0],y,c[1]]}),P(CY(1,.55,c[2]*.45,7),'#241f1c',{p:[c[0],y+c[2]*.58,c[1]]}),P(S_(.5,8,6),'#ff8a3a',{p:[c[0],y+c[2]*1.02,c[1]],e:.9}))}
  addStatic(gpuGeo(MG(gs)),identBuf,matRock,false)}catch(e){console.warn('fumarolas',e)}
 // ---- rocas con túnel y cámara: campo de distancias + "surface nets" por compute ----
@@ -1972,7 +1995,7 @@ const SHIPS={
  bismarck:{org:[-22.4,-1,-128.8],h:.5,n:[90,90,516],cap:8000000,hp:[250,36,16,.45],boxes:[[0,18,-4,.3,10,2,80]],brk:-1000,hollow:0,er:[.3,.9,.96,.12],dk:[0,0,0,0],fl:[1,0,0,.8],col:[.2,.19,.18],seed:2.1},
  roberts:{org:[-6.8,-1,-48],h:.4,n:[34,58,240],cap:2500000,hp:[93,11,8,.45],boxes:[[0,10.5,6,.8,3.5,2.5,5],[0,15,7,.7,2.5,2,3],[0,18.5,7,.6,1.5,1.5,1.5]],brk:-1000,hollow:0,er:[.5,.88,.96,.15],dk:[0,0,0,0],fl:[1,0,0,.5],col:[.29,.31,.35],seed:3.7},
  af447:{org:[-3.4,-.2,-15.5],h:.14,n:[49,43,226],cap:2500000,hp:[-1,0,0,0],boxes:[],brk:-1000,hollow:0,er:[0,1,.8,.05],dk:[0,0,0,0],fl:[0,0,0,.5],col:[.55,.58,.6],seed:5.3},
- galeon:{org:[-6.3,-1,-22.4],h:.35,n:[36,48,128],cap:1500000,hp:[40,11,7,.4],boxes:[[0,9.5,-15,1.6,4.75,2.5,5.5],[0,13.25,-16,1.2,4,1.25,3.5],[0,8.75,12,1.4,3.5,1.75,3]],brk:-1000,hollow:1,er:[.7,.64,.6,.3],dk:[3.5,0,0,0],fl:[0,0,0,.45],col:[.29,.21,.14],seed:4.9}};
+ galeon:{org:[-6.3,-1,-22.4],h:.25,n:[50,67,179],cap:3000000,hp:[40,11,7,.4],boxes:[[0,9.5,-15,1.6,4.75,2.5,5.5],[0,13.25,-16,1.2,4,1.25,3.5],[0,8.75,12,1.4,3.5,1.75,3]],brk:-1000,hollow:1,er:[.7,.64,.6,.3],dk:[3.5,0,0,0],fl:[0,0,0,.45],col:[.29,.21,.14],seed:4.9}};
 function buildShip(key){const w=WR[key.split('_')[0]],S=SHIPS[key],[NX,NY,NZ]=S.n,u=new Float32Array(16*8+48);
  u.set([...S.org,S.h, NX,NY,NZ,S.cap, ...S.hp, S.boxes.length,S.brk,S.hollow,S.seed, ...S.er, ...S.dk, ...S.fl, ...S.col,0],0);
  S.boxes.forEach((b,i)=>{u.set([b[0],b[1],b[2],b[3]],32+i*8);u.set([b[4],b[5],b[6],0],32+i*8+4)});
