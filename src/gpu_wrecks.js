@@ -148,7 +148,7 @@ const bisRig=()=>{const out=[],g1='#3a4046',g2='#4a5058',dk='#0c0d0e',nat=z=>hul
  return out};
 const robRig=()=>{const out=[],g1='#3a4046',g2='#4a5058',dk='#0c0d0e';
  // tubos lanzatorpedos triples
- out.push(P(CY(.9,.9,.5,10),g2,{p:[0,8.1,-1]}),...[-.7,0,.7].map(x=>P(CZ(.26,.26,4.2,8),g1,{p:[x,9.1,-1]})));
+ out.push(P(CY(.9,.9,.5,10),g2,{p:[0,8.1,-1]}),...[-.7,0,.7].map(x=>P(CZ(.26,.26,4.2,10),'#8f8a58',{p:[x,9.1,-1]})));
  // rieles de cargas de profundidad y lanzadores K
  for(let i=0;i<4;i++)out.push(P(CZ(.22,.22,.9,6),'#3d444a',{p:[-1.2,8.3,-42.6-i*.5],r:[0,0,Math.PI/2]}),P(CZ(.22,.22,.9,6),'#3d444a',{p:[1.2,8.3,-42.6-i*.5],r:[0,0,Math.PI/2]}));
  [-1,1].forEach(s=>[-35,-33,-31].forEach(z=>out.push(P(CY(.22,.22,.8,6),g1,{p:[s*3.6,8.5,z]}))));
@@ -186,6 +186,29 @@ WR.bismarck.g=()=>MG([
  ...bisRust()]);
 WR.bismarck.dg=()=>debris(31,110,90,['#4b525a','#3d444a','#555c64','#6a4224'],11300);
 
+// --- USS Samuel B. Roberts (DE-413): referencias reales = fotos de Victor Vescovo desde el DSV Limiting Factor (2022, CC BY-SA 4.0, Wikimedia Commons): proa pálida con manchas de óxido, escobenes, lifelines dobladas, tubos lanzatorpedos ocres con óxido colgando y maraña de cables ---
+const robXs=(z,y)=>{const L=93,z0=-L/2+.45*L,tt=Math.max((z-z0)/(L/2-z0),0),hb=Math.max(5.5*Math.pow(Math.max(1-Math.pow(tt,1.8),0),.55),.001),v=Math.min(Math.max(1-y/8,0),1);return hb*Math.sqrt(Math.max(1-Math.pow(v,4.444),0))};
+const RUSTR=['#b8782e','#c88a3a','#9a5a24','#d49a48','#8a4a1e','#b06a26'];
+const robExtra=()=>{const r=mb(413),out=[],DK=8,PA='#cfd3cb',WI='#9aa09a';
+ // lifelines: postes y dos cables con comba a cada banda; tramos caídos/doblados
+ [-1,1].forEach(s=>{const pts=[];for(let z=-44;z<=43;z+=2.2)pts.push([s*(robXs(z,7.9)-.12),z]);
+  pts.forEach((p,i)=>{const bent=r()<.18;if(r()<.88)out.push(P(CY(.03,.03,1.05,5),PA,{p:[p[0],DK,p[1]],r:[bent?(r()-.5)*1.1:0,0,bent?(r()-.5)*1.1:0]}))});
+  [.5,1.0].forEach(yy=>{for(let i=0;i<pts.length-1;i++){if(r()<.2)continue;const a=pts[i],b=pts[i+1],sag=.1+(r()<.15?.55*r():0),m=[(a[0]+b[0])/2,DK+yy-sag,(a[1]+b[1])/2];out.push(P(seg(V3([a[0],DK+yy,a[1]]),V3(m),.014,.014,4),WI),P(seg(V3(m),V3([b[0],DK+yy,b[1]]),.014,.014,4),WI));if(r()<.12)out.push(...rustClump(r,m[0],m[1],m[2],.3+r()*.8,.035,RUSTR))}})});
+ // escobenes de proa
+ [-1,1].forEach(s=>out.push(P(new T.TorusGeometry(.34,.1,6,10),'#d8dcd6',{p:[s*(robXs(40,7.9)-.35),DK+.25,40],r:[Math.PI/2,0,0]})));
+ // tubos lanzatorpedos: aros y óxido ocre colgando desde arriba
+ [-.7,0,.7].forEach(x=>[.5,1.4,2.4,3.4].forEach(t=>out.push(P(new T.TorusGeometry(.285,.045,5,12),'#b8b078',{p:[x,9.1,-1+t]}))));
+ for(let i=0;i<46;i++){const x=(r()-.5)*2.3,z=-1+r()*4.2;out.push(...rustClump(r,x,9.55,z,.6+r()*1.9,.08+r()*.11,RUSTR))}
+ // óxido en el borde de cubierta y chorreaduras del casco
+ [-1,1].forEach(s=>{for(let z=-44;z<44;z+=.8+r()*.9){const y=7.7;out.push(...rustClump(r,s*(robXs(z,y)+.08),y,z,.4+r()*r()*2,.05+r()*.09,RUSTR))}});
+ for(let i=0;i<180;i++){const z=-44+r()*86,y=.8+r()*6.6,s=r()<.5?-1:1;out.push(...rustClump(r,s*(robXs(z,y)+.05),y,z,.4+r()*1.4,.05+r()*.08,RUSTR))}
+ return out};
+// maraña de cables y varillas retorcidas sobre el fondo (campo de restos de la foto de 2022)
+const robCables=()=>{const r=mb(414),wx=15150,out=[],fl=(lx,lz)=>base(wx)-floorAt(wx+lx,lz);
+ for(let k=0;k<70;k++){const a=r()*6.28,d=5+r()*16,sx=Math.cos(a)*d,sz=Math.sin(a)*d*.9;let x=sx,z=sz,y=fl(x,z)+.15+r()*.5,dir=r()*6.28;const col=['#4a463e','#5a5144','#3e3a34','#6a5a48'][Math.floor(r()*4)];
+  for(let q=0;q<7;q++){dir+=(r()-.5)*1.7;const l=.7+r()*1.4,nx=x+Math.cos(dir)*l,nz=z+Math.sin(dir)*l,ny=fl(nx,nz)+.12+r()*.7;out.push(P(seg(V3([x,y,z]),V3([nx,ny,nz]),.025+r()*.02,.025,4),col));x=nx;y=ny;z=nz}}
+ return out};
+WR.roberts.cg=()=>MG(robCables());
 WR.roberts.g=()=>MG([
  ...robRig(),
  P(CY(2.3,1.9,7,12),'#4a5058',{p:[0,8,-6],s:[1.3,1,1]}),P(CY(2.3,1.9,7,12),'#4a5058',{p:[0,8,-16],s:[1.3,1,1]}),P(seg(V3([0,17,7]),V3([0,30,6]),.45,.2,6),'#4a5058'),P(seg(V3([-3,26,6.5]),V3([3,26,6.5]),.1,.1,4),'#3a4046'),
@@ -194,8 +217,7 @@ WR.roberts.g=()=>MG([
  ...rowZ(-40,-6,2.4,z=>[-1,1].map(s=>porth(s,11,8,4,z))),
  ...rowZ(2,10,1.4,z=>[-1,1].map(s=>win(s*3.52,9.6,z,.12,.9,.6))),
  ...rowZ(-44,-40,1,z=>P(CY(.25,.25,.7,8),'#3d444a',{p:[1,8,z-1]})),
- ...[-1,1].flatMap(s=>rail(s*5,8,-42,40,2)),
- ...rusticles(30,93,11,8,'#8a5a3a')]);
+ ...robExtra()]);
 WR.roberts.dg=()=>debris(13,50,45,['#4a5058','#3d444a','#555c64','#6a4224'],15150);
 
 const galeonRig=()=>{const out=[],Ls=[19,24,15],cw='#2a2018',cs='#8a7a5c';

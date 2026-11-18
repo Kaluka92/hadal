@@ -1082,7 +1082,7 @@ const bisRig=()=>{const out=[],g1='#3a4046',g2='#4a5058',dk='#0c0d0e',nat=z=>hul
  return out};
 const robRig=()=>{const out=[],g1='#3a4046',g2='#4a5058',dk='#0c0d0e';
  // tubos lanzatorpedos triples
- out.push(P(CY(.9,.9,.5,10),g2,{p:[0,8.1,-1]}),...[-.7,0,.7].map(x=>P(CZ(.26,.26,4.2,8),g1,{p:[x,9.1,-1]})));
+ out.push(P(CY(.9,.9,.5,10),g2,{p:[0,8.1,-1]}),...[-.7,0,.7].map(x=>P(CZ(.26,.26,4.2,10),'#8f8a58',{p:[x,9.1,-1]})));
  // rieles de cargas de profundidad y lanzadores K
  for(let i=0;i<4;i++)out.push(P(CZ(.22,.22,.9,6),'#3d444a',{p:[-1.2,8.3,-42.6-i*.5],r:[0,0,Math.PI/2]}),P(CZ(.22,.22,.9,6),'#3d444a',{p:[1.2,8.3,-42.6-i*.5],r:[0,0,Math.PI/2]}));
  [-1,1].forEach(s=>[-35,-33,-31].forEach(z=>out.push(P(CY(.22,.22,.8,6),g1,{p:[s*3.6,8.5,z]}))));
@@ -1120,6 +1120,29 @@ WR.bismarck.g=()=>MG([
  ...bisRust()]);
 WR.bismarck.dg=()=>debris(31,110,90,['#4b525a','#3d444a','#555c64','#6a4224'],11300);
 
+// --- USS Samuel B. Roberts (DE-413): referencias reales = fotos de Victor Vescovo desde el DSV Limiting Factor (2022, CC BY-SA 4.0, Wikimedia Commons): proa pálida con manchas de óxido, escobenes, lifelines dobladas, tubos lanzatorpedos ocres con óxido colgando y maraña de cables ---
+const robXs=(z,y)=>{const L=93,z0=-L/2+.45*L,tt=Math.max((z-z0)/(L/2-z0),0),hb=Math.max(5.5*Math.pow(Math.max(1-Math.pow(tt,1.8),0),.55),.001),v=Math.min(Math.max(1-y/8,0),1);return hb*Math.sqrt(Math.max(1-Math.pow(v,4.444),0))};
+const RUSTR=['#b8782e','#c88a3a','#9a5a24','#d49a48','#8a4a1e','#b06a26'];
+const robExtra=()=>{const r=mb(413),out=[],DK=8,PA='#cfd3cb',WI='#9aa09a';
+ // lifelines: postes y dos cables con comba a cada banda; tramos caídos/doblados
+ [-1,1].forEach(s=>{const pts=[];for(let z=-44;z<=43;z+=2.2)pts.push([s*(robXs(z,7.9)-.12),z]);
+  pts.forEach((p,i)=>{const bent=r()<.18;if(r()<.88)out.push(P(CY(.03,.03,1.05,5),PA,{p:[p[0],DK,p[1]],r:[bent?(r()-.5)*1.1:0,0,bent?(r()-.5)*1.1:0]}))});
+  [.5,1.0].forEach(yy=>{for(let i=0;i<pts.length-1;i++){if(r()<.2)continue;const a=pts[i],b=pts[i+1],sag=.1+(r()<.15?.55*r():0),m=[(a[0]+b[0])/2,DK+yy-sag,(a[1]+b[1])/2];out.push(P(seg(V3([a[0],DK+yy,a[1]]),V3(m),.014,.014,4),WI),P(seg(V3(m),V3([b[0],DK+yy,b[1]]),.014,.014,4),WI));if(r()<.12)out.push(...rustClump(r,m[0],m[1],m[2],.3+r()*.8,.035,RUSTR))}})});
+ // escobenes de proa
+ [-1,1].forEach(s=>out.push(P(new T.TorusGeometry(.34,.1,6,10),'#d8dcd6',{p:[s*(robXs(40,7.9)-.35),DK+.25,40],r:[Math.PI/2,0,0]})));
+ // tubos lanzatorpedos: aros y óxido ocre colgando desde arriba
+ [-.7,0,.7].forEach(x=>[.5,1.4,2.4,3.4].forEach(t=>out.push(P(new T.TorusGeometry(.285,.045,5,12),'#b8b078',{p:[x,9.1,-1+t]}))));
+ for(let i=0;i<46;i++){const x=(r()-.5)*2.3,z=-1+r()*4.2;out.push(...rustClump(r,x,9.55,z,.6+r()*1.9,.08+r()*.11,RUSTR))}
+ // óxido en el borde de cubierta y chorreaduras del casco
+ [-1,1].forEach(s=>{for(let z=-44;z<44;z+=.8+r()*.9){const y=7.7;out.push(...rustClump(r,s*(robXs(z,y)+.08),y,z,.4+r()*r()*2,.05+r()*.09,RUSTR))}});
+ for(let i=0;i<180;i++){const z=-44+r()*86,y=.8+r()*6.6,s=r()<.5?-1:1;out.push(...rustClump(r,s*(robXs(z,y)+.05),y,z,.4+r()*1.4,.05+r()*.08,RUSTR))}
+ return out};
+// maraña de cables y varillas retorcidas sobre el fondo (campo de restos de la foto de 2022)
+const robCables=()=>{const r=mb(414),wx=15150,out=[],fl=(lx,lz)=>base(wx)-floorAt(wx+lx,lz);
+ for(let k=0;k<70;k++){const a=r()*6.28,d=5+r()*16,sx=Math.cos(a)*d,sz=Math.sin(a)*d*.9;let x=sx,z=sz,y=fl(x,z)+.15+r()*.5,dir=r()*6.28;const col=['#4a463e','#5a5144','#3e3a34','#6a5a48'][Math.floor(r()*4)];
+  for(let q=0;q<7;q++){dir+=(r()-.5)*1.7;const l=.7+r()*1.4,nx=x+Math.cos(dir)*l,nz=z+Math.sin(dir)*l,ny=fl(nx,nz)+.12+r()*.7;out.push(P(seg(V3([x,y,z]),V3([nx,ny,nz]),.025+r()*.02,.025,4),col));x=nx;y=ny;z=nz}}
+ return out};
+WR.roberts.cg=()=>MG(robCables());
 WR.roberts.g=()=>MG([
  ...robRig(),
  P(CY(2.3,1.9,7,12),'#4a5058',{p:[0,8,-6],s:[1.3,1,1]}),P(CY(2.3,1.9,7,12),'#4a5058',{p:[0,8,-16],s:[1.3,1,1]}),P(seg(V3([0,17,7]),V3([0,30,6]),.45,.2,6),'#4a5058'),P(seg(V3([-3,26,6.5]),V3([3,26,6.5]),.1,.1,4),'#3a4046'),
@@ -1128,8 +1151,7 @@ WR.roberts.g=()=>MG([
  ...rowZ(-40,-6,2.4,z=>[-1,1].map(s=>porth(s,11,8,4,z))),
  ...rowZ(2,10,1.4,z=>[-1,1].map(s=>win(s*3.52,9.6,z,.12,.9,.6))),
  ...rowZ(-44,-40,1,z=>P(CY(.25,.25,.7,8),'#3d444a',{p:[1,8,z-1]})),
- ...[-1,1].flatMap(s=>rail(s*5,8,-42,40,2)),
- ...rusticles(30,93,11,8,'#8a5a3a')]);
+ ...robExtra()]);
 WR.roberts.dg=()=>debris(13,50,45,['#4a5058','#3d444a','#555c64','#6a4224'],15150);
 
 const galeonRig=()=>{const out=[],Ls=[19,24,15],cw='#2a2018',cs='#8a7a5c';
@@ -1847,8 +1869,8 @@ function plkStep(enc){const c=enc.beginComputePass();c.setPipeline(pkP);c.setBin
 // ---- objetos estáticos: naufragios, fumarolas, arcos de roca ----
 const STAT=[];
 function addStatic(geo,instance,matU,caster){STAT.push({geo,ibuf:instance,mat:matU,caster:!!caster,anim:''})}
-const matTerr=mkMatU(0,0,0,1,{mt:3,bump:1.15,spec:.05}),matWreck=mkMatU(0,0,0,1,{mt:2,bump:1.0,rust:.75,spec:.14}),matAir=mkMatU(0,0,0,1,{mt:4,bump:.45,rust:.1,spec:.35}),matSteel=mkMatU(0,0,0,1,{mt:2,bump:1.0,rust:.65,spec:.2}),matWood=mkMatU(0,0,0,1,{mt:5,bump:1.0,spec:.06}),matRock=mkMatU(0,0,0,1,{mt:1,bump:1.3,spec:.05}),matArch=mkMatU(0,0,0,1,{mt:1,bump:1.4,spec:.04});
-for(const k in WR){const w=WR[k];w.id=k;w.z=0;w.y=-base(w.x);try{const mx=new Float32Array([1,0,0,0, 0,1,0,0, 0,0,1,0, w.x,w.y,w.z,1]);const wm=k==='af447'?matAir:(k==='bismarck'||k==='roberts')?matSteel:k==='galeon'?matWood:matWreck,ib=instBuf(mx);addStatic(gpuGeo(w.g()),ib,wm,false);STAT[STAT.length-1].wk=k;if(w.dg)try{addStatic(gpuGeo(w.dg()),ib,wm,false);STAT[STAT.length-1].wk=k}catch(e){console.warn('escombros',k,e)}if(w.cg)try{addStatic(gpuGeo(w.cg()),ib,matAir,false);STAT[STAT.length-1].wk=k}catch(e){console.warn('carga',k,e)}}catch(e){console.warn('naufragio',k,e)}}
+const matTerr=mkMatU(0,0,0,1,{mt:3,bump:1.15,spec:.05}),matWreck=mkMatU(0,0,0,1,{mt:2,bump:1.0,rust:.75,spec:.14}),matAir=mkMatU(0,0,0,1,{mt:4,bump:.45,rust:.1,spec:.35}),matSteel=mkMatU(0,0,0,1,{mt:2,bump:1.0,rust:.65,spec:.2}),matRob=mkMatU(0,0,0,1,{mt:2,bump:1.0,rust:.28,spec:.2}),matWood=mkMatU(0,0,0,1,{mt:5,bump:1.0,spec:.06}),matRock=mkMatU(0,0,0,1,{mt:1,bump:1.3,spec:.05}),matArch=mkMatU(0,0,0,1,{mt:1,bump:1.4,spec:.04});
+for(const k in WR){const w=WR[k];w.id=k;w.z=0;w.y=-base(w.x);try{const mx=new Float32Array([1,0,0,0, 0,1,0,0, 0,0,1,0, w.x,w.y,w.z,1]);const wm=k==='af447'?matAir:k==='roberts'?matRob:k==='bismarck'?matSteel:k==='galeon'?matWood:matWreck,ib=instBuf(mx);addStatic(gpuGeo(w.g()),ib,wm,false);STAT[STAT.length-1].wk=k;if(w.dg)try{addStatic(gpuGeo(w.dg()),ib,wm,false);STAT[STAT.length-1].wk=k}catch(e){console.warn('escombros',k,e)}if(w.cg)try{addStatic(gpuGeo(w.cg()),ib,matAir,false);STAT[STAT.length-1].wk=k}catch(e){console.warn('carga',k,e)}}catch(e){console.warn('naufragio',k,e)}}
 try{const gs=[];for(const c of CH){const y=-floorAt(c[0],c[1])-.5;gs.push(P(CY(2.6,1,c[2]*.6,7),'#2b2522',{p:[c[0],y,c[1]]}),P(CY(1,.55,c[2]*.45,7),'#241f1c',{p:[c[0],y+c[2]*.58,c[1]]}),P(S_(.5,8,6),'#ff8a3a',{p:[c[0],y+c[2]*1.02,c[1]],e:.9}))}
  addStatic(gpuGeo(MG(gs)),identBuf,matRock,false)}catch(e){console.warn('fumarolas',e)}
 // ---- rocas con túnel y cámara: campo de distancias + "surface nets" por compute ----
@@ -2011,7 +2033,7 @@ const SHIPS={
  titanic:{org:[-17.6,-1,-63.8],h:.4,n:[88,110,320],cap:5500000,hp:[120,28,22,.5],boxes:[],brk:-57,hollow:1,er:[1.1,.62,.8,.08],dk:[6,12,17,0],fl:[0,3.2,9,.7],col:[.37,.28,.21],seed:1.3},
  bismarck_sup:{org:[-9.6,19.6,-50.6],h:.3,n:[64,88,110],cap:1800000,hp:[-3,0,0,0],boxes:[],brk:-1000,hollow:0,er:[0,1,.8,.05],dk:[0,0,0,0],fl:[0,0,0,.5],col:[.3,.33,.36],seed:2.8},
  bismarck:{org:[-22.4,-1,-128.8],h:.5,n:[90,90,516],cap:8000000,hp:[250,36,16,.45],boxes:[[0,18,-4,.3,10,2,80]],brk:-1000,hollow:0,er:[.3,.9,.96,.12],dk:[0,0,0,0],fl:[1,0,0,.8],col:[.2,.19,.18],seed:2.1},
- roberts:{org:[-6.8,-1,-48],h:.4,n:[34,58,240],cap:2500000,hp:[93,11,8,.45],boxes:[[0,10.5,6,.8,3.5,2.5,5],[0,15,7,.7,2.5,2,3],[0,18.5,7,.6,1.5,1.5,1.5]],brk:-1000,hollow:0,er:[.5,.88,.96,.15],dk:[0,0,0,0],fl:[1,0,0,.5],col:[.29,.31,.35],seed:3.7},
+ roberts:{org:[-6.8,-1,-48],h:.3,n:[46,77,320],cap:4500000,hp:[93,11,8,.45],boxes:[[0,10.5,6,.8,3.5,2.5,5],[0,15,7,.7,2.5,2,3],[0,18.5,7,.6,1.5,1.5,1.5]],brk:-1000,hollow:0,er:[.5,.88,.96,.15],dk:[0,0,0,0],fl:[1,0,0,.5],col:[.52,.56,.56],seed:3.7},
  af447:{org:[-3.4,-.2,-15.5],h:.14,n:[49,43,226],cap:2500000,hp:[-1,0,0,0],boxes:[],brk:-1000,hollow:0,er:[0,1,.8,.05],dk:[0,0,0,0],fl:[0,0,0,.5],col:[.55,.58,.6],seed:5.3},
  galeon:{org:[-6.3,-1,-22.4],h:.25,n:[50,67,179],cap:3000000,hp:[40,11,7,.4],boxes:[[0,9.5,-15,1.6,4.75,2.5,5.5],[0,13.25,-16,1.2,4,1.25,3.5],[0,8.75,12,1.4,3.5,1.75,3]],brk:-1000,hollow:1,er:[.7,.64,.6,.3],dk:[3.5,0,0,0],fl:[0,0,0,.45],col:[.29,.21,.14],seed:4.9}};
 function buildShip(key){const w=WR[key.split('_')[0]],S=SHIPS[key],[NX,NY,NZ]=S.n,u=new Float32Array(16*8+48);
@@ -2021,7 +2043,7 @@ function buildShip(key){const w=WR[key.split('_')[0]],S=SHIPS[key],[NX,NY,NZ]=S.
  const bg=device.createBindGroup({layout:shipBGL,entries:[{binding:0,resource:{buffer:U}},{binding:1,resource:{buffer:field}},{binding:2,resource:{buffer:verts}},{binding:3,resource:{buffer:idx}},{binding:4,resource:{buffer:args}}]});
  const enc=device.createCommandEncoder(),c=enc.beginComputePass();c.setBindGroup(0,bg);
  c.setPipeline(shipP.sample);c.dispatchWorkgroups(Math.ceil((NX+1)/4),Math.ceil((NY+1)/4),Math.ceil((NZ+1)/4));c.setPipeline(shipP.cellv);c.dispatchWorkgroups(Math.ceil(NX/4),Math.ceil(NY/4),Math.ceil(NZ/4));c.setPipeline(shipP.quads);c.dispatchWorkgroups(Math.ceil((NX+1)/4),Math.ceil((NY+1)/4),Math.ceil((NZ+1)/4));c.end();device.queue.submit([enc.finish()]);
- const mx=new Float32Array([1,0,0,0, 0,1,0,0, 0,0,1,0, w.x,w.y,w.z,1]);const mt=(key.startsWith('bismarck')||key==='roberts')?matSteel:key==='af447'?matAir:key.startsWith('galeon')?matWood:matWreck;
+ const mx=new Float32Array([1,0,0,0, 0,1,0,0, 0,0,1,0, w.x,w.y,w.z,1]);const mt=key==='roberts'?matRob:key.startsWith('bismarck')?matSteel:key==='af447'?matAir:key.startsWith('galeon')?matWood:matWreck;
  STAT.push({geo:{buf:verts,n:0},ibuf:instBuf(mx),mat:mt,caster:false,ind:{idx,args},anim:'',tag:'casco-'+key,wk:key.split('_')[0]})}
 for(const k in SHIPS)buildShip(k);
 

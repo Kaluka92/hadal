@@ -143,8 +143,8 @@ function plkStep(enc){const c=enc.beginComputePass();c.setPipeline(pkP);c.setBin
 // ---- objetos estáticos: naufragios, fumarolas, arcos de roca ----
 const STAT=[];
 function addStatic(geo,instance,matU,caster){STAT.push({geo,ibuf:instance,mat:matU,caster:!!caster,anim:''})}
-const matTerr=mkMatU(0,0,0,1,{mt:3,bump:1.15,spec:.05}),matWreck=mkMatU(0,0,0,1,{mt:2,bump:1.0,rust:.75,spec:.14}),matAir=mkMatU(0,0,0,1,{mt:4,bump:.45,rust:.1,spec:.35}),matSteel=mkMatU(0,0,0,1,{mt:2,bump:1.0,rust:.65,spec:.2}),matWood=mkMatU(0,0,0,1,{mt:5,bump:1.0,spec:.06}),matRock=mkMatU(0,0,0,1,{mt:1,bump:1.3,spec:.05}),matArch=mkMatU(0,0,0,1,{mt:1,bump:1.4,spec:.04});
-for(const k in WR){const w=WR[k];w.id=k;w.z=0;w.y=-base(w.x);try{const mx=new Float32Array([1,0,0,0, 0,1,0,0, 0,0,1,0, w.x,w.y,w.z,1]);const wm=k==='af447'?matAir:(k==='bismarck'||k==='roberts')?matSteel:k==='galeon'?matWood:matWreck,ib=instBuf(mx);addStatic(gpuGeo(w.g()),ib,wm,false);STAT[STAT.length-1].wk=k;if(w.dg)try{addStatic(gpuGeo(w.dg()),ib,wm,false);STAT[STAT.length-1].wk=k}catch(e){console.warn('escombros',k,e)}if(w.cg)try{addStatic(gpuGeo(w.cg()),ib,matAir,false);STAT[STAT.length-1].wk=k}catch(e){console.warn('carga',k,e)}}catch(e){console.warn('naufragio',k,e)}}
+const matTerr=mkMatU(0,0,0,1,{mt:3,bump:1.15,spec:.05}),matWreck=mkMatU(0,0,0,1,{mt:2,bump:1.0,rust:.75,spec:.14}),matAir=mkMatU(0,0,0,1,{mt:4,bump:.45,rust:.1,spec:.35}),matSteel=mkMatU(0,0,0,1,{mt:2,bump:1.0,rust:.65,spec:.2}),matRob=mkMatU(0,0,0,1,{mt:2,bump:1.0,rust:.28,spec:.2}),matWood=mkMatU(0,0,0,1,{mt:5,bump:1.0,spec:.06}),matRock=mkMatU(0,0,0,1,{mt:1,bump:1.3,spec:.05}),matArch=mkMatU(0,0,0,1,{mt:1,bump:1.4,spec:.04});
+for(const k in WR){const w=WR[k];w.id=k;w.z=0;w.y=-base(w.x);try{const mx=new Float32Array([1,0,0,0, 0,1,0,0, 0,0,1,0, w.x,w.y,w.z,1]);const wm=k==='af447'?matAir:k==='roberts'?matRob:k==='bismarck'?matSteel:k==='galeon'?matWood:matWreck,ib=instBuf(mx);addStatic(gpuGeo(w.g()),ib,wm,false);STAT[STAT.length-1].wk=k;if(w.dg)try{addStatic(gpuGeo(w.dg()),ib,wm,false);STAT[STAT.length-1].wk=k}catch(e){console.warn('escombros',k,e)}if(w.cg)try{addStatic(gpuGeo(w.cg()),ib,matAir,false);STAT[STAT.length-1].wk=k}catch(e){console.warn('carga',k,e)}}catch(e){console.warn('naufragio',k,e)}}
 try{const gs=[];for(const c of CH){const y=-floorAt(c[0],c[1])-.5;gs.push(P(CY(2.6,1,c[2]*.6,7),'#2b2522',{p:[c[0],y,c[1]]}),P(CY(1,.55,c[2]*.45,7),'#241f1c',{p:[c[0],y+c[2]*.58,c[1]]}),P(S_(.5,8,6),'#ff8a3a',{p:[c[0],y+c[2]*1.02,c[1]],e:.9}))}
  addStatic(gpuGeo(MG(gs)),identBuf,matRock,false)}catch(e){console.warn('fumarolas',e)}
 // ---- rocas con túnel y cámara: campo de distancias + "surface nets" por compute ----
@@ -307,7 +307,7 @@ const SHIPS={
  titanic:{org:[-17.6,-1,-63.8],h:.4,n:[88,110,320],cap:5500000,hp:[120,28,22,.5],boxes:[],brk:-57,hollow:1,er:[1.1,.62,.8,.08],dk:[6,12,17,0],fl:[0,3.2,9,.7],col:[.37,.28,.21],seed:1.3},
  bismarck_sup:{org:[-9.6,19.6,-50.6],h:.3,n:[64,88,110],cap:1800000,hp:[-3,0,0,0],boxes:[],brk:-1000,hollow:0,er:[0,1,.8,.05],dk:[0,0,0,0],fl:[0,0,0,.5],col:[.3,.33,.36],seed:2.8},
  bismarck:{org:[-22.4,-1,-128.8],h:.5,n:[90,90,516],cap:8000000,hp:[250,36,16,.45],boxes:[[0,18,-4,.3,10,2,80]],brk:-1000,hollow:0,er:[.3,.9,.96,.12],dk:[0,0,0,0],fl:[1,0,0,.8],col:[.2,.19,.18],seed:2.1},
- roberts:{org:[-6.8,-1,-48],h:.4,n:[34,58,240],cap:2500000,hp:[93,11,8,.45],boxes:[[0,10.5,6,.8,3.5,2.5,5],[0,15,7,.7,2.5,2,3],[0,18.5,7,.6,1.5,1.5,1.5]],brk:-1000,hollow:0,er:[.5,.88,.96,.15],dk:[0,0,0,0],fl:[1,0,0,.5],col:[.29,.31,.35],seed:3.7},
+ roberts:{org:[-6.8,-1,-48],h:.3,n:[46,77,320],cap:4500000,hp:[93,11,8,.45],boxes:[[0,10.5,6,.8,3.5,2.5,5],[0,15,7,.7,2.5,2,3],[0,18.5,7,.6,1.5,1.5,1.5]],brk:-1000,hollow:0,er:[.5,.88,.96,.15],dk:[0,0,0,0],fl:[1,0,0,.5],col:[.52,.56,.56],seed:3.7},
  af447:{org:[-3.4,-.2,-15.5],h:.14,n:[49,43,226],cap:2500000,hp:[-1,0,0,0],boxes:[],brk:-1000,hollow:0,er:[0,1,.8,.05],dk:[0,0,0,0],fl:[0,0,0,.5],col:[.55,.58,.6],seed:5.3},
  galeon:{org:[-6.3,-1,-22.4],h:.25,n:[50,67,179],cap:3000000,hp:[40,11,7,.4],boxes:[[0,9.5,-15,1.6,4.75,2.5,5.5],[0,13.25,-16,1.2,4,1.25,3.5],[0,8.75,12,1.4,3.5,1.75,3]],brk:-1000,hollow:1,er:[.7,.64,.6,.3],dk:[3.5,0,0,0],fl:[0,0,0,.45],col:[.29,.21,.14],seed:4.9}};
 function buildShip(key){const w=WR[key.split('_')[0]],S=SHIPS[key],[NX,NY,NZ]=S.n,u=new Float32Array(16*8+48);
@@ -317,7 +317,7 @@ function buildShip(key){const w=WR[key.split('_')[0]],S=SHIPS[key],[NX,NY,NZ]=S.
  const bg=device.createBindGroup({layout:shipBGL,entries:[{binding:0,resource:{buffer:U}},{binding:1,resource:{buffer:field}},{binding:2,resource:{buffer:verts}},{binding:3,resource:{buffer:idx}},{binding:4,resource:{buffer:args}}]});
  const enc=device.createCommandEncoder(),c=enc.beginComputePass();c.setBindGroup(0,bg);
  c.setPipeline(shipP.sample);c.dispatchWorkgroups(Math.ceil((NX+1)/4),Math.ceil((NY+1)/4),Math.ceil((NZ+1)/4));c.setPipeline(shipP.cellv);c.dispatchWorkgroups(Math.ceil(NX/4),Math.ceil(NY/4),Math.ceil(NZ/4));c.setPipeline(shipP.quads);c.dispatchWorkgroups(Math.ceil((NX+1)/4),Math.ceil((NY+1)/4),Math.ceil((NZ+1)/4));c.end();device.queue.submit([enc.finish()]);
- const mx=new Float32Array([1,0,0,0, 0,1,0,0, 0,0,1,0, w.x,w.y,w.z,1]);const mt=(key.startsWith('bismarck')||key==='roberts')?matSteel:key==='af447'?matAir:key.startsWith('galeon')?matWood:matWreck;
+ const mx=new Float32Array([1,0,0,0, 0,1,0,0, 0,0,1,0, w.x,w.y,w.z,1]);const mt=key==='roberts'?matRob:key.startsWith('bismarck')?matSteel:key==='af447'?matAir:key.startsWith('galeon')?matWood:matWreck;
  STAT.push({geo:{buf:verts,n:0},ibuf:instBuf(mx),mat:mt,caster:false,ind:{idx,args},anim:'',tag:'casco-'+key,wk:key.split('_')[0]})}
 for(const k in SHIPS)buildShip(k);
 
