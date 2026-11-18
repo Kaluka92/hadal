@@ -50,7 +50,7 @@ function sharkG(o){const W=o.W,Hh=o.H,sn=o.snout||0,thick=o.thick||1;
  const tf=u=>Math.pow(Math.sin(Math.PI*Math.pow(u,o.head||.62)),.85)*(1-.28*u);
  const sec=s=>{const f=Math.max(tf(1-s),.004);let hb=Hh*.95*f;if(sn&&s>.8)hb*=1-sn*.7*ST(.8,1,s);return{w:W*f,ht:Hh*f*1.05,hb,p:2.2,yc:0}};
  const top=HX(o.top),bel=HX(o.bel),dk=HX('#0c0e10');
- const colf=(s,c,y)=>{let k=MX3(bel,top,ST(o.line-.07,o.line+.07,y));if(s>.74&&s<.84&&y>-.35&&y<.65&&Math.abs(Math.sin((s-.74)*210))>.88)k=MX3(k,dk,.75);if(s>.93&&y<-.1&&y>-.55)k=MX3(k,dk,.5);return k};
+ const colf=(s,c,y)=>{let k=MX3(bel,top,ST(o.line-.07,o.line+.07,y));if(s>.74&&s<.84&&y>-.35&&y<.65&&Math.abs(Math.sin((s-.74)*210))>.88)k=MX3(k,dk,.75);if(s>.93&&y<-.1&&y>-.55)k=MX3(k,dk,.5);k=MX3(k,top,.12*(.5+.5*Math.sin(s*95+y*13))*ST(-.3,.1,y)*(1-ST(.1,.4,y)));return k};
  const gs=[LOFT(1,sec,colf,90,32)];const fc=HX(o.fin),f2=MX3(HX(o.fin),HX(o.bel),.35);
  const asym=o.asym||1;
  gs.push(FIN(v=>[0,.15*asym*v+.0,-.5-.05*Math.pow(v,1.2)],v=>[0,.15*asym*v,-.5-.13*Math.pow(v,1.15)-.06*(1-.6*v)],{T:.008,nrm:[1,0,0],c1:fc,c2:f2,tip:.5}));
@@ -110,6 +110,7 @@ SPN('Manta raya').g=()=>{const NX=44,NZ=22,pos=[],col=[],ix=[],ct=HX('#1d2831'),
   for(let i=0;i<NX;i++)for(let j=0;j<NZ;j++){const a=b0+i*(NZ+1)+j,b=a+1,c=a+NZ+1,d=c+1;if(side>0)ix.push(a,c,b,b,c,d);else ix.push(a,b,c,b,d,c)}}
  const gs=[FX.GF(pos,col,ix)];
  for(const sd of[-1,1])gs.push(FIN(v=>[sd*(.12+.06*v),.0,.34+.2*v],v=>[sd*(.12+.02*v),.0,.28+.08*v],{T:.012,nv:8,c1:ct,c2:cd,tip:.6}));
+ for(const sd of[-1,1]){gs.push(FIN(v=>[sd*(.1+.05*v),.0,.4+.06*v],v=>[sd*(.1+.03*v),.0,.36-.02*v],{T:.008,nv:6,c1:ct,c2:cd,tip:.5}));for(let k=0;k<5;k++)gs.push(P(S_(.014,5,3),'#1a1f24',{p:[sd*(.06+.032*k),-.045,.1-.012*k],s:[1,.2,2.2]}));gs.push(P(S_(.012,5,3),'#161a1e',{p:[sd*.13,.045,.22],s:[1.5,.3,1]}))}
  gs.push(seg(V3([0,0,-.3]),V3([0,.0,-1.05]),.018,.004,6),...EYE(.17,.03,.3,.014),...EYE(-.17,.03,.3,.014));
  return MG(gs.map(g=>g.attributes.color?g:P(g,'#1d2831')))};
 SPN('Manta raya').pat=0;
@@ -160,7 +161,7 @@ function fishG(c1,c2,o={}){const R=o.R||.1,tl=o.tl||.2,lt=o.lt||.5;
  const tf=u=>Math.pow(Math.sin(Math.PI*Math.pow(u,.62)),.8)*(1-.15*u);
  const sec=s=>{const f=Math.max(tf(1-s),.004);return{w:R*lt*f,ht:R*f*1.05,hb:R*f*.95,p:2.2,yc:0}};
  const A=HX(c1),Bc=HX(c2),belly=MX3(A,[1,1,1],.5),dk=MX3(A,[0,0,0],.3);
- const colf=(s,c,y)=>MX3(MX3(belly,A,ST(-.55,.05,y)),dk,ST(.35,.9,y));
+ const colf=(s,c,y)=>{let k=MX3(MX3(belly,A,ST(-.55,.05,y)),dk,ST(.35,.9,y));k=MX3(k,[1,1,1],.18*ST(-.7,-.95,y));if(s>.5&&s<.8)k=MX3(k,[1,1,1],.16*(1-ST(.015,.05,Math.abs(y-.12))));if(s>.77&&s<.8&&y>-.7)k=MX3(k,dk,.55);if(s>.8&&s<.87)k=MX3(k,[1,1,1],.1*ST(.8,.84,s));if(s>.965&&y<.05&&y>-.3)k=MX3(k,dk,.6*(1-ST(.02,.06,Math.abs(y+.1))));return k};
  const lo=FISHLO,gs=[LOFT(1,sec,colf,lo?14:48,lo?7:20)],tw=tl*.9,fo={T:.004,nrm:[1,0,0],nu:lo?2:8,nv:lo?3:7,c1:Bc,c2:Bc};
  for(const sd of[-1,1])gs.push(FIN(v=>[0,sd*tw*v,-.5-.02*v-.22*tl*v*v],v=>[0,sd*tw*v,-.5-tl*(o.fork?(.28+.9*Math.pow(v,1.5)):(1-.45*v*v))],{...fo,nu:lo?2:10,nv:lo?3:9}));
  if(o.dor!==0){const h=o.dor||.12,y=RY(sec,0,1,.85);gs.push(FIN(v=>[0,y+h*v,.12-.08*v],v=>[0,y+h*v,-.12+.06*v],{...fo,nv:lo?1:3}));
