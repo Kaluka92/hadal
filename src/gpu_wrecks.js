@@ -186,6 +186,20 @@ WR.bismarck.g=()=>MG([
  ...bisRust()]);
 WR.bismarck.dg=()=>debris(31,110,90,['#4b525a','#3d444a','#555c64','#6a4224'],11300);
 
+// --- Fumarolas negras: complejos de agujas escalonadas con costra gris oscura, manchas de azufre y óxido, y boca negra (referencias NOAA de dominio público: Magic Mountain, Lost City/Main Endeavour) ---
+const ventComplex=(r,x,y,z,h)=>{const out=[],R=3+h*.28;
+ out.push(P(decay(S_(1,12,8),.16,1.3),'#34373a',{p:[x,y+.15,z],s:[R*1.5,R*.35,R*1.5]}));
+ for(let i=0;i<9;i++){const a=r()*6.28,d=R*(.6+r()*.8);out.push(P(decay(S_(1,9,6),.2,1.6),r()<.5?'#2a2d30':'#46484a',{p:[x+Math.cos(a)*d,y+.1,z+Math.sin(a)*d],s:[.9+r()*1.4,.4+r()*.5,.9+r()*1.4]}))}
+ const nsp=3+Math.floor(r()*3);
+ for(let s=0;s<nsp;s++){const a=r()*6.28,d=r()*R*.7,sx=x+Math.cos(a)*d,sz=z+Math.sin(a)*d,hs=h*(s===0?1:.45+r()*.55),n=9+Math.floor(r()*6);let acc=0,rad=1.1+r()*.9+h*.04;const lean=[(r()-.5)*.07,(r()-.5)*.07];
+  const LOW=['#34373a','#3e4144','#2c2f31','#4a4d4f','#3a3d40','#46484a'];
+  for(let t=0;t<n;t++){const f=t/n,th=hs/n*(.7+r()*.6),rt=Math.max(rad*(.8+r()*.17)*(r()<.14?1.18:1),.2),col=f>.6?['#14161a','#1d1f21','#26292b','#303336'][Math.floor(r()*4)]:LOW[Math.floor(r()*LOW.length)],cx=sx+lean[0]*acc*3+(r()-.5)*.3*rad,cz=sz+lean[1]*acc*3+(r()-.5)*.3*rad;
+   out.push(P(decay(CY(rad,rt,th,12),.13,1.5),col,{p:[cx,y+acc,cz],r:[(r()-.5)*.16,r()*6.28,(r()-.5)*.16]}));
+   for(let q=0;q<(f<.7?3:1);q++)if(r()<.7){const an=r()*6.28;out.push(P(decay(S_(1,7,5),.2,1.8),r()<.62?['#b58f2a','#a98a2c','#8a7a34'][Math.floor(r()*3)]:['#a8501c','#8a4018'][Math.floor(r()*2)],{p:[cx+Math.cos(an)*rad*.84,y+acc+th*(.2+r()*.6),cz+Math.sin(an)*rad*.84],s:[.4+r()*.5,.22+r()*.2,.4+r()*.5],r:[0,-an,0]}))}
+   if(r()<.3){const an=r()*6.28;out.push(P(decay(S_(1,6,4),.12,2),'#c9c9bc',{p:[cx+Math.cos(an)*rad*.88,y+acc+th*.3,cz+Math.sin(an)*rad*.88],s:[.25+r()*.3,.1+r()*.15,.25+r()*.3]}))}
+   acc+=th*.9;rad=rt}
+  out.push(P(CY(rad*.9,rad*.55,.35,10),'#1a1b1c',{p:[sx+lean[0]*acc*3,y+acc,sz+lean[1]*acc*3]}),P(CY(rad*.5,rad*.4,.2,8),'#030303',{p:[sx+lean[0]*acc*3,y+acc+.3,sz+lean[1]*acc*3]}))}
+ return out};
 // --- USS Samuel B. Roberts (DE-413): referencias reales = fotos de Victor Vescovo desde el DSV Limiting Factor (2022, CC BY-SA 4.0, Wikimedia Commons): proa pálida con manchas de óxido, escobenes, lifelines dobladas, tubos lanzatorpedos ocres con óxido colgando y maraña de cables ---
 const robXs=(z,y)=>{const L=93,z0=-L/2+.45*L,tt=Math.max((z-z0)/(L/2-z0),0),hb=Math.max(5.5*Math.pow(Math.max(1-Math.pow(tt,1.8),0),.55),.001),v=Math.min(Math.max(1-y/8,0),1);return hb*Math.sqrt(Math.max(1-Math.pow(v,4.444),0))};
 const RUSTR=['#b8782e','#c88a3a','#9a5a24','#d49a48','#8a4a1e','#b06a26'];

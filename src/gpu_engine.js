@@ -143,10 +143,10 @@ function plkStep(enc){const c=enc.beginComputePass();c.setPipeline(pkP);c.setBin
 // ---- objetos estáticos: naufragios, fumarolas, arcos de roca ----
 const STAT=[];
 function addStatic(geo,instance,matU,caster){STAT.push({geo,ibuf:instance,mat:matU,caster:!!caster,anim:''})}
-const matTerr=mkMatU(0,0,0,1,{mt:3,bump:1.15,spec:.05}),matWreck=mkMatU(0,0,0,1,{mt:2,bump:1.0,rust:.75,spec:.14}),matAir=mkMatU(0,0,0,1,{mt:4,bump:.45,rust:.1,spec:.35}),matSteel=mkMatU(0,0,0,1,{mt:2,bump:1.0,rust:.65,spec:.2}),matRob=mkMatU(0,0,0,1,{mt:2,bump:1.0,rust:.28,spec:.2}),matWood=mkMatU(0,0,0,1,{mt:5,bump:1.0,spec:.06}),matRock=mkMatU(0,0,0,1,{mt:1,bump:1.3,spec:.05}),matArch=mkMatU(0,0,0,1,{mt:1,bump:1.4,spec:.04});
+const matTerr=mkMatU(0,0,0,1,{mt:3,bump:1.15,spec:.05}),matWreck=mkMatU(0,0,0,1,{mt:2,bump:1.0,rust:.75,spec:.14}),matAir=mkMatU(0,0,0,1,{mt:4,bump:.45,rust:.1,spec:.35}),matSteel=mkMatU(0,0,0,1,{mt:2,bump:1.0,rust:.65,spec:.2}),matRob=mkMatU(0,0,0,1,{mt:2,bump:1.0,rust:.28,spec:.2}),matWood=mkMatU(0,0,0,1,{mt:5,bump:1.0,spec:.06}),matRock=mkMatU(0,0,0,1,{mt:1,bump:1.3,spec:.05}),matVent=mkMatU(0,0,0,1,{mt:4,bump:1.0,rust:.1,spec:.08}),matArch=mkMatU(0,0,0,1,{mt:1,bump:1.4,spec:.04});
 for(const k in WR){const w=WR[k];w.id=k;w.z=0;w.y=-base(w.x);try{const mx=new Float32Array([1,0,0,0, 0,1,0,0, 0,0,1,0, w.x,w.y,w.z,1]);const wm=k==='af447'?matAir:k==='roberts'?matRob:k==='bismarck'?matSteel:k==='galeon'?matWood:matWreck,ib=instBuf(mx);addStatic(gpuGeo(w.g()),ib,wm,false);STAT[STAT.length-1].wk=k;if(w.dg)try{addStatic(gpuGeo(w.dg()),ib,wm,false);STAT[STAT.length-1].wk=k}catch(e){console.warn('escombros',k,e)}if(w.cg)try{addStatic(gpuGeo(w.cg()),ib,matAir,false);STAT[STAT.length-1].wk=k}catch(e){console.warn('carga',k,e)}}catch(e){console.warn('naufragio',k,e)}}
-try{const gs=[];for(const c of CH){const y=-floorAt(c[0],c[1])-.5;gs.push(P(CY(2.6,1,c[2]*.6,7),'#2b2522',{p:[c[0],y,c[1]]}),P(CY(1,.55,c[2]*.45,7),'#241f1c',{p:[c[0],y+c[2]*.58,c[1]]}),P(S_(.5,8,6),'#ff8a3a',{p:[c[0],y+c[2]*1.02,c[1]],e:.9}))}
- addStatic(gpuGeo(MG(gs)),identBuf,matRock,false)}catch(e){console.warn('fumarolas',e)}
+try{const gs=[],rv=mb(808);for(const c of CH){const y=-floorAt(c[0],c[1])-.5;gs.push(...ventComplex(rv,c[0],y,c[1],c[2]*1.7))}
+ addStatic(gpuGeo(MG(gs)),identBuf,matVent,false)}catch(e){console.warn('fumarolas',e)}
 // ---- rocas con túnel y cámara: campo de distancias + "surface nets" por compute ----
 const SDFW=`
 struct U{org:vec3f,h:f32,rc:vec3f,R:f32,yaw:f32,seed:f32,a:f32,b:f32};
