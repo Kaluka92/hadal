@@ -123,6 +123,7 @@ fn h2(p:vec2f)->f32{return fract(sin(dot(p,vec2f(127.1,311.7)))*43758.5453);}
    {let Uu=normalize(vec3f(1e-4,1.,0.)-n0*n0.y);let Ww=cross(n0,Uu);let sxg=select(-1.,1.,fract(gq.x)>.5);let syg=select(-1.,1.,fract(gq.y)>.5);let mxl=step(gf.y,gf.x);
     N=normalize(N+(Uu*sxg*mxl+Ww*syg*(1.-mxl))*seam*fdd*.55*M.b.x);}
    let vsk=textureSample(tDet,sL,vec2f((i.wp.x+i.wp.z)*1.1,i.wp.y*.035)).g;let wl=select(1.,0.,matT>3.5);alb=mix(alb,vec3f(.24,.31,.27)*(.55+.6*B.h),.42*wl*(1.-rm*.6));alb=mix(alb,vec3f(.62,.24,.07)*(.55+.8*vsk),ss(.42,.8,vsk)*.85*wl*ss(80.,12.,d)*max(M.b.y,.5));
+   alb=mix(alb,vec3f(.40,.41,.38)*(.7+.5*B.h),ss(.55,.95,n0.y)*.45*wl*ss(120.,10.,d));
    alb=mix(alb,vec3f(.72,.7,.62),ss(.80,.9,B.c)*.3);gloss=.14;
   }
  }

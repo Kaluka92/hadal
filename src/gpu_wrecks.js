@@ -142,6 +142,19 @@ const robRig=()=>{const out=[],g1='#3a4046',g2='#4a5058',dk='#0c0d0e';
  // cofa y antena de radar
  out.push(P(BXs(2.2,.2,2.2,.05,1),g2,{p:[0,24.5,6.7]}),P(CY(1.1,1.1,.1,12),'#6a7076',{p:[0,25,6.5],r:[Math.PI/2,0,0]}));
  return out};
+// --- Bismarck: misma fórmula del casco que el SDF (hp [250,36,16,.45], cubierta en y=16) para pegar óxido y barandas ---
+const bisXs=(z,y)=>{const L=250,z0=-L/2+.45*L,tt=Math.max((z-z0)/(L/2-z0),0),hb=Math.max(18*Math.pow(Math.max(1-Math.pow(tt,1.8),0),.55),.001),v=Math.min(Math.max(1-y/16,0),1);return hb*Math.sqrt(Math.max(1-Math.pow(v,4.444),0))};
+const RUSTB=['#7a3a14','#8a4418','#5e2c12','#a05520','#4a2a18','#6a3216'];
+const bisRust=()=>{const r=mb(77),out=[];
+ [-1,1].forEach(s=>{for(let z=-121;z<119;z+=.7+r()*.7){const y=15.7;out.push(...rustClump(r,s*(bisXs(z,y)+.1),y,z,.4+r()*r()*1.9,.05+r()*.07,RUSTB))}});
+ for(let i=0;i<260;i++){const z=-121+r()*240,y=1+r()*14,s=r()<.5?-1:1;out.push(...rustClump(r,s*(bisXs(z,y)+.06),y,z,.5+r()*1.6,.05+r()*.08,RUSTB))}
+ return out};
+// barandas a lo largo de toda la cubierta: dos tubos con postes, tramos caídos y óxido
+const bisRails=()=>{const r=mb(88),out=[],DK=16,col='#3a342e',ys=[.55,1.05];
+ [-1,1].forEach(s=>{const pts=[];for(let z=-120;z<=118;z+=2.4)pts.push([s*(bisXs(z,15.9)-.25),z]);
+  ys.forEach(yy=>{for(let i=0;i<pts.length-1;i++){if(r()<.22)continue;const dr=r()<.1?-.45*r():0,a=pts[i],b=pts[i+1];out.push(P(seg(V3([a[0],DK+yy+dr,a[1]]),V3([b[0],DK+yy+dr*.5,b[1]]),.05,.05,6),col));if(r()<.3)out.push(...rustClump(r,(a[0]+b[0])/2,DK+yy-.05,(a[1]+b[1])/2,.2+r()*.8,.04+r()*.05,RUSTB))}});
+  pts.forEach(p=>{if(r()<.8)out.push(P(CY(.045,.045,1.15,6),col,{p:[p[0],DK,p[1]]}),...(r()<.45?rustClump(r,p[0],DK+.9,p[1],.3+r()*1.0,.07,RUSTB):[]))})});
+ return out};
 WR.bismarck.g=()=>MG([
  ...bisRig(),
  P(CY(2.9,1.7,26,12),'#4d545c',{p:[0,16,-56],s:[1.4,1,1]}),P(CY(1.8,1.8,.9,12),'#33383e',{p:[0,42,-56],s:[1.4,1,1]}),P(new T.TorusGeometry(1.75,.15,6,16),'#33383e',{p:[0,42.9,-56],r:[Math.PI/2,0,0],s:[1.4,1,1]}),
@@ -150,9 +163,9 @@ WR.bismarck.g=()=>MG([
  ...[-1,1].flatMap(s=>[30,10,-12,-60,-84].map(z=>P(BXs(4,2.4,4.2,.9,3),'#50575f',{p:[s*9,16,z]}))),
  ...[-1,1].flatMap(s=>rowZ(-62,60,11,z=>AAm(s*7.5,20,z))),
  ...rowZ(-100,-18,2.6,z=>[-1,1].map(s=>porth(s,36,16,9.5,z))),
- ...[-1,1].flatMap(s=>rail(s*17.4,16,-118,-14,2.4)),
+ ...bisRails(),
  P(BXs(1.6,.3,22,.1,1),'#3a4046',{p:[0,20.2,30]}),P(seg(V3([4,20,10]),V3([4,32,10]),.3,.2,6),'#3a4046'),P(seg(V3([4,32,10]),V3([-3,30,16]),.2,.12,5),'#3a4046'),
- ...rusticles(130,250,36,16,'#6a4224')]);
+ ...bisRust()]);
 WR.bismarck.dg=()=>debris(31,110,90,['#4b525a','#3d444a','#555c64','#6a4224'],11300);
 
 WR.roberts.g=()=>MG([
