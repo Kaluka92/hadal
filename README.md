@@ -77,7 +77,7 @@ En `#debug` (`index.html#debug`) quedan funciones de ayuda en `window` (`__go`, 
 - Representación artística: las especies y el relieve no son un modelo científico exacto.
 - Los cascos completos se ven poco por la oscuridad del agua profunda; los reflectores (L) ayudan hasta ~100 m.
 - La reacción de la fauna al submarino y el sonido procedural (WebAudio) no se verificaron visualmente ni de oído.
-- Sin versión para celular (los controles requieren teclado).
+- Celular: hay botones táctiles (avanzar, subir, bajar) y arrastrar para mirar, y arranca en calidad Bajo, pero **no se probó en un celular real**; necesita un navegador con WebGPU (Chrome en Android reciente, Safari 26 o posterior).
 - La carga depende de un CDN sin verificación de integridad.
 
 ## Licencia

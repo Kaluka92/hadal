@@ -58,7 +58,7 @@ const gBuf=mkBuf(368,UB.UNIFORM|UB.COPY_DST),gShBuf=mkBuf(368,UB.UNIFORM|UB.COPY
 
 // ---- calidad ----
 var QL=1,RS=.75,perfOn=false,fpsS=16.7;
-try{QL=+(localStorage.hadalQ||1)}catch(e){}if(!(QL>=0&&QL<=4))QL=1;
+var TOUCH=matchMedia('(pointer:coarse)').matches;try{QL=+(localStorage.hadalQ||(TOUCH?0:1))}catch(e){if(TOUCH)QL=0}if(!(QL>=0&&QL<=4))QL=TOUCH?0:1;
 const QS=[{rs0:.65,rsMax:.85,ms:1,sh:0,shE:0,steps:10,den:.95},{rs0:.85,rsMax:1.1,ms:4,sh:2048,shE:2,steps:16,den:1.15},{rs0:1,rsMax:1.3,ms:4,sh:3072,shE:2,steps:22,den:1.3},{rs0:1.4,rsMax:1.7,ms:4,sh:6144,shE:1,steps:48,den:2.7},{rs0:1.55,rsMax:2.1,ms:4,sh:8192,shE:1,steps:64,den:3.4}];RS=QS[QL].rs0;
 let SC=QS[QL].ms,texSh=null;
 

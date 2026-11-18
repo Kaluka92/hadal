@@ -126,7 +126,7 @@ setTimeout(()=>{$('hint').style.transition='opacity 2s';$('hint').style.opacity=
 // ================= CABINA DEL MINISUBMARINO (marco de ventanilla de acrílico; tecla V la muestra u oculta) =================
 {const cv=document.createElement('canvas');cv.id='cabina';cv.style.cssText='position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:2';document.body.appendChild(cv);
  const gv=document.createElement('canvas');gv.id='cabinaG';gv.style.cssText='position:fixed;pointer-events:none;z-index:2';document.body.appendChild(gv);
- const st=document.createElement('style');st.textContent='.p,#hud,#card{z-index:3}#hint{bottom:30px!important;z-index:3;left:96px!important;right:96px!important}@keyframes led{0%,100%{opacity:1}50%{opacity:.35}}.led{animation:led 2.4s infinite}.ld{position:fixed;border-radius:50%;z-index:2;pointer-events:none}';document.head.appendChild(st);
+ const st=document.createElement('style');st.textContent='.p,#hud,#card{z-index:3}#hint{bottom:30px!important;z-index:3;left:96px!important;right:96px!important}@media (pointer:coarse){#hint{display:none}}@keyframes led{0%,100%{opacity:1}50%{opacity:.35}}.led{animation:led 2.4s infinite}.ld{position:fixed;border-radius:50%;z-index:2;pointer-events:none}';document.head.appendChild(st);
  const leds=[[.915,'#3dff8a'],[.935,'#ffb23d'],[.955,'#3dff8a'],[.975,'#58b8ff']].map(([f,c],k)=>{const d=document.createElement('div');d.className='ld'+(k%2?' led':'');d.style.background=c;d.style.boxShadow='0 0 6px 1px '+c+',inset 0 -1px 2px #0006';document.body.appendChild(d);return[d,f]});
  let GW=0,GCX=0,GCY=0,S2g=0;const mk=id=>{const e=document.createElement('canvas');e.id=id;e.style.cssText='position:fixed;pointer-events:none;z-index:2';document.body.appendChild(e);return e},kv=mk('cabinaK'),lv=mk('cabinaL');
  const rnd=(()=>{let s=12345;return()=>(s=(s*1664525+1013904223)>>>0)/4294967296})();
@@ -148,7 +148,7 @@ setTimeout(()=>{$('hint').style.transition='opacity 2s';$('hint').style.opacity=
   {const gx=w*.935,gy=h*.04,gw=w*.045,gh=h*.06;c.fillStyle='#05070a';c.fillRect(gx,gy,gw,gh);for(let i=0;i<7;i++){c.fillStyle='#1f262c';c.fillRect(gx+2,gy+3+i*gh/7.3,gw-4,gh/7.3*.55);c.fillStyle='rgba(255,255,255,.12)';c.fillRect(gx+2,gy+3+i*gh/7.3,gw-4,1)}c.strokeStyle='#59636b';c.lineWidth=2;c.strokeRect(gx,gy,gw,gh)}
   {const px=w*.012,py=h*.9,pw=Math.max(60,w*.06),ph2=Math.max(16,h*.03);c.save();c.translate(px,py);c.fillStyle='#d1a523';c.fillRect(0,0,pw,ph2);c.fillStyle='#14110a';for(let i=-2;i<10;i++){c.beginPath();c.moveTo(i*pw/8,ph2);c.lineTo(i*pw/8+pw/16,0);c.lineTo(i*pw/8+pw/8,0);c.lineTo(i*pw/8+pw/16,ph2);c.fill()}c.restore()}
   for(let i=0;i<14;i++){const x=w*(.015+rnd()*.07),y0=h*(.3+rnd()*.35);const gr=c.createLinearGradient(x,y0,x,y0+h*.12);gr.addColorStop(0,'rgba(120,70,30,.22)');gr.addColorStop(1,'rgba(120,70,30,0)');c.fillStyle=gr;c.fillRect(x,y0,1.6,h*.12*rnd()+8)}
-  c.fillStyle='#8a9096';c.font='600 '+Math.max(8,h*.014)+'px system-ui';c.textAlign='left';c.fillText('MAX 820 BAR',w*.97-Math.max(70,w*.07),h*.12);c.fillText('CAB. A',w*.012,h*.08);
+  if(w>600){c.fillStyle='#8a9096';c.font='600 '+Math.max(8,h*.014)+'px system-ui';c.textAlign='left';c.fillText('MAX 820 BAR',w*.97-Math.max(70,w*.07),h*.12);c.fillText('CAB. A',w*.012,h*.08)}
   // abrir la ventanilla
   c.globalCompositeOperation='destination-out';c.beginPath();c.ellipse(cx,cy,rx,ry,0,0,6.2832);c.fill();c.globalCompositeOperation='source-over';
   // aro de la ventanilla: bisel exterior, cara de titanio cepillado, junta de goma
@@ -190,7 +190,7 @@ setTimeout(()=>{$('hint').style.transition='opacity 2s';$('hint').style.opacity=
    const gl=c2.createLinearGradient(-R2*.7,-R2*.8,R2*.3,R2*.2);gl.addColorStop(0,'rgba(255,255,255,.2)');gl.addColorStop(.5,'rgba(255,255,255,0)');c2.fillStyle=gl;c2.beginPath();c2.arc(0,0,R2*.76,0,6.3);c2.fill();c2.setTransform(1,0,0,1,0,0)}
  };
  draw();addEventListener('resize',draw);setInterval(gauge,80);let on=true;try{if(localStorage.hadalCabina==='0')on=false}catch(e){}
- const setOn=()=>{const d=on?'block':'none';cv.style.display=gv.style.display=kv.style.display=lv.style.display=d;leds.forEach(([e])=>e.style.display=d)};setOn();
+ const setOn=()=>{const d=on?'block':'none';cv.style.display=gv.style.display=kv.style.display=d;lv.style.display=TOUCH?'none':d;leds.forEach(([e])=>e.style.display=TOUCH?'none':d)};setOn();
  addEventListener('keydown',e=>{if(e.code==='KeyV'){on=!on;setOn();try{localStorage.hadalCabina=on?'1':'0'}catch(x){}}})}
 
 // ---- sónar activo (tecla F): frente esférico que revela superficies ----
