@@ -6,7 +6,7 @@ Descenso 3D navegable de la superficie a ~8.100 m en **un solo archivo HTML** co
 
 ![Recorrido: tormenta en la superficie, kelp, Titanic y el Leviatán en la fosa](docs/demo.gif)
 
-> Estado: prototipo. Probado en Chrome de escritorio con una GPU Apple integrada. **No probado** en Safari, Firefox, celular ni GPU dedicadas.
+> Estado: prototipo. Probado en Chrome de escritorio con una GPU Apple integrada. En un WebKit de pruebas (Playwright, el motor de Safari) en macOS carga y corre sin errores en Bajo, Medio y Alto; en un Firefox 159 de pruebas no hubo adaptador de GPU y el juego muestra su aviso. **No probado** en Safari ni Firefox reales, celular ni GPU dedicadas.
 
 > **English:** Hadal is a navigable 3D dive from the surface to ~8,100 m in a **single HTML file**, written in raw WebGPU/WGSL with no downloaded models, textures or audio. Everything is procedural: GPU-sculpted shipwreck hulls (SDF + surface nets in compute), GPU culling and LOD with indirect draws, temporal anti-aliasing, volumetric lamp beams, autofocus depth of field, ~70 species with sourced depth ranges, and four mythological creatures at the trench floor. Five quality tiers with an automatic performance governor. Written end to end by Claude Sonnet 5.5 (Anthropic) in Claude Code. Try it: https://kaluka92.github.io/hadal/ (Chrome/Edge with WebGPU).
 
