@@ -658,8 +658,8 @@ function audio2(){if(!AC||SA)return;
  const wind=mk(src(1,'bandpass',.5),420),swell=mk(src(.35,'lowpass'),160),rain=mk(src(2.4,'highpass'),3800),deep=mk(src(.25,'lowpass'),70),lfo=AC.createOscillator(),lg=AC.createGain();
  lfo.frequency.value=.11;lg.gain.value=.18;lfo.connect(lg);lg.connect(swell.gain);lfo.start();
  SA={wind,swell,rain,deep,nb,last:0,th:0}}
-function thunder(vol,delay){if(!AC||!SA)return;const s=AC.createBufferSource();s.buffer=SA.nb;s.playbackRate.value=.3;const fi=AC.createBiquadFilter();fi.type='lowpass';fi.frequency.value=140;const g=AC.createGain(),t0=AC.currentTime+delay;
- g.gain.setValueAtTime(.0001,t0);g.gain.exponentialRampToValueAtTime(vol,t0+.25);g.gain.exponentialRampToValueAtTime(.0001,t0+3.6);s.connect(fi);fi.connect(g);g.connect(gm);s.start(t0);s.stop(t0+3.8)}
+function thunder(vol,delay){if(!AC||!SA||!(vol>.001))return;const s=AC.createBufferSource();s.buffer=SA.nb;s.playbackRate.value=.3;const fi=AC.createBiquadFilter();fi.type='lowpass';fi.frequency.value=140;const g=AC.createGain(),t0=AC.currentTime+delay;
+ g.gain.setValueAtTime(.0001,t0);g.gain.exponentialRampToValueAtTime(Math.max(vol,.0002),t0+.25);g.gain.exponentialRampToValueAtTime(.0001,t0+3.6);s.connect(fi);fi.connect(g);g.connect(gm);s.start(t0);s.stop(t0+3.8)}
 function audioTick(t,dep,above){if(!AC)return;if(!SA)audio2();if(!SA)return;
  const near=above?1:Math.max(0,1-dep/22),rate=.06;const set=(g,v)=>{g.gain.value+=(v-g.gain.value)*rate};
  set(SA.wind,above?.5:near*.08);set(SA.swell,above?.55:near*.5);set(SA.rain,above?.28:near*.05);set(SA.deep,Math.min(.5,dep/9000*.5)+(dep>3000?.06:0));
