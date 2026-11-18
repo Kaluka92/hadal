@@ -110,6 +110,24 @@ WR.af447.g=()=>MG([
  P(CY(.55,.55,.4,14),'#15171a',{p:[3.6,.55,-2],r:[0,0,Math.PI/2]}),P(CY(.55,.55,.4,14),'#15171a',{p:[4.6,.55,-2],r:[0,0,Math.PI/2]}),P(seg(V3([4.1,.55,-2]),V3([4.1,3.2,-2.6]),.14,.1,6),'#9aa0a6'),
  P(finV([[0,0],[5,0],[2.5,9],[0,7]]),'#8f969c',{p:[0,5,-24]}),P(BXs(.4,6,2.2,.1,2),'#7f868c',{p:[0,2,-25.6],r:[.1,0,0]}),
  ...Array.from({length:22},(_,i)=>P(BXs(.5,.6,.1,.1,1),'#1a1e22',{p:[2.5,3.4,-24+i*1.1]}))]);
+// --- AF447: librea de Air France (franjas azul/blanco/rojo, según la deriva recuperada en 2009, NTSB, dominio público), motor con aspas y paneles curvos de fuselaje ---
+const af447Extra=()=>{const r=mb(447),wx=9500,out=[],fl=(lx,lz)=>base(wx)-floorAt(wx+lx,lz),WH='#d6dbe0',BL='#1c3f94',RD='#bf3a30';
+ // deriva: base blanca + franjas paralelas al borde de ataque, en ambas caras
+ const bands=[[0,.45,WH],[.45,1.05,BL],[1.05,1.6,RD],[1.6,2.0,WH],[2.0,2.6,BL]];
+ [-1,1].forEach(s=>bands.forEach(([d1,d2,c])=>{const q=[[5-d1,.05],[5-d2,.05],[2.5-d2+.1,7.4],[2.5-d1+.1,7.4]];out.push(P(finV(q),c,{p:[s*.05,5,-24]}))}));
+ // paneles de piel curvos con ventanillas y franja azul, tirados en el fondo
+ const skin=(lx,lz,yaw,len,th0,dth,seed)=>{const y=fl(lx,lz)+.55;
+  out.push(P(new T.CylinderGeometry(2.8,2.8,len,18,1,true,th0,dth),WH,{p:[lx,y,lz],r:[Math.PI/2,yaw,0]}),P(new T.CylinderGeometry(2.78,2.78,len,18,1,true,th0,dth),'#7d858c',{p:[lx,y,lz],r:[Math.PI/2,yaw,0]}));
+  out.push(P(new T.CylinderGeometry(2.82,2.82,.32,18,1,true,th0,dth),BL,{p:[lx+Math.sin(yaw)*len*.18,y,lz+Math.cos(yaw)*len*.18],r:[Math.PI/2,yaw,0]}));
+  for(let i=0;i<Math.floor(len/.55);i++){const a=th0+dth*.45,cx=Math.cos(a)*2.82,cy=Math.sin(a)*2.82,zt=-len/2+.4+i*.55;
+   out.push(P(BXs(.3,.4,.05,.02,1),'#101418',{p:[lx+Math.sin(yaw)*(zt)+Math.cos(yaw)*cx*.0,y+cy*.0+.0,lz+Math.cos(yaw)*zt],r:[0,yaw,0]}))}};
+ skin(-17,9,.4,6.5,0,2.4);skin(-24,-6,1.3,5,.3,2.2);skin(20,16,2.1,7,0,2.6);skin(6,22,.8,4.5,.2,2.0);
+ // motor: cara del ventilador oscura, 30 aspas, buje cónico y escape
+ const ex=-9,ey=1.5,ez=-6.2;out.push(P(CZ(.98,.98,.08,18),'#1e2226',{p:[ex,ey,ez]}),P(CO(.3,.7,10),'#8a9096',{p:[ex,ey,ez-.65],r:[-Math.PI/2,0,0]}));
+ for(let i=0;i<30;i++){const a=i/30*6.2832;out.push(P(BXs(.1,.78,.025,.01,1),'#6f777e',{p:[ex+Math.cos(a)*.62,ey+Math.sin(a)*.62,ez-.04],r:[0,0,a-Math.PI/2+.25]}))}
+ out.push(P(CO(.55,1.3,12),'#3a3f44',{p:[ex,ey,-1.45],r:[Math.PI/2,0,0]}));
+ return out};
+WR.af447.cg=()=>MG(af447Extra());
 WR.af447.dg=()=>debris(55,80,34,['#8f969c','#7f868c','#767d83','#8a9096'],9500,(r,wx)=>Array.from({length:14},()=>{const lx=(r()-.5)*70,lz=(r()-.5)*50;return P(BXs(.5,.45,1.2,.1,1),'#5a6068',{p:[lx,base(wx)-floorAt(wx+lx,lz),lz],r:[0,r()*6,(r()-.5)*.4]})}));
 
 const hullTaper=(z,L,B,bk)=>{const u=(z+L/2)/L,t=Math.max((u-bk)/(1-bk),0);return B/2*Math.pow(Math.max(1-Math.pow(t,1.8),0),.55)};
