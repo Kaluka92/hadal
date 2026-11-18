@@ -44,6 +44,44 @@ const titaRig=()=>{const out=[],rc='#3d2f26',rd='#4a3a30',dk='#0c0b0a';
  // cofa y mástil de proa
  out.push(P(CY(.95,.85,1.7,10),rc,{p:[0,38.2,40.5],r:[.35,0,.04]}),P(new T.TorusGeometry(.95,.09,5,14),rd,{p:[0,39.1,41.1],r:[Math.PI/2+.35,0,0]}));
  return out};
+// --- Titanic: casco real (misma fórmula que el SDF de gpu_engine.js) para pegar óxido y barandas sobre la superficie ---
+const titaHb=z=>{const t=Math.max(z,0)/60;return 14*Math.pow(Math.max(1-Math.pow(t,1.8),0),.55)};
+const titaHe=z=>{const s=Math.min(Math.max((z-8)/4,0),1);return 22+3.2*s*s*(3-2*s)};
+const titaXs=(z,y)=>{const v=Math.min(Math.max(1-y/titaHe(z),0),1);return titaHb(z)*Math.sqrt(Math.max(1-Math.pow(v,4.444),0))};
+// óxido colgante (rusticles): racimos irregulares que cuelgan, de naranja vivo a marrón; como en las fotos de la proa
+const RUSTC=['#b8420f','#a63a0c','#c9561a','#8a2f0c','#d96b22','#7a2a0c','#c44a12'];
+const RUSTP=['#9db2ad','#b9c6c2','#a89886','#c8b8a4','#d9772a','#b8602a'];
+const rustClump=(r,x,y,z,len,w,pal=RUSTC)=>{const out=[],n=3+Math.floor(r()*3),col=pal[Math.floor(r()*pal.length)];let cx=x,cy=y,cz=z,rad=w;
+ for(let i=0;i<n;i++){const l=len/n*(.7+r()*.6),nx=cx+(r()-.5)*w*1.6,nz=cz+(r()-.5)*w*1.6,ny=cy-l,er=rad*(.6+r()*.2),c2=pal[Math.floor(r()*pal.length)];
+  out.push(P(seg(V3([cx,cy,cz]),V3([nx,ny,nz]),rad,er,6),i%2?col:c2));
+  out.push(P(S_(er*1.1,6,4),c2,{p:[nx,ny,nz],s:[1,.9+r()*.5,1]}));
+  if(r()<.32&&i>0){const bl=l*(.8+r()),bx=nx+(r()-.5)*w*3.4,bz=nz+(r()-.5)*w*3.4,br=er*.7;out.push(P(seg(V3([nx,ny,nz]),V3([bx,ny-bl,bz]),er,br,5),col),P(S_(br*1.1,5,4),'#e07a26',{p:[bx,ny-bl,bz]}))}
+  cx=nx;cy=ny;cz=nz;rad=er}
+ out.push(P(S_(rad*1.05,6,4),'#e07a26',{p:[cx,cy-rad*.3,cz]}));return out};
+const titaRust=()=>{const r=mb(41),out=[];
+ // borde de cubierta, a ambos lados
+ [-1,1].forEach(s=>{for(let z=-56;z<57;z+=.5+r()*.6){const y=titaHe(z)-.35;out.push(...rustClump(r,s*(titaXs(z,y)+.08),y,z,.7+r()*r()*3.4,.09+r()*.16))}});
+ // chorreaduras bajo los ojos de buey
+ [[6,1.9],[12,1.9],[17,3.8]].forEach(([y,st])=>rowZ(-58,-2,st,z=>[-1,1].forEach(s=>{if(r()<.55)out.push(...rustClump(r,s*(titaXs(z,y-.4)+.06),y-.4,z,.3+r()*1.1,.05+r()*.06))})));
+ // juntas de chapa: óxido a distintas alturas
+ for(let i=0;i<280;i++){const z=-56+r()*112,y=2+r()*20,s=r()<.5?-1:1;out.push(...rustClump(r,s*(titaXs(z,y)+.06),y,z,.5+r()*1.5,.06+r()*.1))}
+ // cortinas densas de hebras finas (costra pálida con flecos naranjas) bajo el borde de cubierta, como en las fotos de 2003
+ [-1,1].forEach(s=>{for(let z0=-52;z0<54;z0+=5+r()*7){const wd=2.5+r()*3,len=1.4+r()*2.8;for(let q=0;q<wd/.28;q++){const z=z0+q*.28+(r()-.5)*.15,y=titaHe(z)-.4-r()*.5;out.push(...rustClump(r,s*(titaXs(z,y)+.09),y,z,len*(.5+r()*.6),.035+r()*.035,RUSTP))}}});
+ // cortina en la rotura de popa, a todo lo ancho
+ for(let q=0;q<110;q++){const x=(q/109-.5)*2*13.2,y=4+r()*21;if(Math.abs(x)>titaXs(-57,y)*.95)continue;out.push(...rustClump(r,x,y,-57.2-r()*.9,1.8+r()*4.2,.04+r()*.05,RUSTP))}
+ // restos de rusticles caídos sobre el fondo, alrededor del casco
+ {const wx=WR.titanic.x;for(let i=0;i<170;i++){const s=r()<.5?-1:1,lx=s*(15+r()*9),lz=-62+r()*124,ly=base(wx)-floorAt(wx+lx,lz),a=r()*6.28,l=.35+r()*1.1,c=RUSTP[Math.floor(r()*RUSTP.length)];out.push(P(seg(V3([lx,ly+.1,lz]),V3([lx+Math.cos(a)*l,ly+.12,lz+Math.sin(a)*l]),.07+r()*.07,.04,5),c))}}
+ // borde roto de popa: racimos pesados
+ for(let i=0;i<36;i++){const y=4+r()*20,x=(r()-.5)*2*titaXs(-57,y)*.95;out.push(...rustClump(r,x,y,-57-r()*1.5,1+r()*2.6,.14+r()*.22))}
+ return out};
+// barandas de proa: tres tubos que siguen la curva del casco, postes, tramos caídos y óxido
+const titaRails=()=>{const r=mb(52),out=[],ys=[.38,.78,1.18],DK=25.2,col='#4a3a2c',ends=[];
+ [-1,1].forEach(s=>{const pts=[];for(let z=10;z<=59.2;z+=1.6)pts.push([s*(titaHb(z)-.3),z]);pts.push([s*(titaHb(59.5)-.2),59.5]);ends.push(pts[pts.length-1]);
+  ys.forEach((yy,k)=>{for(let i=0;i<pts.length-1;i++){if(r()<.1)continue;const dr=r()<.08?-.5*r():0,a=pts[i],b=pts[i+1];out.push(P(seg(V3([a[0],DK+yy+dr,a[1]]),V3([b[0],DK+yy+dr*.5,b[1]]),.055,.055,6),col));if(k>=1&&r()<.8)out.push(...rustClump(r,(a[0]+b[0])/2,DK+yy-.05,(a[1]+b[1])/2,.3+r()*1.1,.06+r()*.07))}});
+  for(let i=0;i<pts.length;i+=2)out.push(P(CY(.05,.05,1.25,6),col,{p:[pts[i][0],DK,pts[i][1]]}),...(r()<.92?rustClump(r,pts[i][0],DK+.9,pts[i][1],.4+r()*1.4,.08+r()*.07):[]))});
+ // curva que cierra la proa
+ const e0=ends[0],e1=ends[1];ys.forEach(yy=>{let prev=e0;for(let k=1;k<=5;k++){const u=k/5,cur=[e0[0]*(1-u)+e1[0]*u,59.5+Math.sin(u*Math.PI)*.7];out.push(P(seg(V3([prev[0],DK+yy,prev[1]]),V3([cur[0],DK+yy,cur[1]]),.055,.055,6),col));prev=cur}});
+ return out};
 WR.titanic.g=()=>MG([
  ...titaRig(),
  ...[-36,-30,-24,-18].flatMap(z=>[-1,1].flatMap(s=>[P(seg(V3([s*11.2,27,z]),V3([s*11.2,31,z]),.12,.1,5),'#3d2f26'),P(seg(V3([s*11.2,31,z]),V3([s*9.6,32.3,z]),.1,.08,5),'#3d2f26')])),
@@ -53,14 +91,13 @@ WR.titanic.g=()=>MG([
  ...[-1,1].map(s=>P(CY(.5,.5,9,8),'#3d2f26',{p:[s*3,25,42]})),
  ...[-1,1].map(s=>P(seg(V3([s*6,25,30]),V3([s*7,38,32]),.25,.15),'#3d2f26')),
  P(CY(5,5,2,10),'#4a3a30',{p:[0,31,-20],s:[1,1,1.3]}),P(new T.TorusGeometry(4.6,.35,6,18),'#3a2c22',{p:[0,33,-20],r:[Math.PI/2,0,0],s:[1,1.3,1]}),
- ...[-1,1].map(s=>P(seg(V3([s*10.5,26.3,10]),V3([s*10.5,26.3,42]),.07),'#2e241c')),
- ...Array.from({length:22},(_,i)=>[-1,1].map(s=>P(CY(.07,.07,1.2,4),'#2e241c',{p:[s*10.5,25.2,10+i*1.5]}))).flat(),
+ ...titaRails(),
  ...rowZ(-58,-2,1.9,z=>[-1,1].flatMap(s=>[porth(s,28,22,6,z),porth(s,28,22,12,z)])),
  ...rowZ(-58,-2,3.8,z=>[-1,1].map(s=>porth(s,28,22,17,z))),
  ...[-4.5,4.5].map(x=>P(CZ(3.2,3.2,6.5,12),'#3a2c22',{p:[x,8,-57]})),
  ...Array.from({length:18},(_,i)=>{const a=(i/17)*Math.PI,x=Math.cos(a)*13.4,y=3+Math.sin(a)*17;return P(seg(V3([x,y,-58]),V3([x*1.04+(hs(i,1)-.5)*2,y+(hs(i,2)-.5)*3,-58-3-hs(i,3)*5]),.22,.12,5),'#3d2f26')}),
  ...Array.from({length:6},(_,i)=>P(BXs(2.5+hs(i,7)*3,.2,2+hs(i,8)*3,.05,1),'#4d3b2d',{p:[(hs(i,4)-.5)*20,4+hs(i,5)*14,-60-hs(i,6)*4],r:[(hs(i,9)-.5)*1.2,hs(i,10)*3,(hs(i,11)-.5)*1.2]})),
- ...rusticles(260,120,28,22,'#7a4420')]);
+ ...titaRust()]);
 WR.titanic.dg=()=>debris(77,100,60,['#3a2c22','#4a3a30','#5a3a22','#6a5038'],8200,(r,wx)=>Array.from({length:40},()=>{const lx=(r()-.5)*150,lz=(r()-.5)*90;return P(S_(.18+r()*.2,6,4),'#1a1a1a',{p:[lx,base(wx)-floorAt(wx+lx,lz)+.1,lz]})}));
 
 WR.af447.g=()=>MG([

@@ -122,6 +122,7 @@ fn h2(p:vec2f)->f32{return fract(sin(dot(p,vec2f(127.1,311.7)))*43758.5453);}
    alb=mix(alb,vec3f(.35,.38,.36)*(.5+B.h),ss(.7,.8,Cc.c)*.2);let rst=step(.62,fract(sin(floor(gq.y*2.)*91.7+floor(gq.x)*13.1)*437.5))*ss(.0,.5,fract(gq.x))*ss(.5,.1,abs(fract(gq.y*2.)-.5)*2.)*fdd;alb=alb*(1.-.3*seam-.16*riv);alb=mix(alb,vec3f(.3,.15,.07)*(.6+.4*alb.g*4.),rst*.22);
    {let Uu=normalize(vec3f(1e-4,1.,0.)-n0*n0.y);let Ww=cross(n0,Uu);let sxg=select(-1.,1.,fract(gq.x)>.5);let syg=select(-1.,1.,fract(gq.y)>.5);let mxl=step(gf.y,gf.x);
     N=normalize(N+(Uu*sxg*mxl+Ww*syg*(1.-mxl))*seam*fdd*.55*M.b.x);}
+   let vsk=textureSample(tDet,sL,vec2f((i.wp.x+i.wp.z)*1.1,i.wp.y*.035)).g;let wl=select(1.,0.,matT>3.5);alb=mix(alb,vec3f(.24,.31,.27)*(.55+.6*B.h),.42*wl*(1.-rm*.6));alb=mix(alb,vec3f(.62,.24,.07)*(.55+.8*vsk),ss(.42,.8,vsk)*.85*wl*ss(80.,12.,d)*max(M.b.y,.5));
    alb=mix(alb,vec3f(.72,.7,.62),ss(.80,.9,B.c)*.3);gloss=.14;
   }
  }

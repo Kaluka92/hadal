@@ -58,7 +58,7 @@ const gBuf=mkBuf(368,UB.UNIFORM|UB.COPY_DST),gShBuf=mkBuf(368,UB.UNIFORM|UB.COPY
 
 // ---- calidad ----
 var QL=1,RS=.75,perfOn=false,fpsS=16.7;
-var TOUCH=matchMedia('(pointer:coarse)').matches;try{QL=+(localStorage.hadalQ||(TOUCH?0:1))}catch(e){if(TOUCH)QL=0}if(!(QL>=0&&QL<=4))QL=TOUCH?0:1;
+var TOUCH=matchMedia('(pointer:coarse)').matches;QL=4;/* calidad fija al máximo (Premium): sin niveles ni bajada automática (decisión de Juan 2026-11-18) */
 const QS=[{rs0:.65,rsMax:.85,ms:1,sh:0,shE:0,steps:10,den:.95},{rs0:.9,rsMax:1.25,ms:4,sh:2048,shE:2,steps:18,den:1.3},{rs0:1.05,rsMax:1.5,ms:4,sh:4096,shE:2,steps:26,den:1.6},{rs0:1.4,rsMax:1.7,ms:4,sh:6144,shE:1,steps:48,den:2.7},{rs0:1.55,rsMax:2.1,ms:4,sh:8192,shE:1,steps:64,den:3.4}];RS=QS[QL].rs0;
 let SC=QS[QL].ms,texSh=null;
 
@@ -304,7 +304,7 @@ const shipBGL=device.createBindGroupLayout({entries:[{binding:0,visibility:GPUSh
 const shipMod=smod(SHIPW,'cascos'),shipPL=device.createPipelineLayout({bindGroupLayouts:[shipBGL]}),shipP=Object.fromEntries(['sample','cellv','quads'].map(k=>[k,device.createComputePipeline({layout:shipPL,compute:{module:shipMod,entryPoint:k}})]));
 const SHIPS={
  titanic_sup:{org:[-13.2,21.4,-42],h:.3,n:[88,52,200],cap:2200000,hp:[-2,0,0,0],boxes:[],brk:-1000,hollow:0,er:[0,1,.8,.05],dk:[0,0,0,0],fl:[0,0,0,.5],col:[.38,.29,.22],seed:1.9},
- titanic:{org:[-17.6,-1,-63.8],h:.55,n:[64,80,232],cap:3000000,hp:[120,28,22,.5],boxes:[],brk:-57,hollow:1,er:[1.1,.62,.8,.08],dk:[6,12,17,0],fl:[0,3.2,9,.7],col:[.37,.28,.21],seed:1.3},
+ titanic:{org:[-17.6,-1,-63.8],h:.4,n:[88,110,320],cap:5500000,hp:[120,28,22,.5],boxes:[],brk:-57,hollow:1,er:[1.1,.62,.8,.08],dk:[6,12,17,0],fl:[0,3.2,9,.7],col:[.37,.28,.21],seed:1.3},
  bismarck_sup:{org:[-9.6,19.6,-50.6],h:.3,n:[64,88,110],cap:1800000,hp:[-3,0,0,0],boxes:[],brk:-1000,hollow:0,er:[0,1,.8,.05],dk:[0,0,0,0],fl:[0,0,0,.5],col:[.3,.33,.36],seed:2.8},
  bismarck:{org:[-22.4,-1,-128.8],h:.8,n:[56,56,322],cap:4000000,hp:[250,36,16,.45],boxes:[[0,18,-4,.3,10,2,80]],brk:-1000,hollow:0,er:[.3,.9,.96,.12],dk:[0,0,0,0],fl:[1,0,0,.8],col:[.29,.32,.35],seed:2.1},
  roberts:{org:[-6.8,-1,-48],h:.4,n:[34,58,240],cap:2500000,hp:[93,11,8,.45],boxes:[[0,10.5,6,.8,3.5,2.5,5],[0,15,7,.7,2.5,2,3],[0,18.5,7,.6,1.5,1.5,1.5]],brk:-1000,hollow:0,er:[.5,.88,.96,.15],dk:[0,0,0,0],fl:[1,0,0,.5],col:[.29,.31,.35],seed:3.7},

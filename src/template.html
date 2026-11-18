@@ -29,14 +29,14 @@ canvas{display:block;touch-action:none}
 </style></head>
 <body>
 <div id="start"><div class="box"><h1>Hadal</h1><p>De la superficie a 8.100 m en un mini submarino: fauna, naufragios y basura humana, cada uno a la profundidad que le corresponde.</p>
-<div id="ql"><button data-q="0">Bajo</button><button data-q="1">Medio</button><button data-q="2">Alto</button><button data-q="3">Ultra</button><button data-q="4">Premium</button></div><small>Calidad gráfica · se puede cambiar con la tecla G. Alto es para equipos integrados; Ultra y Premium, para tarjeta dedicada con 10 GB o más (si va lento, bajá un nivel). La resolución se ajusta sola.</small><button id="dive">Sumergirse</button><small>Las flechas, W A S D y el mouse manejan el submarino · H muestra el rendimiento</small></div></div>
+<small>Calidad gráfica máxima siempre activa. La resolución se ajusta sola, sin bajar de la nativa; si va lento, es tu GPU.</small><button id="dive">Sumergirse</button><small>Las flechas, W A S D y el mouse manejan el submarino · H muestra el rendimiento</small></div></div>
 <div id="port"></div>
 <div class="p" id="perf" style="left:14px;top:146px;display:none;font-size:12px;pointer-events:none"></div>
 <div class="p" id="hud"><b id="dp">0 m</b><br><small id="zn"></small><br><small id="st"></small></div>
 <div class="p" id="card"></div>
 <div class="p" id="menu"><h4>Destinos <small id="cnt"></small></h4><div id="dest"></div>
  <div id="note">Rangos y notas contrastados con fuentes en noviembre de 2026; ⚠ marca lo que quedó sin confirmar. Es una síntesis didáctica: algunas especies no comparten costa real. Debajo de ~200 m no hay plantas: sin luz no hay fotosíntesis.</div></div>
-<div id="hint">Arrastrá para mirar · W/S avanzar · A/D lateral · Espacio sube · C baja · Shift acelera · Q turbo vertical · L luces (3 modos) · F sónar · M sonido · G calidad · H rendimiento</div>
+<div id="hint">Arrastrá para mirar · W/S avanzar · A/D lateral · Espacio sube · C baja · Shift acelera · Q turbo vertical · L luces (3 modos) · F sónar · M sonido · H rendimiento</div>
 <button class="t" id="go" style="right:16px;bottom:24px">Avanzar</button>
 <button class="t" id="up" style="right:104px;bottom:60px;width:60px;height:60px">▲</button>
 <button class="t" id="dn" style="right:104px;bottom:-4px;width:60px;height:60px">▼</button>
@@ -46,7 +46,7 @@ import*as T from 'three';
 import{mergeGeometries}from 'three/addons/utils/BufferGeometryUtils.js';
 import{RoundedBoxGeometry}from 'three/addons/geometries/RoundedBoxGeometry.js';
 var rtS=null,rtR=null,rtB=[],rtSh=null,RS=.75,pipeReady=false,QL=1,perfOn=false,fpsS=16.7;
-try{QL=+(localStorage.hadalQ||1)}catch(e){}if(!(QL>=0&&QL<=2))QL=1;
+QL=2;/* calidad fija al máximo */
 const QS=[{rs0:.55,rsMax:.7,ms:0,sh:0,shE:0,steps:10},{rs0:.75,rsMax:.92,ms:4,sh:1024,shE:3,steps:14},{rs0:.9,rsMax:1,ms:4,sh:2048,shE:2,steps:18}];RS=QS[QL].rs0;
 T.ColorManagement.enabled=false;
 const $=id=>document.getElementById(id);
@@ -613,7 +613,7 @@ function setQ(q,reset){QL=q;try{localStorage.hadalQ=q}catch(e){}if(reset!==false
  document.querySelectorAll('#ql button').forEach(b=>b.classList.toggle('on',+b.dataset.q===q))}
 {const st=$('start');$('dive').onclick=()=>{st.style.display='none';audio()};document.querySelectorAll('#ql button').forEach(b=>b.onclick=()=>setQ(+b.dataset.q));
  if(/directo|debug/.test(location.hash))st.style.display='none';
- addEventListener('keydown',e=>{if(e.code==='KeyG'&&st.style.display==='none')setQ((QL+1)%3);if(e.code==='KeyH'){perfOn=!perfOn;$('perf').style.display=perfOn?'block':'none'}})}
+ addEventListener('keydown',e=>{if(e.code==='KeyH'){perfOn=!perfOn;$('perf').style.display=perfOn?'block':'none'}})}
 function renderFrame(t){
  cauM.uniforms.uT.value=t;pass(cauM,rtCau);
  ren.setRenderTarget(rtS);ren.setClearColor(0x000000,1);ren.clear();ren.render(sc,cam);
@@ -725,7 +725,7 @@ function loop(now){requestAnimationFrame(loop);const dt=Math.min((now-lastT)/100
  renderFrame(t);
  // resolución dinámica: busca 16,7 ms por cuadro sin pasarse
  fpsS+=(dt*1000-fpsS)*.05;if(perfOn&&fr%10===0)$('perf').textContent=(1000/fpsS).toFixed(0)+' fps · '+fpsS.toFixed(1)+' ms · render '+Math.round(RS*100)+' % · calidad '+['baja','media','alta'][QL]+(rtSh&&dep<110?' · sombras':'');
- gAcc+=dt*1000;gN++;if(gAcc>1600){const a=gAcc/gN;let k=1;if(a>19.5)k=.92;else if(a<13.8&&RS<QS[QL].rsMax)k=1.06;if(k!==1){RS=clamp(RS*k,.45,QS[QL].rsMax);buildTargets()}gAcc=gN=0}}
+ gAcc+=dt*1000;gN++;if(gAcc>1600){const a=gAcc/gN;let k=1;if(a>19.5)k=.92;else if(a<13.8&&RS<QS[QL].rsMax)k=1.06;if(k!==1){RS=clamp(RS*k,.9,QS[QL].rsMax);buildTargets()}gAcc=gN=0}}
 var gAcc=0,gN=0;
 requestAnimationFrame(loop);
 setTimeout(()=>{$('hint').style.transition='opacity 2s';$('hint').style.opacity=.0},20000);

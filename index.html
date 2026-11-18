@@ -29,14 +29,14 @@ canvas{display:block;touch-action:none}
 </style></head>
 <body>
 <div id="start"><div class="box"><h1>Hadal</h1><p>De la superficie a 8.100 m en un mini submarino: fauna, naufragios y basura humana, cada uno a la profundidad que le corresponde.</p>
-<div id="ql"><button data-q="0">Bajo</button><button data-q="1">Medio</button><button data-q="2">Alto</button><button data-q="3">Ultra</button><button data-q="4">Premium</button></div><small>Calidad gráfica · se puede cambiar con la tecla G. Alto es para equipos integrados; Ultra y Premium, para tarjeta dedicada con 10 GB o más (si va lento, bajá un nivel). La resolución se ajusta sola.</small><button id="dive">Sumergirse</button><small>Las flechas, W A S D y el mouse manejan el submarino · H muestra el rendimiento</small></div></div>
+<small>Calidad gráfica máxima siempre activa. La resolución se ajusta sola, sin bajar de la nativa; si va lento, es tu GPU.</small><button id="dive">Sumergirse</button><small>Las flechas, W A S D y el mouse manejan el submarino · H muestra el rendimiento</small></div></div>
 <div id="port"></div>
 <div class="p" id="perf" style="left:14px;top:146px;display:none;font-size:12px;pointer-events:none"></div>
 <div class="p" id="hud"><b id="dp">0 m</b><br><small id="zn"></small><br><small id="st"></small></div>
 <div class="p" id="card"></div>
 <div class="p" id="menu"><h4>Destinos <small id="cnt"></small></h4><div id="dest"></div>
  <div id="note">Rangos y notas contrastados con fuentes en noviembre de 2026; ⚠ marca lo que quedó sin confirmar. Es una síntesis didáctica: algunas especies no comparten costa real. Debajo de ~200 m no hay plantas: sin luz no hay fotosíntesis.</div></div>
-<div id="hint">Arrastrá para mirar · W/S avanzar · A/D lateral · Espacio sube · C baja · Shift acelera · Q turbo vertical · L luces (3 modos) · F sónar · M sonido · G calidad · H rendimiento</div>
+<div id="hint">Arrastrá para mirar · W/S avanzar · A/D lateral · Espacio sube · C baja · Shift acelera · Q turbo vertical · L luces (3 modos) · F sónar · M sonido · H rendimiento</div>
 <button class="t" id="go" style="right:16px;bottom:24px">Avanzar</button>
 <button class="t" id="up" style="right:104px;bottom:60px;width:60px;height:60px">▲</button>
 <button class="t" id="dn" style="right:104px;bottom:-4px;width:60px;height:60px">▼</button>
@@ -190,6 +190,7 @@ fn h2(p:vec2f)->f32{return fract(sin(dot(p,vec2f(127.1,311.7)))*43758.5453);}
    alb=mix(alb,vec3f(.35,.38,.36)*(.5+B.h),ss(.7,.8,Cc.c)*.2);let rst=step(.62,fract(sin(floor(gq.y*2.)*91.7+floor(gq.x)*13.1)*437.5))*ss(.0,.5,fract(gq.x))*ss(.5,.1,abs(fract(gq.y*2.)-.5)*2.)*fdd;alb=alb*(1.-.3*seam-.16*riv);alb=mix(alb,vec3f(.3,.15,.07)*(.6+.4*alb.g*4.),rst*.22);
    {let Uu=normalize(vec3f(1e-4,1.,0.)-n0*n0.y);let Ww=cross(n0,Uu);let sxg=select(-1.,1.,fract(gq.x)>.5);let syg=select(-1.,1.,fract(gq.y)>.5);let mxl=step(gf.y,gf.x);
     N=normalize(N+(Uu*sxg*mxl+Ww*syg*(1.-mxl))*seam*fdd*.55*M.b.x);}
+   let vsk=textureSample(tDet,sL,vec2f((i.wp.x+i.wp.z)*1.1,i.wp.y*.035)).g;let wl=select(1.,0.,matT>3.5);alb=mix(alb,vec3f(.24,.31,.27)*(.55+.6*B.h),.42*wl*(1.-rm*.6));alb=mix(alb,vec3f(.62,.24,.07)*(.55+.8*vsk),ss(.42,.8,vsk)*.85*wl*ss(80.,12.,d)*max(M.b.y,.5));
    alb=mix(alb,vec3f(.72,.7,.62),ss(.80,.9,B.c)*.3);gloss=.14;
   }
  }
@@ -975,6 +976,44 @@ const titaRig=()=>{const out=[],rc='#3d2f26',rd='#4a3a30',dk='#0c0b0a';
  // cofa y mástil de proa
  out.push(P(CY(.95,.85,1.7,10),rc,{p:[0,38.2,40.5],r:[.35,0,.04]}),P(new T.TorusGeometry(.95,.09,5,14),rd,{p:[0,39.1,41.1],r:[Math.PI/2+.35,0,0]}));
  return out};
+// --- Titanic: casco real (misma fórmula que el SDF de gpu_engine.js) para pegar óxido y barandas sobre la superficie ---
+const titaHb=z=>{const t=Math.max(z,0)/60;return 14*Math.pow(Math.max(1-Math.pow(t,1.8),0),.55)};
+const titaHe=z=>{const s=Math.min(Math.max((z-8)/4,0),1);return 22+3.2*s*s*(3-2*s)};
+const titaXs=(z,y)=>{const v=Math.min(Math.max(1-y/titaHe(z),0),1);return titaHb(z)*Math.sqrt(Math.max(1-Math.pow(v,4.444),0))};
+// óxido colgante (rusticles): racimos irregulares que cuelgan, de naranja vivo a marrón; como en las fotos de la proa
+const RUSTC=['#b8420f','#a63a0c','#c9561a','#8a2f0c','#d96b22','#7a2a0c','#c44a12'];
+const RUSTP=['#9db2ad','#b9c6c2','#a89886','#c8b8a4','#d9772a','#b8602a'];
+const rustClump=(r,x,y,z,len,w,pal=RUSTC)=>{const out=[],n=3+Math.floor(r()*3),col=pal[Math.floor(r()*pal.length)];let cx=x,cy=y,cz=z,rad=w;
+ for(let i=0;i<n;i++){const l=len/n*(.7+r()*.6),nx=cx+(r()-.5)*w*1.6,nz=cz+(r()-.5)*w*1.6,ny=cy-l,er=rad*(.6+r()*.2),c2=pal[Math.floor(r()*pal.length)];
+  out.push(P(seg(V3([cx,cy,cz]),V3([nx,ny,nz]),rad,er,6),i%2?col:c2));
+  out.push(P(S_(er*1.1,6,4),c2,{p:[nx,ny,nz],s:[1,.9+r()*.5,1]}));
+  if(r()<.32&&i>0){const bl=l*(.8+r()),bx=nx+(r()-.5)*w*3.4,bz=nz+(r()-.5)*w*3.4,br=er*.7;out.push(P(seg(V3([nx,ny,nz]),V3([bx,ny-bl,bz]),er,br,5),col),P(S_(br*1.1,5,4),'#e07a26',{p:[bx,ny-bl,bz]}))}
+  cx=nx;cy=ny;cz=nz;rad=er}
+ out.push(P(S_(rad*1.05,6,4),'#e07a26',{p:[cx,cy-rad*.3,cz]}));return out};
+const titaRust=()=>{const r=mb(41),out=[];
+ // borde de cubierta, a ambos lados
+ [-1,1].forEach(s=>{for(let z=-56;z<57;z+=.5+r()*.6){const y=titaHe(z)-.35;out.push(...rustClump(r,s*(titaXs(z,y)+.08),y,z,.7+r()*r()*3.4,.09+r()*.16))}});
+ // chorreaduras bajo los ojos de buey
+ [[6,1.9],[12,1.9],[17,3.8]].forEach(([y,st])=>rowZ(-58,-2,st,z=>[-1,1].forEach(s=>{if(r()<.55)out.push(...rustClump(r,s*(titaXs(z,y-.4)+.06),y-.4,z,.3+r()*1.1,.05+r()*.06))})));
+ // juntas de chapa: óxido a distintas alturas
+ for(let i=0;i<280;i++){const z=-56+r()*112,y=2+r()*20,s=r()<.5?-1:1;out.push(...rustClump(r,s*(titaXs(z,y)+.06),y,z,.5+r()*1.5,.06+r()*.1))}
+ // cortinas densas de hebras finas (costra pálida con flecos naranjas) bajo el borde de cubierta, como en las fotos de 2003
+ [-1,1].forEach(s=>{for(let z0=-52;z0<54;z0+=5+r()*7){const wd=2.5+r()*3,len=1.4+r()*2.8;for(let q=0;q<wd/.28;q++){const z=z0+q*.28+(r()-.5)*.15,y=titaHe(z)-.4-r()*.5;out.push(...rustClump(r,s*(titaXs(z,y)+.09),y,z,len*(.5+r()*.6),.035+r()*.035,RUSTP))}}});
+ // cortina en la rotura de popa, a todo lo ancho
+ for(let q=0;q<110;q++){const x=(q/109-.5)*2*13.2,y=4+r()*21;if(Math.abs(x)>titaXs(-57,y)*.95)continue;out.push(...rustClump(r,x,y,-57.2-r()*.9,1.8+r()*4.2,.04+r()*.05,RUSTP))}
+ // restos de rusticles caídos sobre el fondo, alrededor del casco
+ {const wx=WR.titanic.x;for(let i=0;i<170;i++){const s=r()<.5?-1:1,lx=s*(15+r()*9),lz=-62+r()*124,ly=base(wx)-floorAt(wx+lx,lz),a=r()*6.28,l=.35+r()*1.1,c=RUSTP[Math.floor(r()*RUSTP.length)];out.push(P(seg(V3([lx,ly+.1,lz]),V3([lx+Math.cos(a)*l,ly+.12,lz+Math.sin(a)*l]),.07+r()*.07,.04,5),c))}}
+ // borde roto de popa: racimos pesados
+ for(let i=0;i<36;i++){const y=4+r()*20,x=(r()-.5)*2*titaXs(-57,y)*.95;out.push(...rustClump(r,x,y,-57-r()*1.5,1+r()*2.6,.14+r()*.22))}
+ return out};
+// barandas de proa: tres tubos que siguen la curva del casco, postes, tramos caídos y óxido
+const titaRails=()=>{const r=mb(52),out=[],ys=[.38,.78,1.18],DK=25.2,col='#4a3a2c',ends=[];
+ [-1,1].forEach(s=>{const pts=[];for(let z=10;z<=59.2;z+=1.6)pts.push([s*(titaHb(z)-.3),z]);pts.push([s*(titaHb(59.5)-.2),59.5]);ends.push(pts[pts.length-1]);
+  ys.forEach((yy,k)=>{for(let i=0;i<pts.length-1;i++){if(r()<.1)continue;const dr=r()<.08?-.5*r():0,a=pts[i],b=pts[i+1];out.push(P(seg(V3([a[0],DK+yy+dr,a[1]]),V3([b[0],DK+yy+dr*.5,b[1]]),.055,.055,6),col));if(k>=1&&r()<.8)out.push(...rustClump(r,(a[0]+b[0])/2,DK+yy-.05,(a[1]+b[1])/2,.3+r()*1.1,.06+r()*.07))}});
+  for(let i=0;i<pts.length;i+=2)out.push(P(CY(.05,.05,1.25,6),col,{p:[pts[i][0],DK,pts[i][1]]}),...(r()<.92?rustClump(r,pts[i][0],DK+.9,pts[i][1],.4+r()*1.4,.08+r()*.07):[]))});
+ // curva que cierra la proa
+ const e0=ends[0],e1=ends[1];ys.forEach(yy=>{let prev=e0;for(let k=1;k<=5;k++){const u=k/5,cur=[e0[0]*(1-u)+e1[0]*u,59.5+Math.sin(u*Math.PI)*.7];out.push(P(seg(V3([prev[0],DK+yy,prev[1]]),V3([cur[0],DK+yy,cur[1]]),.055,.055,6),col));prev=cur}});
+ return out};
 WR.titanic.g=()=>MG([
  ...titaRig(),
  ...[-36,-30,-24,-18].flatMap(z=>[-1,1].flatMap(s=>[P(seg(V3([s*11.2,27,z]),V3([s*11.2,31,z]),.12,.1,5),'#3d2f26'),P(seg(V3([s*11.2,31,z]),V3([s*9.6,32.3,z]),.1,.08,5),'#3d2f26')])),
@@ -984,14 +1023,13 @@ WR.titanic.g=()=>MG([
  ...[-1,1].map(s=>P(CY(.5,.5,9,8),'#3d2f26',{p:[s*3,25,42]})),
  ...[-1,1].map(s=>P(seg(V3([s*6,25,30]),V3([s*7,38,32]),.25,.15),'#3d2f26')),
  P(CY(5,5,2,10),'#4a3a30',{p:[0,31,-20],s:[1,1,1.3]}),P(new T.TorusGeometry(4.6,.35,6,18),'#3a2c22',{p:[0,33,-20],r:[Math.PI/2,0,0],s:[1,1.3,1]}),
- ...[-1,1].map(s=>P(seg(V3([s*10.5,26.3,10]),V3([s*10.5,26.3,42]),.07),'#2e241c')),
- ...Array.from({length:22},(_,i)=>[-1,1].map(s=>P(CY(.07,.07,1.2,4),'#2e241c',{p:[s*10.5,25.2,10+i*1.5]}))).flat(),
+ ...titaRails(),
  ...rowZ(-58,-2,1.9,z=>[-1,1].flatMap(s=>[porth(s,28,22,6,z),porth(s,28,22,12,z)])),
  ...rowZ(-58,-2,3.8,z=>[-1,1].map(s=>porth(s,28,22,17,z))),
  ...[-4.5,4.5].map(x=>P(CZ(3.2,3.2,6.5,12),'#3a2c22',{p:[x,8,-57]})),
  ...Array.from({length:18},(_,i)=>{const a=(i/17)*Math.PI,x=Math.cos(a)*13.4,y=3+Math.sin(a)*17;return P(seg(V3([x,y,-58]),V3([x*1.04+(hs(i,1)-.5)*2,y+(hs(i,2)-.5)*3,-58-3-hs(i,3)*5]),.22,.12,5),'#3d2f26')}),
  ...Array.from({length:6},(_,i)=>P(BXs(2.5+hs(i,7)*3,.2,2+hs(i,8)*3,.05,1),'#4d3b2d',{p:[(hs(i,4)-.5)*20,4+hs(i,5)*14,-60-hs(i,6)*4],r:[(hs(i,9)-.5)*1.2,hs(i,10)*3,(hs(i,11)-.5)*1.2]})),
- ...rusticles(260,120,28,22,'#7a4420')]);
+ ...titaRust()]);
 WR.titanic.dg=()=>debris(77,100,60,['#3a2c22','#4a3a30','#5a3a22','#6a5038'],8200,(r,wx)=>Array.from({length:40},()=>{const lx=(r()-.5)*150,lz=(r()-.5)*90;return P(S_(.18+r()*.2,6,4),'#1a1a1a',{p:[lx,base(wx)-floorAt(wx+lx,lz)+.1,lz]})}));
 
 WR.af447.g=()=>MG([
@@ -1669,7 +1707,7 @@ const gBuf=mkBuf(368,UB.UNIFORM|UB.COPY_DST),gShBuf=mkBuf(368,UB.UNIFORM|UB.COPY
 
 // ---- calidad ----
 var QL=1,RS=.75,perfOn=false,fpsS=16.7;
-var TOUCH=matchMedia('(pointer:coarse)').matches;try{QL=+(localStorage.hadalQ||(TOUCH?0:1))}catch(e){if(TOUCH)QL=0}if(!(QL>=0&&QL<=4))QL=TOUCH?0:1;
+var TOUCH=matchMedia('(pointer:coarse)').matches;QL=4;/* calidad fija al máximo (Premium): sin niveles ni bajada automática (decisión de Juan 2026-11-18) */
 const QS=[{rs0:.65,rsMax:.85,ms:1,sh:0,shE:0,steps:10,den:.95},{rs0:.9,rsMax:1.25,ms:4,sh:2048,shE:2,steps:18,den:1.3},{rs0:1.05,rsMax:1.5,ms:4,sh:4096,shE:2,steps:26,den:1.6},{rs0:1.4,rsMax:1.7,ms:4,sh:6144,shE:1,steps:48,den:2.7},{rs0:1.55,rsMax:2.1,ms:4,sh:8192,shE:1,steps:64,den:3.4}];RS=QS[QL].rs0;
 let SC=QS[QL].ms,texSh=null;
 
@@ -1915,7 +1953,7 @@ const shipBGL=device.createBindGroupLayout({entries:[{binding:0,visibility:GPUSh
 const shipMod=smod(SHIPW,'cascos'),shipPL=device.createPipelineLayout({bindGroupLayouts:[shipBGL]}),shipP=Object.fromEntries(['sample','cellv','quads'].map(k=>[k,device.createComputePipeline({layout:shipPL,compute:{module:shipMod,entryPoint:k}})]));
 const SHIPS={
  titanic_sup:{org:[-13.2,21.4,-42],h:.3,n:[88,52,200],cap:2200000,hp:[-2,0,0,0],boxes:[],brk:-1000,hollow:0,er:[0,1,.8,.05],dk:[0,0,0,0],fl:[0,0,0,.5],col:[.38,.29,.22],seed:1.9},
- titanic:{org:[-17.6,-1,-63.8],h:.55,n:[64,80,232],cap:3000000,hp:[120,28,22,.5],boxes:[],brk:-57,hollow:1,er:[1.1,.62,.8,.08],dk:[6,12,17,0],fl:[0,3.2,9,.7],col:[.37,.28,.21],seed:1.3},
+ titanic:{org:[-17.6,-1,-63.8],h:.4,n:[88,110,320],cap:5500000,hp:[120,28,22,.5],boxes:[],brk:-57,hollow:1,er:[1.1,.62,.8,.08],dk:[6,12,17,0],fl:[0,3.2,9,.7],col:[.37,.28,.21],seed:1.3},
  bismarck_sup:{org:[-9.6,19.6,-50.6],h:.3,n:[64,88,110],cap:1800000,hp:[-3,0,0,0],boxes:[],brk:-1000,hollow:0,er:[0,1,.8,.05],dk:[0,0,0,0],fl:[0,0,0,.5],col:[.3,.33,.36],seed:2.8},
  bismarck:{org:[-22.4,-1,-128.8],h:.8,n:[56,56,322],cap:4000000,hp:[250,36,16,.45],boxes:[[0,18,-4,.3,10,2,80]],brk:-1000,hollow:0,er:[.3,.9,.96,.12],dk:[0,0,0,0],fl:[1,0,0,.8],col:[.29,.32,.35],seed:2.1},
  roberts:{org:[-6.8,-1,-48],h:.4,n:[34,58,240],cap:2500000,hp:[93,11,8,.45],boxes:[[0,10.5,6,.8,3.5,2.5,5],[0,15,7,.7,2.5,2,3],[0,18.5,7,.6,1.5,1.5,1.5]],brk:-1000,hollow:0,er:[.5,.88,.96,.15],dk:[0,0,0,0],fl:[1,0,0,.5],col:[.29,.31,.35],seed:3.7},
@@ -2240,7 +2278,7 @@ const dive=$('dive');dive.disabled=true;dive.textContent='Preparando el océano�
 window.__st=()=>SPS.filter(s=>s.cnt).map(s=>s.n+':'+s.cnt).join(' | ');window.__go=(x,dep,z,yw,p)=>{cam.position.set(x,-dep,z);yaw=yw;pitch=p;rebuild();terrain()};
 {const st=$('start');dive.onclick=()=>{st.style.display='none';audio();startIntro()};document.querySelectorAll('#ql button').forEach(b=>b.onclick=()=>setQ(+b.dataset.q));
  if(/directo|debug/.test(location.hash))st.style.display='none';
- addEventListener('keydown',e=>{if(e.code==='KeyG'&&st.style.display==='none')setQ((QL+1)%5);if(e.code==='KeyH'){perfOn=!perfOn;$('perf').style.display=perfOn?'block':'none'}})}
+ addEventListener('keydown',e=>{if(e.code==='KeyH'){perfOn=!perfOn;$('perf').style.display=perfOn?'block':'none'}})}
 await buildPipes();buildShadow();buildTargets();await initTextures();rebuild();terrain();
 document.querySelectorAll('#ql button').forEach(b=>b.classList.toggle('on',+b.dataset.q===QL));dive.disabled=false;dive.textContent='Sumergirse';
 if(location.hash==='#debug')window.__bench=async(n=40)=>{await device.queue.onSubmittedWorkDone();const t0=performance.now();for(let i=0;i<n;i++)frame(i*.016,-cam.position.y,Math.exp(-(-cam.position.y)*.02));await device.queue.onSubmittedWorkDone();return +((performance.now()-t0)/n).toFixed(2)};
@@ -2316,8 +2354,8 @@ function loop(now){requestAnimationFrame(loop);const dt=Math.min((now-lastT)/100
  if(!PROF)frame(t,dep,sun);
  fpsS+=(dt*1000-fpsS)*.05;if(perfOn&&fr%10===0)$('perf').textContent=(1000/fpsS).toFixed(0)+' fps · '+fpsS.toFixed(1)+' ms · render '+Math.round(RS*100)+' % ('+TG.W+'×'+TG.H+') · calidad '+['baja','media','alta','ultra','premium'][QL]+' · WebGPU'+(texSh&&dep<110?' · sombras':'');
  gAcc+=dt*1000;gN++;if(now<9000){gAcc=0;gN=0}if(gAcc>1600){const a0=gAcc/gN,gm=GT&&GT.ms,a=gm?(a0>24?Math.max(a0,gm):gm*1.3):a0;let k=1;if(a>19.5)k=.92;else if(a<13.8&&RS<QS[QL].rsMax)k=1.06;if(a>19.5&&RS<=.5)LODR=Math.max(LODR*.9,20);else if(a<13.8&&RS>=QS[QL].rsMax-.01)LODR=Math.min(LODR*1.05,[45,80,120,160,200][QL]);MIDR=LODR+12;
-  if(k!==1&&!switching){RS=clamp(RS*k,QL<3?.3:.45,QS[QL].rsMax);buildTargets()}
-  if(QL>=3&&!switching&&!window.__nodown){if(a>19.5&&RS<=.5){if(++lowCnt>=2){lowCnt=0;const pq=QL,nq=QL-1;setQ(nq);lampToast('Tu GPU no sostiene '+['','','','Ultra','Premium'][pq]+': paso a '+['Bajo','Medio','Alto','Ultra'][nq])}}else lowCnt=0}gAcc=gN=0}}
+  if(k!==1&&!switching){RS=clamp(RS*k,1.,QS[QL].rsMax);buildTargets()}
+  gAcc=gN=0}}
 requestAnimationFrame(loop);
 setTimeout(()=>{$('hint').style.transition='opacity 2s';$('hint').style.opacity=.0},20000);
 

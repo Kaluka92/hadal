@@ -22,10 +22,10 @@ Abrí `index.html` en un Chrome o Edge reciente con WebGPU. Necesita internet: T
 | T | recorrido guiado |
 | L | luces: normales / reflectores amplios / apagadas |
 | M | sonido |
-| G · H | calidad · panel de rendimiento |
+| H | panel de rendimiento |
 
 ## Calidad gráfica
-Cinco niveles (menú de inicio o tecla G): **Bajo, Medio, Alto, Ultra, Premium**.
+Desde el 2026-11-18 **no hay niveles**: el motor corre siempre al máximo (el antiguo «Premium»); la tabla de abajo describe ese tope.
 
 | | Sombras | Fauna y rocas | Detalle lejano | Resolución interna máx. | Extras |
 |---|---|---|---|---|---|
@@ -35,7 +35,7 @@ Cinco niveles (menú de inicio o tecla G): **Bajo, Medio, Alto, Ultra, Premium**
 | Ultra | 6144, 25 muestras | ×2,7 | 160 m | hasta 170 % (tope 4096 px) | TAA, oclusión ambiental (16 muestras), desenfoque de lente (20), luz volumétrica (48 pasos) |
 | Premium | 8192, 49 muestras | ×3,4 | 200 m | hasta 210 % (tope 4096 px) | TAA, oclusión ambiental (28 muestras), desenfoque de lente (36), luz volumétrica (64 pasos) |
 
-La resolución interna se ajusta sola. Si Ultra o Premium no sostienen unos ~50 cuadros por segundo, el programa baja un nivel y lo avisa. Ultra y Premium están pensados para GPU dedicadas con 10 GB o más, y **no se probaron en una**.
+La resolución interna se ajusta sola. El programa ya no baja de nivel ni deja la resolución por debajo de la nativa: si tu GPU no llega, va más lento en vez de verse peor. Ultra y Premium están pensados para GPU dedicadas con 10 GB o más, y **no se probaron en una**.
 
 ## Técnicas
 - **Cascos esculpidos en la GPU.** Cada barco es un campo de distancia con signo (casco de chapa fina, cubiertas, superestructuras redondeadas, bordes de rotura erosionados con ruido) evaluado en un compute shader y convertido a malla con *surface nets*; el resultado se dibuja con `drawIndirect` sin pasar por la CPU.
@@ -45,7 +45,7 @@ La resolución interna se ajusta sola. Si Ultra o Premium no sostienen unos ~50 
 - **Fondo de agua dentro del pase de escena.** La niebla del fondo se dibuja como triángulo a pantalla completa antes del terreno, para que el resolve de MSAA mezcle bien los bordes (hacerlo en el pase final con un test de profundidad dejaba una línea de 1 px en el horizonte).
 - **Detalle triplanar con gradientes explícitos y atenuación por profundidad**, y materiales procedurales distintos por tipo de superficie (roca, sedimento, chapa remachada, madera con tablones y agujeros de broma).
 - **Bioluminiscencia por compute**: 48.000 partículas excitadas por la estela del submarino.
-- **Gobernador de rendimiento** con consultas de marca de tiempo: ajusta resolución y radio de detalle, y baja de nivel de calidad si hace falta.
+- **Gobernador de rendimiento** con consultas de marca de tiempo: ajusta resolución y radio de detalle, sin bajar nunca de la resolución nativa.
 - **Terreno de alta resolución cerca de la cámara.** Un parche de 251×251 vértices (paso de 25 cm, ±31 m) se recalcula por compute alrededor del submarino y suma, sobre el terreno grueso, rizos de arena, montículos de bioturbación y guijarros procedurales (siempre por encima del terreno grueso, con fundido en el borde, para no necesitar recortes ni costuras). Se activa desde Medio; bit de depuración 32768.
 - **Luz volumétrica de los focos.** Marcha de rayos a media resolución en el pase de rayos: dos focos con cono, atenuación por distancia y absorción del agua, fase de dispersión de Henyey-Greenstein, y una densidad de partículas con ruido 3D animado; los pasos se reparten con densidad creciente cerca de la cámara y el haz se corta contra la profundidad de la escena. Desde Medio (el pase viejo de cono queda atenuado). Bit de depuración 65536.
 - **Traslucidez de medusas.** Para los materiales translúcidos se suma la luz del foco que atraviesa el cuerpo (más intensa donde la superficie mira a la cámara, teñida por el color propio al cuadrado) y la luz ambiente difusa del agua. Bit de depuración 131072.
@@ -77,7 +77,7 @@ En `#debug` (`index.html#debug`) quedan funciones de ayuda en `window` (`__go`, 
 - Representación artística: las especies y el relieve no son un modelo científico exacto.
 - Los cascos completos se ven poco por la oscuridad del agua profunda; los reflectores (L) ayudan hasta ~100 m.
 - La reacción de la fauna al submarino y el sonido procedural (WebAudio) no se verificaron visualmente ni de oído.
-- Celular: hay botones táctiles (avanzar, subir, bajar) y arrastrar para mirar, y arranca en calidad Bajo, pero **no se probó en un celular real**; necesita un navegador con WebGPU (Chrome en Android reciente, Safari 26 o posterior).
+- Celular: hay botones táctiles (avanzar, subir, bajar) y arrastrar para mirar, y corre al máximo (puede ir muy lento en un celular), pero **no se probó en un celular real**; necesita un navegador con WebGPU (Chrome en Android reciente, Safari 26 o posterior).
 - La carga depende de un CDN sin verificación de integridad.
 
 ## Licencia
