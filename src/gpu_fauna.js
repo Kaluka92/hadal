@@ -79,7 +79,8 @@ function whaleG(o){const tf=u=>Math.pow(Math.sin(Math.PI*Math.pow(u,o.hp)),.85)*
  const top=HX(o.top),bel=HX(o.bel),mid=HX(o.mid||o.top),dk=HX('#0a0d10');
  const colf=(s,c,y)=>{let k=MX3(bel,top,ST(o.line-.12,o.line+.12,y));if(o.pleats&&s>.5&&y<-.15)k=MX3(k,bel,.5*(.5+.5*Math.cos(Math.atan2(c,-y)*22)));
   if(o.sperm){k=MX3(k,mid,.35*(.5+.5*Math.sin(s*140+y*9)))}
-  if(s>.94&&y<.1&&y>-.45)k=MX3(k,dk,.55);return k};
+  if(s>.94&&y<.1&&y>-.45)k=MX3(k,dk,.55);
+  if(o.pleats&&s>.62){const my=-.4+.22*ST(.7,.97,s),m=Math.abs(y-my);k=MX3(k,dk,.75*(1-ST(.015,.05,m))*ST(.62,.7,s))}return k};
  const gs=[LOFT(1,sec,colf,110,40)];const fc=HX(o.fin),fw=HX(o.finw||o.fin);
  // flukes
  for(const sd of[-1,1])gs.push(FIN(v=>[sd*(.012+o.fk*v),0,-.5-.0*v],v=>[sd*(.012+o.fk*v),0,-.5-.07*(1-.3*v)-.1*v-(o.notch?0:.02)],{T:.012,nrm:[0,1,0],nv:12,c1:fc,c2:fw,tip:.45}));
@@ -91,7 +92,7 @@ function whaleG(o){const tf=u=>Math.pow(Math.sin(Math.PI*Math.pow(u,o.hp)),.85)*
  if(o.knobs)for(let i=0;i<14;i++){const s=.8+.19*i/13;gs.push(P(S_(.008,5,4),'#5a6674',{p:[(i%2?.5:-.5)*o.W*.15,o.H*.98*Math.sin(Math.PI*Math.pow(1-s,o.hp))*1.0,-.5+s]}))}
  if(o.sperm)gs.push(LOFT(.36,s=>({w:.012*(1-.3*s)+.004,ht:.012,hb:.012,p:2.2,yc:-.065}),()=>HX('#c9cdd0'),12,12,[0,0,.33]));
  return MG(gs)}
-SPN('Ballena jorobada').g=()=>whaleG({H:.1,W:.1,p:2.2,hp:.7,tp:.22,top:'#27323e',bel:'#d4dadc',line:-.25,pleats:1,fin:'#3a4651',finw:'#cfd5d8',fk:.13,fl:.26,fz:.2,fc:.07,dh:.025,dz:-.25,ez:.4,er:.008,knobs:1,notch:1});
+SPN('Ballena jorobada').g=()=>whaleG({H:.1,W:.1,p:2.2,hp:.7,tp:.22,top:'#27323e',bel:'#d4dadc',line:-.25,pleats:1,fin:'#3a4651',finw:'#cfd5d8',fk:.2,fl:.26,fz:.2,fc:.07,dh:.025,dz:-.25,ez:.4,er:.008,knobs:1,notch:1});
 SPN('Ballena jorobada').pat=0;
 SPN('Cachalote').g=()=>whaleG({H:.115,W:.1,p:2.2,hp:.5,tp:.3,top:'#4d555e',bel:'#6b737b',mid:'#3a4148',line:-.5,sperm:1,fin:'#444c54',fk:.12,fl:.07,fz:.18,fc:.04,dh:.02,dz:-.3,ez:.31,er:.007,notch:1});
 SPN('Cachalote').pat=0;
@@ -114,22 +115,30 @@ SPN('Manta raya').g=()=>{const NX=44,NZ=22,pos=[],col=[],ix=[],ct=HX('#1d2831'),
 SPN('Manta raya').pat=0;
 
 // ---------- TORTUGA VERDE ----------
-SPN('Tortuga verde').g=()=>{const NA=44,NR=14,pos=[],col=[],ix=[],sc=HX('#3c4226'),sd=HX('#161a0e'),pl=HX('#9c9570'),sk=HX('#566033');
- const Rx=.5,Rz=.64;
+SPN('Tortuga verde').g=()=>{const NA=72,NR=24,pos=[],col=[],ix=[],sc=HX('#34361a'),sd=HX('#0d0f07'),pl=HX('#a89c6c'),sk=HX('#4a5428'),am=HX('#5e5426');
+ const Rx=.5,Rz=.64,gr=(r,a)=>{const g1=Math.abs(Math.sin(r*8.2+Math.sin(a*5)*.35)),g2=Math.abs(Math.sin(a*6.5+r*2.2));return Math.min(g1,g2)};
  for(const side of[1,-1]){const b0=pos.length/3;
   for(let i=0;i<=NR;i++){const r=i/NR;
-   for(let j=0;j<=NA;j++){const a=j/NA*6.28318,c=Math.cos(a),n=Math.sin(a),sh=1+.12*Math.max(-n,0)*(1-.3*Math.abs(c)),x=Rx*r*c*(1+.05*n),z=Rz*r*n*sh,dome=Math.pow(Math.max(1-r*r,0),.55);
-    let y=side>0?.2*dome+.025*Math.exp(-Math.pow((x)/.06,2))*dome:-.05*dome-.01;if(r>.97&&side<0)y=.0;
-    pos.push(x,y,z);let k;if(side>0){const g1=Math.abs(Math.sin(r*9+Math.sin(a*5)*.4)),g2=Math.abs(Math.sin(a*6.5+r*2));const grid=Math.min(g1,g2);k=MX3(sc,sd,.55*(1-ST(.05,.35,grid))+.18*Math.sin(a*13)*Math.sin(r*7));if(r>.93)k=MX3(k,HX('#6e6a48'),.6)}else k=MX3(pl,HX('#c0b684'),.4*r);
+   for(let j=0;j<=NA;j++){const a=j/NA*6.28318,c=Math.cos(a),n=Math.sin(a),sh=1+.12*Math.max(-n,0)*(1-.3*Math.abs(c)),x=Rx*r*c*(1+.05*n),z=Rz*r*n*sh,dome=Math.pow(Math.max(1-r*r,0),.5);
+    const gd=gr(r,a),pl_=ST(.04,.32,gd);
+    let y=side>0?.2*dome+.026*Math.exp(-Math.pow(x/.07,2))*dome+.016*pl_*dome+.01*ST(.86,.99,r)*(1-ST(.99,1,r)):-.05*dome-.01;if(r>.97&&side<0)y=.0;
+    if(side>0&&r>.94)y-=.012*(r-.94)/.06;
+    pos.push(x,y,z);let k;if(side>0){k=MX3(sc,sd,.6*(1-pl_)+.16*Math.sin(a*13)*Math.sin(r*7));k=MX3(k,am,.35*pl_*(.5+.5*Math.sin(r*21+a*3)));if(r>.93)k=MX3(k,HX('#8a8250'),.55)}else{k=MX3(pl,HX('#cdbf8a'),.4*r);if(gd<.08)k=MX3(k,HX('#6a6038'),.5)}
     col.push(k[0],k[1],k[2])}}
   for(let i=0;i<NR;i++)for(let j=0;j<NA;j++){const a=b0+i*(NA+1)+j,b=a+1,c=a+NA+1,d=c+1;if(side>0)ix.push(a,b,c,b,d,c);else ix.push(a,c,b,b,c,d)}}
  const gs=[FX.GF(pos,col,ix)];
- gs.push(LOFT(.3,s=>{const u=1-s,f=Math.max(Math.sin(Math.PI*Math.pow(u,.7)),.01)*.95+.06*(1-u);return{w:.085*f,ht:.075*f,hb:.07*f,p:2.2,yc:.0}},(s,c,y)=>MX3(HX('#566033'),HX('#9c9570'),ST(-.2,-.8,y)),20,20,[0,.04,.78]));
- gs.push(P(CZ(.055,.0,.1,8),'#7a7f4c',{p:[0,.03,.92],s:[1,.6,1]}));
+ // cuello y cabeza con pico
+ gs.push(LOFT(.34,s=>{const u=1-s,f=Math.max(Math.sin(Math.PI*Math.pow(u,.62)),.012)*.92+.1*(1-u)-.02*s;return{w:.075*f+.01*(1-u),ht:.07*f+.008,hb:.06*f+.006,p:2.2,yc:0}},(s,c,y)=>{const k=MX3(sk,pl,ST(-.15,-.8,y));return MX3(k,HX('#3a3f1c'),.45*ST(.05,.7,y)*(.5+.5*Math.sin(c*14)))},28,24,[0,.035,.74]));
+ gs.push(P(CO(.034,.07,8),'#a6965a',{p:[0,.03,1.08],r:[Math.PI/2+.06,0,0],s:[1.15,1,.8]}));
+ for(const sd of[-1,1]){gs.push(P(S_(.02,8,6),'#0a0c06',{p:[sd*.072,.065,.97],s:[1,1,1]}),P(new T.TorusGeometry(.021,.006,5,12),'#6a7040',{p:[sd*.074,.065,.97],r:[0,Math.PI/2,0]}),P(S_(.006,4,3),'#10120a',{p:[sd*.018,.05,1.1]}))}
+ // aletas delanteras: remo curvo, borde de ataque grueso, uña
  for(const sd2 of[-1,1]){
-  gs.push(FIN(v=>[sd2*(.38+.62*v),.0-.1*v*v,.32-.04*v],v=>[sd2*(.4+.8*v),.0-.12*v*v,.18-.34*v-.1*v*v],{T:.022,nv:12,c1:HX('#3a4026'),c2:HX('#566033'),tip:.5}));
-  gs.push(FIN(v=>[sd2*(.22+.2*v),-.01,-.46],v=>[sd2*(.22+.2*v),-.01,-.46-.24*(1-.4*v)],{T:.012,nv:6,c1:HX('#3a4026'),c2:HX('#566033')}));
-  gs.push(...EYE(sd2*.075,.075,.93,.012))}
+  const zc=v=>.3-.5*v-.1*v*v,ch=v=>.07+.3*Math.pow(Math.sin(Math.PI*(.12+.62*v)),.8)*(1-.55*v*v),xx=v=>sd2*(.34+.82*v),yy=v=>-.02-.09*v*v+.03*Math.sin(v*3);
+  gs.push(FIN(v=>[xx(v),yy(v),zc(v)+ch(v)*.4],v=>[xx(v),yy(v)-.012*v,zc(v)-ch(v)*.6],{T:.034,nv:18,c1:HX('#46502a'),c2:HX('#7a7a46'),tip:.35}));
+  gs.push(P(CO(.012,.045,5),'#d4ccA0',{p:[xx(1),yy(1),zc(1)+.02],r:[Math.PI/2+.2,0,sd2*-.6]}));
+  const zr=v=>-.46-.2*v,cr=v=>.06+.16*Math.sin(Math.PI*(.15+.6*v));
+  gs.push(FIN(v=>[sd2*(.2+.3*v),-.016,zr(v)+cr(v)*.4],v=>[sd2*(.2+.3*v),-.016,zr(v)-cr(v)*.6],{T:.02,nv:10,c1:HX('#3a4224'),c2:HX('#5a5e34'),tip:.35}))}
+ gs.push(seg(V3([0,-.01,-.62]),V3([0,-.03,-.84]),.04,.008,6));
  return MG(gs.map(g=>g.attributes.color?g:P(g,'#7a7f4c')))};
 SPN('Tortuga verde').pat=0;
 
@@ -260,8 +269,8 @@ SPN('Calamar gigante').g=()=>{const red=HX('#a3453a'),pale=HX('#d9a690'),dk=HX('
  gs.push(LOFT(.11,s=>{const f=Math.max(Math.sin(Math.PI*(.12+.78*s)),.05);return{w:.066*f,ht:.062*f,hb:.056*f,p:2.2,yc:0}},colf,14,16,[0,0,.05]));
  for(const sd of[-1,1]){gs.push(P(S_(.02,8,6),'#0a1218',{p:[sd*.074,.008,.06]}),P(new T.TorusGeometry(.021,.003,5,12),'#c9a050',{p:[sd*.0745,.008,.06],r:[0,Math.PI/2,0]}))}
  gs.push(P(CO(.016,.05,6),'#b87a68',{p:[0,-.045,.09],r:[Math.PI/2+.2,0,0]}));
- for(let i=0;i<8;i++){const a=i/8*6.2832+.4,ln=i===5||i===6?.24:.2;gs.push(...armG([Math.cos(a)*.04,Math.sin(a)*.04,.1],[Math.cos(a)*.22,Math.sin(a)*.22-.06,1],ln,.016,14,'#b0584a'))}
- for(const sd of[-1,1]){gs.push(...armG([sd*.012,-.03,.1],[sd*.15,-.08,1],.46,.007,0,'#b86858',.1));const e=V3([sd*.07,-.1,.55]);
+ for(let i=0;i<8;i++){const a=i/8*6.2832+.4,ln=i===5||i===6?.28:.22;gs.push(...armG([Math.cos(a)*.04,Math.sin(a)*.04,.1],[Math.cos(a)*.22,Math.sin(a)*.22-.06,1],ln,.023,16,'#b0584a'))}
+ for(const sd of[-1,1]){gs.push(...armG([sd*.012,-.03,.1],[sd*.15,-.08,1],.5,.011,0,'#b86858',.1));const e=V3([sd*.07,-.1,.55]);
   gs.push(P(S_(.014,6,4),'#c46a58',{p:[e.x,e.y,e.z],s:[1,1,3.2]}),...Array.from({length:7},(_,k)=>P(S_(.004,4,3),'#ecdccf',{p:[e.x+(k%2?.007:-.007),e.y-.007,e.z-.03+k*.01]})))}
  return MG(gs)};
 SPN('Calamar vampiro').g=()=>{const wb=HX('#5a1424'),wd=HX('#2a0810'),gs=[],N=8,armPos=(i,f)=>{const a=i/N*6.2832+.3,d=[Math.cos(a)*.5,Math.sin(a)*.5-.04*f,1],l=Math.hypot(...d);return[Math.cos(a)*.05+d[0]/l*f*.5,Math.sin(a)*.05+d[1]/l*f*.5,.12+d[2]/l*f*.5]};

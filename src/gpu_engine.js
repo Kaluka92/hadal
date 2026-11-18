@@ -59,7 +59,7 @@ const gBuf=mkBuf(368,UB.UNIFORM|UB.COPY_DST),gShBuf=mkBuf(368,UB.UNIFORM|UB.COPY
 // ---- calidad ----
 var QL=1,RS=.75,perfOn=false,fpsS=16.7;
 try{QL=+(localStorage.hadalQ||1)}catch(e){}if(!(QL>=0&&QL<=4))QL=1;
-const QS=[{rs0:.55,rsMax:.7,ms:1,sh:0,shE:0,steps:10,den:.9},{rs0:.75,rsMax:.92,ms:4,sh:1024,shE:3,steps:14,den:1},{rs0:.9,rsMax:1,ms:4,sh:2048,shE:2,steps:18,den:1},{rs0:1.4,rsMax:1.7,ms:4,sh:6144,shE:1,steps:48,den:2.7},{rs0:1.55,rsMax:2.1,ms:4,sh:8192,shE:1,steps:64,den:3.4}];RS=QS[QL].rs0;
+const QS=[{rs0:.65,rsMax:.85,ms:1,sh:0,shE:0,steps:10,den:.95},{rs0:.85,rsMax:1.1,ms:4,sh:2048,shE:2,steps:16,den:1.15},{rs0:1,rsMax:1.3,ms:4,sh:3072,shE:2,steps:22,den:1.3},{rs0:1.4,rsMax:1.7,ms:4,sh:6144,shE:1,steps:48,den:2.7},{rs0:1.55,rsMax:2.1,ms:4,sh:8192,shE:1,steps:64,den:3.4}];RS=QS[QL].rs0;
 let SC=QS[QL].ms,texSh=null;
 
 // ---- grupos de enlace globales ----
@@ -463,7 +463,7 @@ function lightMatrix(){const L=SUN;shR.crossVectors(zAx,L).normalize();shU.cross
 function drawStatic(p,list,shadow){for(const s of list){if(shadow&&!s.caster)continue;if(s.wk){const w=WR[s.wk];if(w&&Math.hypot(cam.position.x-w.x,cam.position.z-w.z,cam.position.y-w.y)>430)continue}p.setPipeline(shadow?mkP(['',false,true].join('|')):mkP(['',false,false].join('|')));p.setBindGroup(1,s.mat.bg);p.setVertexBuffer(0,s.geo.buf);p.setVertexBuffer(1,s.ibuf);if(s.ind){p.setIndexBuffer(s.ind.idx,'uint32');p.drawIndexedIndirect(s.ind.args,0)}else p.draw(s.geo.n,1)}}
 function drawTerrainF(p){p.setPipeline(mkP(['',false,false].join('|')));p.setBindGroup(1,matTerr.bg);p.setVertexBuffer(0,tvbF);p.setVertexBuffer(1,identBuf);p.setIndexBuffer(tib,'uint32');p.drawIndexed(250*250*6)}
 function drawTerrain(p,shadow){p.setPipeline(mkP(['',false,shadow].join('|')));p.setBindGroup(1,matTerr.bg);p.setVertexBuffer(0,tvb);p.setVertexBuffer(1,identBuf);p.setIndexBuffer(tib,'uint32');p.drawIndexed(250*250*6)}
-var LODR=[35,60,80,160,200][QL],MIDR=LODR+12,CULLR=90;
+var LODR=[40,70,100,160,200][QL],MIDR=LODR+12,CULLR=90;
 function upl(sp){device.queue.writeBuffer(sp.geoN?sp.sbuf:sp.ibuf,0,sp.inst.buffer,0,sp.cnt*96)}
 function planesOf(m){const o=new Float32Array(24),row=i=>[m[i],m[4+i],m[8+i],m[12+i]],r3=row(3),defs=[[row(0),1],[row(0),-1],[row(1),1],[row(1),-1],[row(2),0],[row(2),-1]];
  defs.forEach(([rk,sg],k)=>{let c;if(sg===0)c=rk;else c=[r3[0]+sg*rk[0],r3[1]+sg*rk[1],r3[2]+sg*rk[2],r3[3]+sg*rk[3]];if(k===5)c=[r3[0]-rk[0],r3[1]-rk[1],r3[2]-rk[2],r3[3]-rk[3]];const l=Math.hypot(c[0],c[1],c[2])||1;o.set([c[0]/l,c[1]/l,c[2]/l,c[3]/l],k*4)});return o}
@@ -521,6 +521,6 @@ function frame(t,dep,sunD){
  focusV=Math.exp(Math.log(focusV)+(Math.log(focusT)-Math.log(focusV))*.12);
  if(GT&&GT.cur>=0){const i=GT.cur;GT.cur=-1;GT.busy[i]=true;GT.ring[i].mapAsync(GPUMapMode.READ).then(()=>{const a=new BigUint64Array(GT.ring[i].getMappedRange().slice(0));GT.ring[i].unmap();GT.busy[i]=false;const ms=Number(a[1]-a[0])/1e6;if(ms>0&&ms<250)GT.ms=GT.ms?GT.ms*.85+ms*.15:ms}).catch(()=>{GT.busy[i]=false})}}
 function rs(){buildTargets()}addEventListener('resize',()=>{if(PP.fin)rs()});
-function setQ(q,reset){const oldSC=SC;QL=q;LODR=[35,60,80,160,200][q];MIDR=LODR+12;try{localStorage.hadalQ=q}catch(e){}if(reset!==false)RS=QS[q].rs0;RS=Math.min(RS,QS[q].rsMax);
+function setQ(q,reset){const oldSC=SC;QL=q;LODR=[40,70,100,160,200][q];MIDR=LODR+12;try{localStorage.hadalQ=q}catch(e){}if(reset!==false)RS=QS[q].rs0;RS=Math.min(RS,QS[q].rsMax);
  const go=async()=>{switching=true;try{if(QS[q].ms!==oldSC){SC=QS[q].ms;await buildPipes()}buildShadow();buildTargets();rebuild()}finally{switching=false}
   document.querySelectorAll('#ql button').forEach(b=>b.classList.toggle('on',+b.dataset.q===q))};go()}

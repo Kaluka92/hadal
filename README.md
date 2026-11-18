@@ -29,9 +29,9 @@ Cinco niveles (menú de inicio o tecla G): **Bajo, Medio, Alto, Ultra, Premium**
 
 | | Sombras | Fauna y rocas | Detalle lejano | Resolución interna máx. | Extras |
 |---|---|---|---|---|---|
-| Bajo | — | ×0,9 | 35 m | 70 % | sin MSAA ni TAA |
-| Medio | 1024 | ×1 | 60 m | 92 % | MSAA ×4, TAA |
-| Alto | 2048 | ×1 | 80 m | 100 % | TAA |
+| Bajo | — | ×0,95 | 40 m | 85 % | sin MSAA ni TAA |
+| Medio | 2048 | ×1,15 | 70 m | hasta 110 % | MSAA ×4, TAA |
+| Alto | 3072 | ×1,3 | 100 m | hasta 130 % | TAA |
 | Ultra | 6144, 25 muestras | ×2,7 | 160 m | hasta 170 % (tope 4096 px) | TAA, oclusión ambiental (16 muestras), desenfoque de lente (20), luz volumétrica (48 pasos) |
 | Premium | 8192, 49 muestras | ×3,4 | 200 m | hasta 210 % (tope 4096 px) | TAA, oclusión ambiental (28 muestras), desenfoque de lente (36), luz volumétrica (64 pasos) |
 
